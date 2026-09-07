@@ -85,3 +85,17 @@ create policy "registros: edición compartida" on public.registros
 
 create policy "registros: borrado compartido" on public.registros
   for delete using (auth.uid() is not null);
+
+-- Sin esto, el "sincronizado en vivo" de la app se queda callado: la tabla
+-- existe y las políticas permiten leerla, pero Supabase no avisa cambios en
+-- tiempo real de una tabla que no está en la publicación supabase_realtime.
+-- (Lo mismo se puede activar a mano en Database → Replication.)
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'registros'
+  ) then
+    alter publication supabase_realtime add table public.registros;
+  end if;
+end $$;
