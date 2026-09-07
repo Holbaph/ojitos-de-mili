@@ -247,10 +247,24 @@
   <section class="block">
     <p class="block-title">Personas con acceso</p>
     <div class="people-list" id="peopleList"></div>
-    <div class="invite-box hidden" id="inviteBox">
-      Como administradora, invita a alguien nuevo desde tu panel de Supabase:
-      <strong>Authentication → Users → Invite user</strong>. Le llegará un correo para elegir
-      su contraseña y quedará con acceso automáticamente.
+
+    <div class="addform show hidden" id="inviteForm">
+      <p style="margin:0 0 2px;font-size:12.5px;color:var(--ink-soft)">
+        Como administradora/or, invita a alguien nuevo — le llega un correo para elegir su
+        contraseña y queda con acceso de inmediato.
+      </p>
+      <p class="auth-error hidden" id="inviteError" style="margin:0"></p>
+      <div>
+        <label for="inviteEmail">Correo</label>
+        <input type="email" id="inviteEmail" placeholder="correo@ejemplo.com" autocapitalize="off">
+      </div>
+      <div>
+        <label for="inviteNombre">Nombre (opcional)</label>
+        <input type="text" id="inviteNombre" placeholder="Cómo se le mostrará a los demás">
+      </div>
+      <div class="row-btns">
+        <button class="btn-save" id="inviteSend">Enviar invitación</button>
+      </div>
     </div>
   </section>
 </div>

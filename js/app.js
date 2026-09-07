@@ -307,9 +307,31 @@
       (p.role === 'admin' ? '<span class="badge-admin">Admin</span>' : '') +
       '</div>'
     ).join('');
-    document.getElementById('inviteBox').classList.toggle('hidden', perfil.role !== 'admin');
+    document.getElementById('inviteForm').classList.toggle('hidden', perfil.role !== 'admin');
     renderToday(); renderList(); // por si ya cargó gente después del historial (nombres de "registrado por")
   }
+
+  document.getElementById('inviteSend').addEventListener('click', async () => {
+    const email = document.getElementById('inviteEmail').value.trim();
+    const nombre = document.getElementById('inviteNombre').value.trim();
+    const err = document.getElementById('inviteError');
+    err.classList.add('hidden');
+    if (!email) { err.textContent = 'Escribe un correo.'; err.classList.remove('hidden'); return; }
+    const btn = document.getElementById('inviteSend');
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    try {
+      await Auth.invitarPersona(email, nombre);
+      document.getElementById('inviteEmail').value = '';
+      document.getElementById('inviteNombre').value = '';
+      showToast('Invitación enviada a ' + email);
+      await cargarPersonas();
+    } catch (e) {
+      err.textContent = e.message || 'No se pudo invitar, intenta de nuevo';
+      err.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enviar invitación';
+    }
+  });
 
   // ================= interacciones del historial =================
   document.getElementById('list').addEventListener('click', (e) => {

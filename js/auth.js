@@ -67,4 +67,18 @@ const Auth = {
     const { error } = await supabaseClient.from('profiles').update({ nombre }).eq('id', userId);
     if (error) throw error;
   },
+
+  // Llama a la Edge Function invite-user (supabase/functions/invite-user). Esa
+  // función revisa de nuevo, del lado del servidor, que quien llama sea admin
+  // antes de invitar — este chequeo del lado del cliente es solo para no
+  // mostrar el botón a quien no lo puede usar.
+  async invitarPersona(email, nombre) {
+    if (!supabaseClient) throw new Error('Supabase no está configurado');
+    const { data, error } = await supabaseClient.functions.invoke('invite-user', {
+      body: { email, nombre },
+    });
+    if (error) throw new Error('No se pudo contactar la función de invitación. ¿Ya la desplegaste? Revisa el README.');
+    if (!data || data.ok !== true) throw new Error((data && data.error) || 'No se pudo invitar');
+    return data;
+  },
 };

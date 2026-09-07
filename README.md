@@ -15,9 +15,9 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   la última vez, para no repetir lado por error.
 - **Cuentas por invitación, con un administrador**: inicias sesión con correo y
   contraseña — no hay registro público. La primera cuenta que se cree queda como
-  **administradora** automáticamente; solo ella puede invitar a nuevas personas
-  (desde el panel de Supabase, ver más abajo). Cualquiera con acceso ve y registra en
-  el mismo historial compartido, y cada registro queda con el nombre de quién lo puso.
+  **administradora** automáticamente; solo ella ve el botón para invitar a nuevas
+  personas (ver más abajo). Cualquiera con acceso ve y registra en el mismo
+  historial compartido, y cada registro queda con el nombre de quién lo puso.
 - **Historial de constancia**: días seguidos registrados, total de días con registro,
   % de constancia desde el primer día, balance entre ojo derecho/izquierdo, un
   calendario de los últimos 28 días y la lista completa de registros (con opción de
@@ -54,15 +54,39 @@ Esos dos valores son públicos por diseño (los usa cualquiera que abra la app e
 navegador); la seguridad real la dan las políticas de la base de datos (RLS) del
 script SQL — sin haber iniciado sesión, esas claves no permiten leer ni escribir nada.
 
-## 2. Invitar a alguien nuevo
+## 2. Activar el botón "Invitar" dentro de la app (Edge Function)
 
-Solo la administradora puede hacerlo, y se hace **desde el panel de Supabase**, no
-desde la app (para que quede completamente bajo su control):
+Solo la administradora/or ve y puede usar el botón **Invitar** (en Historial →
+Personas con acceso). Para que funcione, hay que desplegar una función de
+Supabase que hace la invitación por ti — es la única forma segura de hacerlo,
+porque invitar gente requiere una clave que nunca debe llegar al navegador
+(`supabase/functions/invite-user/index.ts` ya está escrita, solo falta subirla).
 
-**Authentication → Users → Invite user**, escribe el correo de la persona y
-listo. Le llega un correo para elegir su propia contraseña; al aceptar, queda con
-acceso a la app y aparece en **Historial → Personas con acceso**, marcada como
-usuaria normal (no administradora).
+1. Instala la CLI de Supabase (una sola vez en tu computador). En Windows con
+   [Scoop](https://scoop.sh): `scoop install supabase`. En Mac: `brew install supabase/tap/supabase`.
+   (Otras opciones en <https://supabase.com/docs/guides/cli>.)
+2. Abre una terminal en la carpeta de este proyecto y entra sesión:
+   ```
+   supabase login
+   ```
+   Se abre el navegador para que confirmes con tu cuenta de Supabase.
+3. Conecta la carpeta con tu proyecto (el ID está en la URL de tu proyecto,
+   `https://supabase.com/dashboard/project/<ID>`, o en Project Settings → General):
+   ```
+   supabase link --project-ref TU-PROJECT-REF
+   ```
+4. Despliega la función:
+   ```
+   supabase functions deploy invite-user
+   ```
+
+Y listo — el botón **Invitar** ya funciona dentro de la app. Cada vez que cambies
+`supabase/functions/invite-user/index.ts`, vuelve a correr `supabase functions
+deploy invite-user` para actualizarla.
+
+**Alternativa sin CLI:** si prefieres no instalar nada, puedes seguir invitando
+igual desde **Authentication → Users → Invite user** en el panel de Supabase —
+funciona exactamente igual, solo que fuera de la app.
 
 ## 3. Publicar en GitHub Pages
 
@@ -91,6 +115,7 @@ js/auth.js                sesión, perfiles, invitación/recuperación de contra
 js/core.js                fechas/horas y acceso a la tabla "registros"
 js/app.js                 toda la interacción de la app
 supabase/schema.sql       tablas, RLS y el disparador que crea tu perfil
+supabase/functions/       Edge Function que envía invitaciones (paso 2)
 manifest.json, sw.js      configuración PWA (instalable, caché del cascarón)
 icons/                    íconos de la app
 ```
