@@ -1,6 +1,7 @@
 -- Ojitos de Mili — temporizador del parche + avisos automáticos
 -- Corre esto DESPUÉS de supabase/schema.sql (ese no se toca, esto se suma).
 -- Pega todo este archivo en Supabase → SQL Editor → New query → Run.
+-- Es seguro volver a correrlo si algo falló a mitad de camino la primera vez.
 
 -- ---------- duración del parche (configurable, compartida) ----------
 create table if not exists public.configuracion (
@@ -15,9 +16,11 @@ on conflict (id) do nothing;
 
 alter table public.configuracion enable row level security;
 
+drop policy if exists "configuracion: lectura compartida" on public.configuracion;
 create policy "configuracion: lectura compartida" on public.configuracion
   for select using (auth.uid() is not null);
 
+drop policy if exists "configuracion: edición compartida" on public.configuracion;
 create policy "configuracion: edición compartida" on public.configuracion
   for update using (auth.uid() is not null) with check (auth.uid() is not null);
 
@@ -37,17 +40,21 @@ create table if not exists public.push_subscriptions (
 
 alter table public.push_subscriptions enable row level security;
 
+drop policy if exists "push_subscriptions: cada quien ve las suyas" on public.push_subscriptions;
 create policy "push_subscriptions: cada quien ve las suyas" on public.push_subscriptions
   for select using (auth.uid() = user_id);
 
+drop policy if exists "push_subscriptions: cada quien crea las suyas" on public.push_subscriptions;
 create policy "push_subscriptions: cada quien crea las suyas" on public.push_subscriptions
   for insert with check (auth.uid() = user_id);
 
 -- upsert() reutiliza la fila si el mismo dispositivo ya estaba suscrito (mismo
 -- endpoint), así que también hace falta permiso de UPDATE, no solo INSERT.
+drop policy if exists "push_subscriptions: cada quien actualiza las suyas" on public.push_subscriptions;
 create policy "push_subscriptions: cada quien actualiza las suyas" on public.push_subscriptions
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "push_subscriptions: cada quien borra las suyas" on public.push_subscriptions;
 create policy "push_subscriptions: cada quien borra las suyas" on public.push_subscriptions
   for delete using (auth.uid() = user_id);
 
