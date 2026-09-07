@@ -26,6 +26,14 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   registro nuevo aparece al instante en ambas pantallas.
 - **Instalable** en el celular (ícono de pantalla de inicio, como una app nativa) y
   funciona igual desde cualquier computador o tablet con la misma cuenta.
+- **Temporizador con reloj de arena**: apenas se registra el parche del día, aparece
+  un reloj de arena animado mostrando cuánto falta — pensado para que la propia Mili
+  pueda mirarlo y entender cuánto queda, sin tener que preguntar. La duración
+  (cuántos minutos va el parche puesto) se configura y se puede cambiar cuando
+  quieras, en Historial → Temporizador y avisos.
+- **Avisos aunque la app esté cerrada**: al activarlos en un dispositivo (mismo
+  bloque de Ajustes), llega una notificación exactamente cuando se cumple el
+  tiempo — no hace falta tener la app abierta ni el celular desbloqueado.
 
 ## 1. Configurar Supabase (una sola vez)
 
@@ -88,7 +96,36 @@ deploy invite-user` para actualizarla.
 igual desde **Authentication → Users → Invite user** en el panel de Supabase —
 funciona exactamente igual, solo que fuera de la app.
 
-## 3. Publicar en GitHub Pages
+## 3. Activar el temporizador y los avisos (Edge Function + cron)
+
+Esto hace que, cuando se cumpla el tiempo del parche, llegue una notificación al
+celular aunque nadie tenga la app abierta. Usa **Web Push** (el mismo mecanismo
+de notificaciones de cualquier app, pero para páginas web) — funciona en iPhone
+si la app está agregada a la pantalla de inicio (iOS 16.4 o más nuevo).
+
+1. Corre [`supabase/schema_temporizador.sql`](supabase/schema_temporizador.sql)
+   completo en **SQL Editor** (igual que hiciste con `schema.sql` en el paso 1).
+   Esto agrega la tabla de duración configurable, las suscripciones de aviso, y
+   programa (`pg_cron`) una revisión automática cada minuto.
+2. Guarda las llaves VAPID como secretos de tus Edge Functions (con la CLI, misma
+   terminal del paso 2 de arriba):
+   ```
+   supabase secrets set VAPID_PUBLIC_KEY=BLtaYdh73__SEg262LZe_4rmEKRQJISAWU0VzEhh8GMJTqoWPX5QNFgRjldF0BWE0b3XJ3Og2tvIHrlvEhlxqts
+   supabase secrets set VAPID_PRIVATE_KEY=Eoja4JftEG0K9NQispI2E8hHCsisWx4frqWlNzyfBzg
+   ```
+   *(Estas llaves ya vienen generadas y puestas en `js/supabase-config.js` —la
+   pública— y aquí —la privada. Si algún día quieres generar unas nuevas:
+   `npx web-push generate-vapid-keys`.)*
+3. Despliega la función que manda los avisos:
+   ```
+   supabase functions deploy send-patch-reminders
+   ```
+4. En la app, ve a Historial → **Temporizador y avisos** → **Activar avisos en
+   este dispositivo**, en cada celular donde quieras recibirlos (recuerda: tiene
+   que estar agregada a la pantalla de inicio primero, no una pestaña suelta de
+   Safari/Chrome).
+
+## 4. Publicar en GitHub Pages
 
 Si clonaste este repo tal cual, en **Settings → Pages** del repositorio elige
 **Deploy from a branch**, rama `main`, carpeta `/ (root)`. GitHub publicará la app en
@@ -114,9 +151,11 @@ js/supabase-config.js    credenciales de tu proyecto Supabase (paso 1.6)
 js/auth.js                sesión, perfiles, invitación/recuperación de contraseña
 js/core.js                fechas/horas y acceso a la tabla "registros"
 js/app.js                 toda la interacción de la app
-supabase/schema.sql       tablas, RLS y el disparador que crea tu perfil
-supabase/functions/       Edge Function que envía invitaciones (paso 2)
-manifest.json, sw.js      configuración PWA (instalable, caché del cascarón)
+supabase/schema.sql            tablas, RLS y el disparador que crea tu perfil
+supabase/schema_temporizador.sql  duración, suscripciones push y el cron (paso 3)
+supabase/functions/invite-user           Edge Function que envía invitaciones (paso 2)
+supabase/functions/send-patch-reminders  Edge Function que manda los avisos (paso 3)
+manifest.json, sw.js      configuración PWA (instalable, caché del cascarón, avisos push)
 icons/                    íconos de la app
 ```
 

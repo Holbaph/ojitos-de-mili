@@ -8,6 +8,8 @@
   let pendingDelete = null;
   let realtimeChannel = null;
   let pendingAuthScreen = null; // 'setpassword' cuando el enlace de invitación/recuperación trae ese tipo
+  let duracionMinutos = 120;    // cuánto dura el parche puesto (temporizador)
+  let timerTick = null;
 
   if (location.hash.includes('type=invite') || location.hash.includes('type=recovery') ||
       location.search.includes('type=invite') || location.search.includes('type=recovery')) {
@@ -94,6 +96,7 @@
 
     document.getElementById('btnLogout').addEventListener('click', async () => {
       if (realtimeChannel) { supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
+      if (timerTick) { clearInterval(timerTick); timerTick = null; }
       await Auth.logout();
       entries = {}; perfil = null;
       showOverlay('authLogin');
@@ -124,6 +127,12 @@
     showApp();
     await cargarYRenderizar();
     suscribirRealtime();
+    duracionMinutos = await Config.obtenerDuracionMinutos();
+    document.getElementById('duracionInput').value = duracionMinutos;
+    actualizarDuracionHint(duracionMinutos);
+    renderTimer();
+    refrescarEstadoAvisos();
+    if (!timerTick) timerTick = setInterval(renderTimer, 30000);
   }
 
   function renderCuenta() {
@@ -249,17 +258,27 @@
     const grid = document.getElementById('calGrid');
     grid.innerHTML = '';
     const todayD = new Date();
-    const cells = [];
-    for (let i = 27; i >= 0; i--) { const d = new Date(todayD); d.setDate(d.getDate() - i); cells.push(d); }
-    cells.forEach(d => {
-      const id = Utils.dateId(d);
-      const rec = entries[id];
+    const diasDesdeLunes = (todayD.getDay() + 6) % 7; // lunes=0 ... domingo=6
+    const lunesActual = new Date(todayD);
+    lunesActual.setDate(lunesActual.getDate() - diasDesdeLunes);
+    const inicioGrilla = new Date(lunesActual);
+    inicioGrilla.setDate(inicioGrilla.getDate() - 21); // 4 semanas completas, lunes a domingo
+
+    for (let i = 0; i < 28; i++) {
+      const d = new Date(inicioGrilla);
+      d.setDate(d.getDate() + i);
       const div = document.createElement('div');
-      div.className = 'cal-cell' + (rec ? ' ' + rec.ojo : '') + (id === Utils.todayId() ? ' today' : '');
-      div.textContent = d.getDate();
-      div.title = Utils.fmtShort(d) + (rec ? ' · ' + Utils.label(rec.ojo) + ' · ' + Utils.fmtTime(rec.hora) : ' · sin registro');
+      if (d > todayD) {
+        div.className = 'cal-cell blank';
+      } else {
+        const id = Utils.dateId(d);
+        const rec = entries[id];
+        div.className = 'cal-cell' + (rec ? ' ' + rec.ojo : '') + (id === Utils.todayId() ? ' today' : '');
+        div.textContent = d.getDate();
+        div.title = Utils.fmtShort(d) + (rec ? ' · ' + Utils.label(rec.ojo) + ' · ' + Utils.fmtTime(rec.hora) : ' · sin registro');
+      }
       grid.appendChild(div);
-    });
+    }
   }
 
   function renderList() {
@@ -293,7 +312,114 @@
     });
   }
 
-  function renderAll() { renderToday(); renderStats(); renderCalendar(); renderList(); }
+  function renderAll() { renderToday(); renderStats(); renderCalendar(); renderList(); renderTimer(); }
+
+  // ================= TEMPORIZADOR (reloj de arena) =================
+  function actualizarDuracionHint(minutos) {
+    const h = Math.floor(minutos / 60), m = minutos % 60;
+    const partes = [];
+    if (h) partes.push(h + (h === 1 ? ' hora' : ' horas'));
+    if (m || !h) partes.push(m + ' min');
+    document.getElementById('duracionHint').textContent = 'Ahora mismo: ' + partes.join(' ');
+  }
+
+  function renderTimer() {
+    const card = document.getElementById('timerCard');
+    const text = document.getElementById('timerText');
+    const sandTop = document.getElementById('sandTop');
+    const sandBottom = document.getElementById('sandBottom');
+    const rec = entries[Utils.todayId()];
+
+    if (!rec) {
+      card.classList.add('idle'); card.classList.remove('done');
+      sandTop.setAttribute('y', 26); sandTop.setAttribute('height', 110);
+      sandBottom.setAttribute('y', 254); sandBottom.setAttribute('height', 0);
+      text.textContent = 'Cuando le pongas el parche, aquí vas a ver cuánto falta ⏳';
+      return;
+    }
+
+    const duracionMs = duracionMinutos * 60000;
+    const transcurrido = Date.now() - new Date(rec.hora).getTime();
+    const fraccion = Math.max(0, Math.min(1, transcurrido / duracionMs));
+
+    const topApexY = 136, topStartY = 26;
+    const nivelTop = topStartY + (topApexY - topStartY) * fraccion;
+    sandTop.setAttribute('y', nivelTop);
+    sandTop.setAttribute('height', Math.max(0, topApexY - nivelTop));
+
+    const botApexY = 144, botStartY = 254;
+    const nivelBot = botStartY - (botStartY - botApexY) * fraccion;
+    sandBottom.setAttribute('y', Math.max(botApexY, nivelBot));
+    sandBottom.setAttribute('height', Math.max(0, botStartY - nivelBot));
+
+    if (fraccion >= 1) {
+      card.classList.remove('idle'); card.classList.add('done');
+      text.textContent = '¡Ya se puede sacar el parche! 🎉';
+    } else {
+      card.classList.remove('idle', 'done');
+      const restanteMin = Math.max(1, Math.ceil((duracionMs - transcurrido) / 60000));
+      const h = Math.floor(restanteMin / 60), m = restanteMin % 60;
+      let frase;
+      if (h > 0 && m > 0) frase = 'Falta' + (h > 1 || m > 0 ? 'n' : '') + ' ' + h + (h === 1 ? ' hora' : ' horas') + ' y ' + m + ' min';
+      else if (h > 0) frase = 'Falta' + (h > 1 ? 'n' : '') + ' ' + h + (h === 1 ? ' hora' : ' horas');
+      else frase = 'Falta' + (restanteMin > 1 ? 'n' : '') + ' ' + restanteMin + ' min';
+      text.textContent = '⏳ ' + frase + ' para sacarle el parche';
+    }
+  }
+
+  document.getElementById('duracionInput').addEventListener('input', (e) => {
+    const v = parseInt(e.target.value, 10);
+    if (v > 0) actualizarDuracionHint(v);
+  });
+  document.getElementById('duracionSave').addEventListener('click', async () => {
+    const v = parseInt(document.getElementById('duracionInput').value, 10);
+    if (!v || v <= 0) { showToast('Escribe un número de minutos válido'); return; }
+    try {
+      await Config.guardarDuracionMinutos(v);
+      duracionMinutos = v;
+      actualizarDuracionHint(v);
+      renderTimer();
+      showToast('Duración guardada');
+    } catch (e) {
+      showToast('No se pudo guardar (¿corriste supabase/schema_temporizador.sql?)');
+    }
+  });
+
+  // ================= AVISOS (push) =================
+  async function refrescarEstadoAvisos() {
+    const btn = document.getElementById('pushToggle');
+    const hint = document.getElementById('pushHint');
+    if (!Push.soportado()) {
+      btn.classList.add('hidden');
+      hint.textContent = 'Los avisos automáticos todavía no están configurados en esta app (falta la llave VAPID) — revisa el README.';
+      return;
+    }
+    if (!Push.instalada()) {
+      btn.classList.add('hidden');
+      hint.textContent = 'Para recibir avisos, primero agrega esta app a tu pantalla de inicio (Compartir → Agregar a inicio) y ábrela desde ese ícono.';
+      return;
+    }
+    btn.classList.remove('hidden');
+    const suscrito = await Push.estaSuscrito();
+    btn.classList.toggle('active', suscrito);
+    btn.textContent = suscrito ? '🔔 Avisos activados en este dispositivo' : '🔔 Activar avisos en este dispositivo';
+    hint.textContent = suscrito
+      ? 'Toca el botón para desactivarlos en este dispositivo.'
+      : 'Te avisa apenas se cumpla el tiempo del parche, aunque tengas el celular bloqueado o la app cerrada.';
+  }
+  document.getElementById('pushToggle').addEventListener('click', async () => {
+    const btn = document.getElementById('pushToggle');
+    btn.disabled = true;
+    try {
+      if (btn.classList.contains('active')) { await Push.desactivar(); showToast('Avisos desactivados en este dispositivo'); }
+      else { await Push.activar(perfil.id); showToast('¡Avisos activados!'); }
+    } catch (e) {
+      showToast(e.message || 'No se pudo cambiar los avisos');
+    } finally {
+      btn.disabled = false;
+      refrescarEstadoAvisos();
+    }
+  });
 
   // ---------- personas / admin ----------
   let personasCache = {};
@@ -360,7 +486,7 @@
   const sheet = document.getElementById('sheet'), scrim = document.getElementById('scrim');
   function openSheet() { sheet.classList.add('show'); scrim.classList.add('show'); }
   function closeSheet() { sheet.classList.remove('show'); scrim.classList.remove('show'); }
-  document.getElementById('openHistory').addEventListener('click', openSheet);
+  document.getElementById('openHistory').addEventListener('click', () => { openSheet(); refrescarEstadoAvisos(); });
   document.getElementById('closeHistory').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
 

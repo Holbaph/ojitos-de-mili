@@ -13,3 +13,10 @@ let SUPABASE_CONFIGURADO = !SUPABASE_URL.includes('TU-PROYECTO') && !SUPABASE_AN
 let supabaseClient = SUPABASE_CONFIGURADO
   ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
+
+// Llave pública del temporizador (avisos push cuando se cumple el tiempo del
+// parche). También es pública por diseño — la privada vive solo como secreto
+// de la Edge Function send-patch-reminders, nunca aquí. Si no la cambias, el
+// botón "Activar avisos" simplemente queda oculto (ver js/core.js).
+let VAPID_PUBLIC_KEY = 'BLtaYdh73__SEg262LZe_4rmEKRQJISAWU0VzEhh8GMJTqoWPX5QNFgRjldF0BWE0b3XJ3Og2tvIHrlvEhlxqts';
+let PUSH_CONFIGURADO = !VAPID_PUBLIC_KEY.includes('TU-VAPID');

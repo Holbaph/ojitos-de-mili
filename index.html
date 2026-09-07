@@ -180,6 +180,28 @@
     </div>
   </div>
 
+  <div class="card timer-card" id="timerCard">
+    <div class="hourglass-wrap" id="hourglassWrap">
+      <svg class="hourglass" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="clipTop"><polygon points="52,26 148,26 100,136"/></clipPath>
+          <clipPath id="clipBottom"><polygon points="100,144 152,254 48,254"/></clipPath>
+        </defs>
+        <rect x="30" y="10" width="140" height="14" rx="6" fill="var(--wood)"/>
+        <rect x="30" y="256" width="140" height="14" rx="6" fill="var(--wood)"/>
+        <rect x="40" y="26" width="120" height="228" fill="var(--glass-fill)" clip-path="url(#clipTop)"/>
+        <rect x="40" y="26" width="120" height="228" fill="var(--glass-fill)" clip-path="url(#clipBottom)"/>
+        <rect id="sandTop" class="sand-rect" x="40" y="26" width="120" height="0" fill="var(--sand)" clip-path="url(#clipTop)"/>
+        <rect id="sandBottom" class="sand-rect" x="40" y="254" width="120" height="0" fill="var(--sand)" clip-path="url(#clipBottom)"/>
+        <circle class="sand-grain" cx="100" cy="139" r="1.6"/>
+        <circle class="sand-grain sand-grain-2" cx="100" cy="139" r="1.6"/>
+        <path d="M50,24 L150,24 L104,138 L104,142 L150,256 L50,256 L96,142 L96,138 Z"
+              fill="none" stroke="var(--glass-edge)" stroke-width="3" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <p class="timer-text" id="timerText">Cuando le pongas el parche, aquí vas a ver cuánto falta ⏳</p>
+  </div>
+
   <div class="stats-row">
     <div class="stat"><div class="num" id="statRacha">0</div><div class="lbl">días seguidos</div></div>
     <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">días registrados</div></div>
@@ -209,6 +231,9 @@
 
   <section class="block">
     <p class="block-title">Últimos 28 días</p>
+    <div class="cal-grid cal-heads">
+      <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+    </div>
     <div class="cal-grid" id="calGrid"></div>
     <div class="cal-legend">
       <span><span class="dot" style="background:var(--eye-derecho)"></span>Derecho</span>
@@ -265,6 +290,26 @@
       <div class="row-btns">
         <button class="btn-save" id="inviteSend">Enviar invitación</button>
       </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <p class="block-title">Temporizador y avisos</p>
+    <div class="settings-row">
+      <label for="duracionInput">Cuánto tiempo dura el parche puesto</label>
+      <div class="duracion-edit">
+        <input type="number" id="duracionInput" min="1" step="1" inputmode="numeric">
+        <span>minutos</span>
+        <button class="btn-save small" id="duracionSave">Guardar</button>
+      </div>
+      <p class="settings-hint" id="duracionHint"></p>
+    </div>
+    <div class="settings-row">
+      <button class="history-btn ghost" id="pushToggle">🔔 Activar avisos en este dispositivo</button>
+      <p class="settings-hint" id="pushHint">
+        Te avisa apenas se cumpla el tiempo del parche, aunque tengas el celular bloqueado o la
+        app cerrada.
+      </p>
     </div>
   </section>
 </div>
