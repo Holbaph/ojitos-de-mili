@@ -381,7 +381,10 @@
       renderTimer();
       showToast('Duración guardada');
     } catch (e) {
-      showToast('No se pudo guardar (¿corriste supabase/schema_temporizador.sql?)');
+      const esTablaFaltante = /relation .* does not exist/i.test(e.message || '');
+      showToast(esTablaFaltante
+        ? 'No se pudo guardar (¿corriste supabase/schema_temporizador.sql?)'
+        : 'No se pudo guardar: ' + (e.message || 'intenta de nuevo'));
     }
   });
 

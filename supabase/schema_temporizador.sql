@@ -20,6 +20,13 @@ drop policy if exists "configuracion: lectura compartida" on public.configuracio
 create policy "configuracion: lectura compartida" on public.configuracion
   for select using (auth.uid() is not null);
 
+-- El botón "Guardar" hace un upsert (crear-si-no-existe + actualizar), y
+-- Postgres exige permiso de INSERT para esa operación aunque en la práctica
+-- siempre caiga en la rama de actualizar (la fila 'general' ya existe).
+drop policy if exists "configuracion: creación compartida" on public.configuracion;
+create policy "configuracion: creación compartida" on public.configuracion
+  for insert with check (auth.uid() is not null);
+
 drop policy if exists "configuracion: edición compartida" on public.configuracion;
 create policy "configuracion: edición compartida" on public.configuracion
   for update using (auth.uid() is not null) with check (auth.uid() is not null);
