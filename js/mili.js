@@ -256,7 +256,7 @@ const Mili = (function () {
         break;
       case 'pantalon':
         piernas = '';
-        ropa = `<path d="M110 342 L210 342 L208 422 L168 422 L160 372 L152 422 L112 422 Z" fill="${c2}"/>` + polera(est.fill);
+        ropa = `<path d="M110 342 L210 342 L198 424 L162 424 L160 380 L158 424 L122 424 Z" fill="${c2}"/>` + polera(est.fill);
         break;
       case 'jardinera':
         manga = c2;
