@@ -125,7 +125,7 @@ h1{ font-family:'Baloo 2'; font-weight:700; font-size:30px; margin:0; color:var(
 }
 .orientation-hint{ text-align:center; font-size:12.5px; color:var(--ink-faint); margin:0 0 6px; }
 .face-wrap{ display:flex; justify-content:center; }
-svg.face{ width:100%; max-width:280px; height:auto; overflow:visible; }
+svg.face{ width:100%; max-width:260px; height:auto; overflow:visible; }
 
 .eye{ cursor:pointer; outline:none; }
 .eye .hit{ fill:transparent; }
@@ -141,7 +141,7 @@ svg.face{ width:100%; max-width:280px; height:auto; overflow:visible; }
 @media (prefers-reduced-motion: reduce){ .eye .eye-patch, .eye .eye-visual, .eye .ring{ transition:none; } }
 
 .face-labels{
-  display:flex; justify-content:space-between; padding:0 12%; margin-top:4px;
+  display:flex; justify-content:space-between; max-width:300px; margin:4px auto 2px; padding:0 4px;
 }
 .face-labels span{
   font-weight:700; font-size:12px; letter-spacing:.05em; text-transform:uppercase;
@@ -375,3 +375,40 @@ footer.note{ text-align:center; font-size:11.5px; color:var(--ink-faint); paddin
 .btn-link{ background:none; border:none; color:var(--ink-faint); font-size:12.5px; text-decoration:underline; cursor:pointer; margin-top:12px; font-family:'Figtree'; }
 .auth-error{ color:var(--danger); font-size:12.5px; margin:0 0 12px; }
 .auth-note{ color:var(--ink-faint); font-size:11.5px; margin-top:16px; line-height:1.5; }
+
+/* ---------- personalizar a Mili ---------- */
+.sheet-mili{ padding-top:10px; }
+.mili-preview{
+  position:sticky; top:-10px; z-index:2; margin:0 -18px 10px; padding:6px 0 10px;
+  background:var(--surface); border-bottom:1px solid var(--line);
+  display:flex; justify-content:center;
+}
+.mili-preview svg{ height:200px; width:auto; overflow:visible; }
+.mili-tabs{ display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; scrollbar-width:none; }
+.mili-tabs::-webkit-scrollbar{ display:none; }
+.mili-tabs button{
+  flex-shrink:0; padding:8px 13px; border-radius:99px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink-soft); font-weight:700; font-size:13px; cursor:pointer;
+}
+.mili-tabs button.active{ background:var(--ink); color:var(--bg); border-color:var(--ink); }
+.mili-group{ margin-bottom:16px; }
+.mili-group > p{ font-size:12.5px; font-weight:700; color:var(--ink-soft); margin:0 0 8px; }
+.chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.chips button{
+  padding:8px 12px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2);
+  color:var(--ink); font-weight:600; font-size:13px; cursor:pointer;
+}
+.chips button.active{ border-color:var(--eye-derecho); background:var(--eye-derecho-soft); color:var(--eye-derecho); font-weight:800; }
+.swatches{ display:flex; flex-wrap:wrap; gap:8px; }
+.swatch{
+  position:relative; width:36px; height:36px; border-radius:50%; border:2px solid var(--line);
+  cursor:pointer; padding:0; box-shadow:inset 0 0 0 2px var(--surface);
+}
+.swatch.active{ border-color:var(--ink); box-shadow:inset 0 0 0 3px var(--surface); }
+.swatch.custom{ background:conic-gradient(#e88fae,#f2cf5b,#6fbf73,#7cc4ea,#7e57c2,#e88fae); overflow:hidden; }
+.swatch.custom input{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; border:0; padding:0; }
+.mili-actions{
+  position:sticky; bottom:-26px; display:flex; gap:8px; margin:6px -18px -26px; padding:12px 18px 22px;
+  background:var(--surface); border-top:1px solid var(--line);
+}
+.mili-actions button{ flex:1; padding:12px; border-radius:12px; border:none; font-weight:700; font-size:14px; cursor:pointer; }

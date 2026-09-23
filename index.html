@@ -119,20 +119,14 @@
 
   <div class="card">
     <p class="orientation-hint">Mirándola de frente: su ojo derecho queda a tu izquierda 👀</p>
+    <div class="face-labels">
+      <span>Ojo derecho</span>
+      <span>Ojo izquierdo</span>
+    </div>
     <div class="face-wrap">
-      <svg class="face" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
-        <g>
-          <path d="M138 48 L112 30 L112 66 Z" fill="var(--bow)"/>
-          <path d="M182 48 L208 30 L208 66 Z" fill="var(--bow)"/>
-          <circle cx="160" cy="48" r="11" fill="var(--bow-dark)"/>
-        </g>
-        <circle cx="160" cy="176" r="118" fill="var(--skin)" stroke="var(--skin-line)" stroke-width="2"/>
-        <ellipse cx="94" cy="212" rx="19" ry="11" fill="var(--blush)" opacity=".55"/>
-        <ellipse cx="226" cy="212" rx="19" ry="11" fill="var(--blush)" opacity=".55"/>
-        <path d="M92 130 q20 -14 40 -2" fill="none" stroke="var(--ink-soft)" stroke-width="4" stroke-linecap="round" opacity=".5"/>
-        <path d="M188 128 q20 -12 40 2" fill="none" stroke="var(--ink-soft)" stroke-width="4" stroke-linecap="round" opacity=".5"/>
-        <path d="M158 168 q-4 20 -10 26 q6 6 14 2" fill="none" stroke="var(--skin-line)" stroke-width="3" stroke-linecap="round"/>
-        <path d="M136 232 q24 22 48 0" fill="none" stroke="var(--mouth)" stroke-width="6" stroke-linecap="round"/>
+      <svg class="face" id="miliSvg" viewBox="0 0 320 440" xmlns="http://www.w3.org/2000/svg">
+        <!-- pelo, cuerpo, ropa, cara y accesorios: los dibuja js/mili.js según la apariencia elegida -->
+        <g id="miliFigura"></g>
 
         <g class="eye" data-side="derecho" id="eyeDerecho" role="button" tabindex="0" aria-label="Ojo derecho de Mili">
           <circle class="hit" cx="112" cy="168" r="46"/>
@@ -166,10 +160,6 @@
           </g>
         </g>
       </svg>
-    </div>
-    <div class="face-labels">
-      <span>Ojo derecho</span>
-      <span>Ojo izquierdo</span>
     </div>
 
     <div class="status">
@@ -210,6 +200,7 @@
 
   <div class="action-row">
     <button class="history-btn" id="openHistory">📋 Ver historial</button>
+    <button class="history-btn ghost" id="openMili">🎨 Personalizar</button>
   </div>
 
   <footer class="note">Hecho con cariño para el tratamiento de Mili 🩹</footer>
@@ -323,12 +314,40 @@
   </section>
 </div>
 
+<div class="sheet sheet-mili" id="sheetMili" role="dialog" aria-label="Personalizar a Mili">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <h2>Personalizar a Mili</h2>
+    <button class="icon-btn" id="closeMili" aria-label="Cerrar sin guardar">✕</button>
+  </div>
+  <div class="mili-preview">
+    <svg id="miliPreviewSvg" viewBox="0 0 320 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g id="miliPreviewFigura"></g>
+      <g id="miliPreviewOjos"></g>
+    </svg>
+  </div>
+  <div class="mili-tabs" id="miliTabs" role="tablist">
+    <button data-tab="piel" class="active">Piel</button>
+    <button data-tab="ojos">Ojos</button>
+    <button data-tab="pelo">Pelo</button>
+    <button data-tab="accesorio">Accesorio</button>
+    <button data-tab="ropa">Ropa</button>
+    <button data-tab="zapatos">Zapatos</button>
+  </div>
+  <div class="mili-panel" id="miliPanel"></div>
+  <div class="mili-actions">
+    <button class="btn-cancel" id="miliReset">Volver a la original</button>
+    <button class="btn-save" id="miliSave">Guardar</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/core.js"></script>
+<script src="js/mili.js"></script>
 <script src="js/app.js"></script>
 <script>
   if ('serviceWorker' in navigator) {

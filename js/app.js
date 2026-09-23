@@ -131,6 +131,12 @@
     document.getElementById('duracionInput').value = duracionMinutos;
     actualizarDuracionHint(duracionMinutos);
     renderRecordatorio(await Config.obtenerRecordatorio());
+    const apGuardada = await Config.obtenerApariencia();
+    if (apGuardada !== undefined) {
+      apariencia = Mili.normalizar(apGuardada);
+      guardarAparienciaLocal();
+      renderMili();
+    }
     renderTimer();
     refrescarEstadoAvisos();
     if (!timerTick) timerTick = setInterval(renderTimer, 30000);
@@ -455,6 +461,141 @@
     }
   });
 
+  // ================= PERSONALIZAR A MILI =================
+  // La apariencia oficial vive en Supabase (compartida). Una copia local sirve
+  // solo para dibujarla al instante al abrir la app, antes de que llegue la red.
+  const APARIENCIA_LOCAL = 'ojitos-apariencia';
+  let apariencia = Mili.DEFAULT;
+  try { apariencia = Mili.normalizar(JSON.parse(localStorage.getItem(APARIENCIA_LOCAL))); } catch (e) {}
+  function guardarAparienciaLocal() {
+    try { localStorage.setItem(APARIENCIA_LOCAL, JSON.stringify(apariencia)); } catch (e) {}
+  }
+
+  function renderMili() {
+    Mili.dibujar(document.getElementById('miliSvg'), document.getElementById('miliFigura'), apariencia, 'main');
+  }
+
+  let borrador = null;     // lo que se está eligiendo en el editor, antes de Guardar
+  let miliTab = 'piel';
+
+  const GRUPOS = {
+    piel: [{ t: 'Color de piel', k: 'piel', colores: Mili.PIELES }],
+    ojos: [{ t: 'Color de ojos', k: 'ojos', colores: Mili.OJOS }],
+    pelo: [
+      { t: 'Peinado', k: 'peloEstilo', chips: Mili.PEINADOS },
+      { t: 'Color de pelo', k: 'peloColor', colores: Mili.PELOS },
+    ],
+    accesorio: [
+      { t: 'Accesorio', k: 'accesorio', chips: Mili.ACCESORIOS },
+      { t: 'Color del accesorio', k: 'accesorioColor', colores: Mili.COLORES, si: (b) => b.accesorio !== 'ninguno' },
+    ],
+    ropa: [
+      { t: 'Modelo', k: 'ropa', chips: Mili.ROPAS },
+      { t: 'Estampado', k: 'estampado', chips: Mili.ESTAMPADOS },
+      { t: 'Color principal', k: 'ropaColor', colores: Mili.COLORES },
+      { t: (b) => Mili.ROPAS.find((r) => r.v === b.ropa).c2, k: 'ropaColor2', colores: Mili.COLORES },
+    ],
+    zapatos: [
+      { t: 'Modelo', k: 'zapatos', chips: Mili.ZAPATOS },
+      { t: 'Color de los zapatos', k: 'zapatosColor', colores: Mili.COLORES },
+    ],
+  };
+
+  function renderPreview() {
+    Mili.dibujar(document.getElementById('miliPreviewSvg'), document.getElementById('miliPreviewFigura'), borrador, 'prev');
+  }
+
+  function renderPanel() {
+    document.getElementById('miliPanel').innerHTML = GRUPOS[miliTab]
+      .filter((g) => !g.si || g.si(borrador))
+      .map((g) => {
+        const titulo = typeof g.t === 'function' ? g.t(borrador) : g.t;
+        const actual = borrador[g.k];
+        let cuerpo;
+        if (g.chips) {
+          cuerpo = '<div class="chips">' + g.chips.map((o) =>
+            '<button data-k="' + g.k + '" data-v="' + o.v + '"' + (o.v === actual ? ' class="active"' : '') + '>' + o.n + '</button>'
+          ).join('') + '</div>';
+        } else {
+          const esPreset = g.colores.some((o) => o.c === actual);
+          cuerpo = '<div class="swatches">' + g.colores.map((o) =>
+            '<button class="swatch' + (o.c === actual ? ' active' : '') + '" data-k="' + g.k + '" data-v="' + o.c +
+            '" style="background:' + o.c + '" title="' + o.n + '" aria-label="' + o.n + '"></button>'
+          ).join('') +
+            '<label class="swatch custom' + (esPreset ? '' : ' active') + '" title="Otro color"' +
+            (esPreset ? '' : ' style="background:' + actual + '"') + '>' +
+            '<input type="color" data-k="' + g.k + '" value="' + actual + '" aria-label="Otro color"></label>' +
+            '</div>';
+        }
+        return '<div class="mili-group"><p>' + titulo + '</p>' + cuerpo + '</div>';
+      }).join('');
+  }
+
+  const sheetMili = document.getElementById('sheetMili');
+  function abrirMili() {
+    borrador = { ...apariencia };
+    document.getElementById('miliPreviewOjos').innerHTML = Mili.ojos();
+    renderPreview(); renderPanel();
+    sheetMili.classList.add('show'); scrim.classList.add('show');
+  }
+  function cerrarMili() {
+    sheetMili.classList.remove('show'); scrim.classList.remove('show');
+    borrador = null;
+  }
+
+  document.getElementById('openMili').addEventListener('click', abrirMili);
+  document.getElementById('closeMili').addEventListener('click', cerrarMili);
+
+  document.getElementById('miliTabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-tab]');
+    if (!btn) return;
+    miliTab = btn.dataset.tab;
+    document.querySelectorAll('#miliTabs button').forEach((b) => b.classList.toggle('active', b === btn));
+    renderPanel();
+  });
+
+  const panel = document.getElementById('miliPanel');
+  panel.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-k]');
+    if (!btn) return;
+    borrador[btn.dataset.k] = btn.dataset.v;
+    renderPreview(); renderPanel();
+  });
+  // "Otro color": la vista previa cambia mientras se mueve el selector; el
+  // panel se redibuja recién al soltar, para no cerrar el selector a medio uso.
+  panel.addEventListener('input', (e) => {
+    if (e.target.type !== 'color') return;
+    borrador[e.target.dataset.k] = e.target.value;
+    renderPreview();
+  });
+  panel.addEventListener('change', (e) => { if (e.target.type === 'color') renderPanel(); });
+
+  document.getElementById('miliReset').addEventListener('click', () => {
+    borrador = { ...Mili.DEFAULT };
+    renderPreview(); renderPanel();
+    showToast('Toca Guardar para dejarla así');
+  });
+
+  document.getElementById('miliSave').addEventListener('click', async () => {
+    const btn = document.getElementById('miliSave');
+    btn.disabled = true;
+    try {
+      const nueva = Mili.normalizar(borrador);
+      await Config.guardarApariencia(nueva);
+      apariencia = nueva;
+      guardarAparienciaLocal();
+      renderMili();
+      cerrarMili();
+      showToast('¡Mili quedó guardada! 🎀');
+    } catch (e) {
+      showToast(/apariencia/i.test(e.message || '')
+        ? 'No se pudo guardar (¿corriste supabase/schema_apariencia.sql?)'
+        : 'No se pudo guardar: ' + (e.message || 'intenta de nuevo'));
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   // ---------- personas / admin ----------
   let personasCache = {};
   async function cargarPersonas() {
@@ -523,6 +664,7 @@
   document.getElementById('openHistory').addEventListener('click', () => { openSheet(); refrescarEstadoAvisos(); });
   document.getElementById('closeHistory').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
+  scrim.addEventListener('click', () => { if (sheetMili.classList.contains('show')) cerrarMili(); });
 
   const addForm = document.getElementById('addForm'), addToggle = document.getElementById('addToggle');
   let chosenSide = 'derecho';
@@ -558,6 +700,7 @@
   // ================= arranque =================
   async function boot() {
     wireLogin();
+    renderMili();
     wireEye(document.getElementById('eyeDerecho'), 'derecho');
     wireEye(document.getElementById('eyeIzquierdo'), 'izquierdo');
 
