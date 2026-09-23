@@ -54,12 +54,30 @@ const Mili = (function () {
     { v: 'botitas', n: 'Botitas' }, { v: 'sandalias', n: 'Sandalias' },
   ];
 
+  // El parche: forma, estampado, color y un adornito.
+  const PARCHE_COLORES = [
+    { c: '#4b3b36', n: 'Café oscuro (el original)' }, { c: '#e9c9a8', n: 'Color piel' },
+  ].concat(COLORES);
+  const PARCHE_FORMAS = [
+    { v: 'ovalado', n: '🥚 Ovalado' }, { v: 'redondo', n: '⚪ Redondo' },
+    { v: 'corazon', n: '💗 Corazón' }, { v: 'nube', n: '☁️ Nube' },
+  ];
+  const PARCHE_ESTAMPADOS = [
+    { v: 'liso', n: 'Liso' }, { v: 'lunares', n: 'Lunares' }, { v: 'corazones', n: 'Corazones' },
+    { v: 'estrellas', n: 'Estrellas' }, { v: 'rayas', n: 'Rayas' }, { v: 'arcoiris', n: '🌈 Arcoíris' },
+  ];
+  const PARCHE_ADORNOS = [
+    { v: 'ninguno', n: 'Sin adorno' }, { v: 'estrella', n: '⭐ Estrella' }, { v: 'corazon', n: '❤️ Corazón' },
+    { v: 'flor', n: '🌼 Flor' }, { v: 'carita', n: '🙂 Carita' },
+  ];
+
   const DEFAULT = {
     piel: '#fbe3ce', ojos: '#8b5e3c',
     peloEstilo: 'melena', peloColor: '#6b4428',
     accesorio: 'moño', accesorioColor: '#c96f8f',
     ropa: 'vestido', ropaColor: '#e88fae', ropaColor2: '#f7f5f2', estampado: 'lunares',
     zapatos: 'balerinas', zapatosColor: '#c96f8f',
+    parcheForma: 'ovalado', parcheEstampado: 'liso', parcheColor: '#4b3b36', parcheAdorno: 'ninguno',
   };
 
   // La apariencia viene de la base de datos (compartida) y se mete dentro del
@@ -67,6 +85,7 @@ const Mili = (function () {
   const HEX = /^#[0-9a-f]{6}$/i;
   const VALIDOS = {
     peloEstilo: PEINADOS, accesorio: ACCESORIOS, ropa: ROPAS, estampado: ESTAMPADOS, zapatos: ZAPATOS,
+    parcheForma: PARCHE_FORMAS, parcheEstampado: PARCHE_ESTAMPADOS, parcheAdorno: PARCHE_ADORNOS,
   };
   function normalizar(ap) {
     const out = { ...DEFAULT };
@@ -263,32 +282,109 @@ const Mili = (function () {
     };
   }
 
+  // ---------- el parche ----------
+  // Relleno del parche (siempre un <pattern>, aunque sea liso, para que el
+  // parche use siempre url(#…-parche)).
+  function parcheEstampado(pfx, ap) {
+    const c = ap.parcheColor, d = contraste(c);
+    let dibujo = '', w = 14, h = 14;
+    switch (ap.parcheEstampado) {
+      case 'lunares': dibujo = `<circle cx="4" cy="4" r="2.2" fill="${d}"/><circle cx="11" cy="11" r="2.2" fill="${d}"/>`; break;
+      case 'corazones': dibujo = `<path d="M7 11 L3.4 7.4 A2.2 2.2 0 0 1 7 4.8 A2.2 2.2 0 0 1 10.6 7.4 Z" fill="${d}"/>`; break;
+      case 'estrellas': dibujo = `<path d="M7 2.5 l1.3 2.8 3 .3 -2.3 2 .7 3 -2.7 -1.6 -2.7 1.6 .7 -3 -2.3 -2 3 -.3z" fill="${d}"/>`; break;
+      case 'rayas': dibujo = `<rect width="14" height="5" fill="${d}"/>`; break;
+      case 'arcoiris':
+        h = 42;
+        dibujo = ['#e8605a', '#f0a04b', '#f2cf5b', '#6fbf73', '#7cc4ea', '#9b7fd6']
+          .map((col, i) => `<rect y="${i * 7}" width="14" height="7" fill="${col}"/>`).join('');
+        break;
+    }
+    return `<pattern id="${pfx}-parche" width="${w}" height="${h}" patternUnits="userSpaceOnUse"><rect width="${w}" height="${h}" fill="${c}"/>${dibujo}</pattern>`;
+  }
+
+  // Corazón centrado en (x,y), de "radio" k (sirve para el parche y su borde).
+  function pathCorazon(x, y, k) {
+    const p = (dx, dy) => `${(x + dx * k).toFixed(1)} ${(y + dy * k).toFixed(1)}`;
+    return `M${p(0, 1)} C${p(-0.33, 0.73)} ${p(-1.33, 0.2)} ${p(-1.27, -0.4)} C${p(-1.2, -1)} ${p(-0.4, -1.07)} ${p(0, -0.53)} ` +
+      `C${p(0.4, -1.07)} ${p(1.2, -1)} ${p(1.27, -0.4)} C${p(1.33, 0.2)} ${p(0.33, 0.73)} ${p(0, 1)} Z`;
+  }
+
+  function adorno(tipo, x, y) {
+    switch (tipo) {
+      case 'estrella':
+        return `<path d="M${x} ${y - 10} l3 6.4 7 .7 -5.3 4.7 1.6 6.9 -6.3 -3.7 -6.3 3.7 1.6 -6.9 -5.3 -4.7 7 -.7z" fill="#f6d26b" stroke="#d9a93a" stroke-width="1.2" stroke-linejoin="round"/>`;
+      case 'corazon':
+        return `<path d="${pathCorazon(x, y, 10)}" fill="#e8578a" stroke="#c23f6f" stroke-width="1.2"/>`;
+      case 'flor':
+        return flor(x, y, 0.55, '#ffffff');
+      case 'carita':
+        return `<circle cx="${x}" cy="${y}" r="9.5" fill="#f6d26b" stroke="#d9a93a" stroke-width="1.2"/>` +
+          `<circle cx="${x - 3.2}" cy="${y - 2}" r="1.3" fill="#5a4030"/><circle cx="${x + 3.2}" cy="${y - 2}" r="1.3" fill="#5a4030"/>` +
+          `<path d="M${x - 4} ${y + 2.5} q4 3.5 8 0" fill="none" stroke="#5a4030" stroke-width="1.4" stroke-linecap="round"/>`;
+      default: return '';
+    }
+  }
+
+  // El parche de un ojo. lado = -1 para el derecho de Mili (a la izquierda de
+  // la pantalla, x=112) y +1 para el izquierdo (x=208).
+  function parche(ap, pfx, lado) {
+    ap = normalizar(ap);
+    const x = lado < 0 ? 112 : 208, y = 168, giro = lado < 0 ? -8 : 8;
+    const relleno = `url(#${pfx}-parche)`, borde = contraste(ap.parcheColor), tira = oscurecer(ap.parcheColor, 0.12);
+    const punteado = `fill="none" stroke="${borde}" stroke-width="1.5" stroke-dasharray="3 4" opacity=".8"`;
+    let forma;
+    switch (ap.parcheForma) {
+      case 'redondo':
+        forma = `<circle cx="${x}" cy="${y}" r="32" fill="${relleno}"/><circle cx="${x}" cy="${y}" r="26" ${punteado}/>`;
+        break;
+      case 'corazon':
+        forma = `<path d="${pathCorazon(x, y + 2, 40)}" fill="${relleno}"/><path d="${pathCorazon(x, y + 2, 33)}" ${punteado}/>`;
+        break;
+      case 'nube':
+        forma = `<g fill="${relleno}"><circle cx="${x - 20}" cy="${y + 6}" r="20"/><circle cx="${x + 20}" cy="${y + 6}" r="20"/>` +
+          `<circle cx="${x - 6}" cy="${y - 12}" r="22"/><circle cx="${x + 14}" cy="${y - 8}" r="18"/><rect x="${x - 20}" y="${y}" width="40" height="26" rx="10"/></g>`;
+        break;
+      default:
+        forma = `<ellipse cx="${x}" cy="${y}" rx="33" ry="24" transform="rotate(${giro} ${x} ${y})" fill="${relleno}"/>` +
+          `<ellipse cx="${x}" cy="${y}" rx="27" ry="18" transform="rotate(${giro} ${x} ${y})" ${punteado}/>`;
+    }
+    const cinta = lado < 0 ? `M84 150 q-14 -30 6 -58` : `M236 150 q14 -30 -6 -58`;
+    return `<path d="${cinta}" fill="none" stroke="${tira}" stroke-width="7" stroke-linecap="round"/>` + forma +
+      adorno(ap.parcheAdorno, x - lado * 24, y - 20);
+  }
+
   // Todo menos los ojos (que en la pantalla principal son elementos fijos).
   function figura(ap, pfx) {
     ap = normalizar(ap);
     const cu = cuerpo(pfx, ap);
-    return (cu.defs ? `<defs>${cu.defs}</defs>` : '') +
+    return `<defs>${cu.defs}${parcheEstampado(pfx, ap)}</defs>` +
       peloAtras(ap) + cu.svg + cara(ap) + flequillo(ap) + accesorios(ap);
   }
 
-  // Ojos solo decorativos (para la vista previa del editor).
-  function ojos() {
+  // Ojos solo decorativos (para la vista previa del editor). Con `ap`, el
+  // ojo derecho aparece con el parche puesto, para ver cómo queda.
+  function ojos(ap, pfx) {
     return [112, 208].map((x) =>
       `<circle cx="${x}" cy="168" r="27" fill="#fff"/><circle cx="${x}" cy="168" r="13" fill="var(--iris)"/>` +
       `<circle cx="${x}" cy="168" r="5.5" fill="#2a2740"/><circle cx="${x - 5}" cy="163" r="3" fill="#fff"/>`
-    ).join('');
+    ).join('') + (ap ? parche(ap, pfx, -1) : '');
   }
 
-  // Dibuja a Mili dentro de un <svg>: el grupo `grupo` recibe la figura y el
-  // svg recibe el color de ojos (--iris) para los ojos.
+  // Dibuja a Mili dentro de un <svg>: el grupo `grupo` recibe la figura, el
+  // svg recibe el color de ojos (--iris) y, si el svg tiene los grupos de
+  // parche de la pantalla principal (.eye-patch[data-lado]), se rellenan.
   function dibujar(svg, grupo, ap, pfx) {
     ap = normalizar(ap);
     svg.style.setProperty('--iris', ap.ojos);
     grupo.innerHTML = figura(ap, pfx);
+    svg.querySelectorAll('.eye-patch[data-lado]').forEach((g) => {
+      g.innerHTML = parche(ap, pfx, Number(g.dataset.lado));
+    });
   }
 
   return {
     DEFAULT, PIELES, OJOS, PELOS, COLORES, PEINADOS, ACCESORIOS, ROPAS, ESTAMPADOS, ZAPATOS,
+    PARCHE_COLORES, PARCHE_FORMAS, PARCHE_ESTAMPADOS, PARCHE_ADORNOS,
     normalizar, dibujar, ojos,
     // piezas sueltas que reutiliza el juego de vestir (js/juego.js)
     color: { oscurecer, aclarar, mezclar, contraste },

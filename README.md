@@ -41,7 +41,9 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
 - **Mili personalizable**: con el botón **🎨 Personalizar** se elige su color de
   piel y de ojos, el peinado y color de pelo, un accesorio (moño, collet, cintillo
   o flor), la ropa (vestido, polera con falda o pantalón, jardinera — con
-  estampado y colores) y los zapatos. Toda la familia ve a la misma Mili.
+  estampado y colores), los zapatos y **el parche** (forma ovalada, redonda, de
+  corazón o nube; estampado liso, lunares, corazones, estrellas, rayas o arcoíris;
+  color y un adornito). Toda la familia ve a la misma Mili.
 - **Juego "Jugar a vestir"**: se elige un personaje (Mili, Rumi, Mira, Zoey,
   Elsa, Anna o Moana — dibujos propios inspirados en Huntrix, Frozen y Moana) y
   se le cambia la ropa arrastrando prendas del armario hasta el personaje (o
