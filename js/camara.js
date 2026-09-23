@@ -147,7 +147,12 @@ const Camara = (function () {
     $('camBorrar').classList.toggle('hidden', fotoActual.id == null);
     $('camResultado').classList.remove('hidden');
   }
+  // Al descartar la foto se libera su URL (si no, cada foto quedaría ocupando
+  // memoria del navegador hasta recargar la página).
   function cerrarFoto() {
+    if (fotoActual && fotoActual.url) URL.revokeObjectURL(fotoActual.url);
+    fotoActual = null;
+    $('camFoto').removeAttribute('src');
     $('camResultado').classList.add('hidden');
     reiniciarBorrar();
   }
@@ -298,6 +303,8 @@ const Camara = (function () {
   }
 
   // ================= API =================
+  // `figura` es el SVG que arma Juego.figura() a partir de un estado ya
+  // validado (solo colores #rrggbb y prendas/peinados de listas cerradas).
   function abrir(figura) {
     if (!cableado) { cablear(); cableado = true; }
     figuraActual = figura;
