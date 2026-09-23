@@ -97,9 +97,34 @@ const Config = {
       .upsert({ id: 'general', duracion_minutos: minutos, updated_at: new Date().toISOString() });
     if (error) throw error;
   },
+
+  // Recordatorio diario: 'HH:MM' o null si está desactivado.
+  async obtenerRecordatorio() {
+    const { data, error } = await supabaseClient
+      .from('configuracion')
+      .select('recordatorio_hora')
+      .eq('id', 'general')
+      .maybeSingle();
+    if (error || !data || !data.recordatorio_hora) return null; // también si aún no se corrió schema_recordatorio.sql
+    return data.recordatorio_hora.slice(0, 5);
+  },
+  // Guarda también la zona horaria de este dispositivo (la Edge Function corre
+  // en UTC) y reinicia el "ya se mandó hoy", por si se cambió a una hora más tarde.
+  async guardarRecordatorio(hora) {
+    const { error } = await supabaseClient
+      .from('configuracion')
+      .update({
+        recordatorio_hora: hora,
+        recordatorio_zona: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Santiago',
+        recordatorio_ultimo_envio: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', 'general');
+    if (error) throw error;
+  },
 };
 
-// ---------- avisos push (temporizador) ----------
+// ---------- avisos push (temporizador y recordatorio) ----------
 function urlBase64ToUint8Array(base64) {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4);
   const base64safe = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
