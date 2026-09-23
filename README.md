@@ -44,12 +44,18 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   estampado y colores), los zapatos y **el parche** (forma ovalada, redonda, de
   corazón o nube; estampado liso, lunares, corazones, estrellas, rayas o arcoíris;
   color y un adornito). Toda la familia ve a la misma Mili.
-- **Juego "Jugar a vestir"**: se elige un personaje (Mili, Rumi, Mira, Zoey,
-  Elsa, Anna o Moana — dibujos propios inspirados en Huntrix, Frozen y Moana) y
+- **Juego "Jugar a vestir"**: se elige un personaje (Mili; Rumi, Mira y Zoey;
+  Elsa y Anna; Moana; Rapunzel, Ariel, Bella, Cenicienta, Mirabel, Mérida, Tiana
+  y Jasmine — dibujos propios inspirados en esas películas, no imágenes oficiales) y
   se le cambia la ropa arrastrando prendas del armario hasta el personaje (o
   tocándolas): poleras, tops, polerones, jeans, faldas, vestidos, chaquetas,
   capas, zapatillas, botas, peinados, color de pelo, ojos, moños, tiaras,
-  lentes… Todo se guarda solo. **Restablecer** deja al personaje en blanco.
+  lentes, cola de sirena… Todo se guarda solo. **Original** le devuelve su ropa
+  de siempre y **En blanco** lo deja sin ropa ni accesorios.
+  Con **📸 Foto** se abre la cámara con el personaje encima (se mueve con el
+  dedo y se cambia de tamaño) para sacarse una foto con él; las fotos quedan en
+  **Mis fotos**, guardadas **solo en ese celular** (no se suben a ningún lado),
+  y se pueden guardar en la galería o compartir.
   En Historial → **Juego de vestir** se fijan los **minutos de juego por día**:
   al acabarse, el juego se cierra solo hasta el día siguiente (o hasta tocar
   **Dar más tiempo hoy**).
@@ -202,6 +208,7 @@ js/auth.js                sesión, perfiles, invitación/recuperación de contra
 js/core.js                fechas/horas y acceso a la tabla "registros"
 js/mili.js                dibuja a Mili según su apariencia (pelo, ropa, zapatos…)
 js/juego.js               juego de vestir personajes (armario, arrastrar, tiempo por día)
+js/camara.js              foto con el personaje + "Mis fotos" (solo en el dispositivo)
 js/app.js                 toda la interacción de la app
 supabase/schema.sql            tablas, RLS y el disparador que crea tu perfil
 supabase/schema_temporizador.sql  duración, suscripciones push y el cron (paso 3)
