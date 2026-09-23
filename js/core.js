@@ -122,6 +122,26 @@ const Config = {
       .eq('id', 'general');
     if (error) throw error;
   },
+
+  // Apariencia de Mili (piel, pelo, ropa…), compartida por toda la familia.
+  // null si todavía no se personaliza; undefined si no se pudo leer (sin red,
+  // o si aún no se corrió schema_apariencia.sql) — ahí conviene no tocar nada.
+  async obtenerApariencia() {
+    const { data, error } = await supabaseClient
+      .from('configuracion')
+      .select('apariencia')
+      .eq('id', 'general')
+      .maybeSingle();
+    if (error) return undefined;
+    return (data && data.apariencia) || null;
+  },
+  async guardarApariencia(apariencia) {
+    const { error } = await supabaseClient
+      .from('configuracion')
+      .update({ apariencia, updated_at: new Date().toISOString() })
+      .eq('id', 'general');
+    if (error) throw error;
+  },
 };
 
 // ---------- avisos push (temporizador y recordatorio) ----------

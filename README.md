@@ -38,6 +38,10 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   (por ejemplo, 9:00 a.m.) y cada día, a esa hora, llega un aviso para ponerle el
   parche a Mili — solo si todavía nadie lo registró ese día. Llega a los mismos
   dispositivos que tienen los avisos activados.
+- **Mili personalizable**: con el botón **🎨 Personalizar** se elige su color de
+  piel y de ojos, el peinado y color de pelo, un accesorio (moño, collet, cintillo
+  o flor), la ropa (vestido, polera con falda o pantalón, jardinera — con
+  estampado y colores) y los zapatos. Toda la familia ve a la misma Mili.
 
 ## 1. Configurar Supabase (una sola vez)
 
@@ -147,6 +151,12 @@ recordatorio → **Guardar**. El aviso sale dentro de la hora siguiente a la
 elegida (si se guarda una hora que ya pasó hoy, parte mañana) y una sola vez al
 día.
 
+### 3c. Activar "Personalizar a Mili"
+
+Corre [`supabase/schema_apariencia.sql`](supabase/schema_apariencia.sql) en
+**SQL Editor** (agrega a `configuracion` la columna donde se guarda cómo se ve
+Mili). No hace falta desplegar nada más.
+
 ## 4. Publicar en GitHub Pages
 
 Si clonaste este repo tal cual, en **Settings → Pages** del repositorio elige
@@ -172,10 +182,12 @@ css/styles.css           estilos (claro/oscuro automático)
 js/supabase-config.js    credenciales de tu proyecto Supabase (paso 1.6)
 js/auth.js                sesión, perfiles, invitación/recuperación de contraseña
 js/core.js                fechas/horas y acceso a la tabla "registros"
+js/mili.js                dibuja a Mili según su apariencia (pelo, ropa, zapatos…)
 js/app.js                 toda la interacción de la app
 supabase/schema.sql            tablas, RLS y el disparador que crea tu perfil
 supabase/schema_temporizador.sql  duración, suscripciones push y el cron (paso 3)
 supabase/schema_recordatorio.sql  hora del recordatorio diario (paso 3b)
+supabase/schema_apariencia.sql    apariencia personalizable de Mili (paso 3c)
 supabase/functions/invite-user           Edge Function que envía invitaciones (paso 2)
 supabase/functions/send-patch-reminders  Edge Function que manda los avisos y el recordatorio (pasos 3 y 3b)
 manifest.json, sw.js      configuración PWA (instalable, caché del cascarón, avisos push)
