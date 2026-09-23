@@ -453,14 +453,27 @@ const Juego = (function () {
   }
   function paquete() { return { personajes: estados, actual }; }
 
+  // La copia local lleva "pendiente: true" mientras no se haya podido subir a
+  // Supabase (p. ej. sin internet). Así, al abrir, lo local no se pisa con una
+  // copia remota más vieja: se sube lo local en vez de bajar lo remoto.
+  let version = 0; // sube con cada cambio hecho en este dispositivo
+  function guardarLocal(pendiente) {
+    try { localStorage.setItem(LOCAL, JSON.stringify({ ...paquete(), pendiente })); } catch (e) {}
+  }
+
   function guardar() {
-    try { localStorage.setItem(LOCAL, JSON.stringify(paquete())); } catch (e) {}
+    version++;
+    guardarLocal(true);
     clearTimeout(guardarTimer);
     guardarTimer = setTimeout(guardarRemoto, 1000);
   }
   async function guardarRemoto() {
     clearTimeout(guardarTimer); guardarTimer = null;
-    try { await Config.guardarJuego(paquete()); } catch (e) { /* queda en este dispositivo; se sube en el próximo cambio */ }
+    const v = version;
+    try {
+      await Config.guardarJuego(paquete());
+      if (v === version) guardarLocal(false); // si hubo otro cambio mientras subía, sigue pendiente
+    } catch (e) { /* queda pendiente en este dispositivo; se sube en el próximo cambio o al abrir */ }
   }
 
   // ---------- tiempo de juego (por día, en este dispositivo) ----------
@@ -668,10 +681,11 @@ const Juego = (function () {
   async function abrir(opts) {
     if (!cableado) { cablear(); cableado = true; }
     toast = opts.toast || toast;
-    aparienciaMili = opts.apariencia || Mili.DEFAULT;
+    aparienciaMili = Mili.normalizar(opts.apariencia);
     minutosDia = opts.minutosDia;
 
-    aplicarGuardado(leerLocal());
+    const local = leerLocal();
+    aplicarGuardado(local);
     $('juegoFin').classList.add('hidden');
     $('juego').classList.remove('hidden');
     document.body.classList.add('jugando');
@@ -680,11 +694,16 @@ const Juego = (function () {
     if (segundosRestantes() <= 0) { terminarTiempo(); return; }
     empezarReloj();
 
-    // lo de Supabase manda (puede venir de otro celular)
+    // Si quedaron cambios de este dispositivo sin subir, se suben (no se pisan).
+    if (local && local.pendiente) { guardarRemoto(); return; }
+
+    // Si no, lo de Supabase manda (puede venir de otro celular), salvo que
+    // alguien haya empezado a jugar mientras llegaba: eso no se pisa.
+    const v = version;
     const remoto = await Config.obtenerJuego();
-    if (remoto && !$('juego').classList.contains('hidden')) {
+    if (remoto && v === version && !$('juego').classList.contains('hidden')) {
       aplicarGuardado(remoto);
-      try { localStorage.setItem(LOCAL, JSON.stringify(paquete())); } catch (e) {}
+      guardarLocal(false);
       renderPersonajes(); renderEscenario(false); renderItems();
     }
   }
@@ -704,11 +723,12 @@ const Juego = (function () {
   function darMasTiempo() { guardarUso({ fecha: Utils.todayId(), seg: 0 }); }
 
   async function restablecerTodos(apariencia) {
-    aparienciaMili = apariencia || Mili.DEFAULT;
+    aparienciaMili = Mili.normalizar(apariencia);
     estados = {};
     PERSONAJES.forEach((p) => { estados[p.id] = enBlanco(p.id); });
-    try { localStorage.setItem(LOCAL, JSON.stringify(paquete())); } catch (e) {}
-    await Config.guardarJuego(paquete());
+    version++;
+    guardarLocal(true);
+    await guardarRemoto();
   }
 
   return { abrir, cerrar, minutosRestantesHoy, darMasTiempo, restablecerTodos };
