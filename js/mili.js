@@ -290,5 +290,8 @@ const Mili = (function () {
   return {
     DEFAULT, PIELES, OJOS, PELOS, COLORES, PEINADOS, ACCESORIOS, ROPAS, ESTAMPADOS, ZAPATOS,
     normalizar, dibujar, ojos,
+    // piezas sueltas que reutiliza el juego de vestir (js/juego.js)
+    color: { oscurecer, aclarar, mezclar, contraste },
+    piezas: { peloAtras, flequillo, cara, zapato, moño, collet, flor, amarres },
   };
 })();

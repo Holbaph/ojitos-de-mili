@@ -42,6 +42,15 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   piel y de ojos, el peinado y color de pelo, un accesorio (moño, collet, cintillo
   o flor), la ropa (vestido, polera con falda o pantalón, jardinera — con
   estampado y colores) y los zapatos. Toda la familia ve a la misma Mili.
+- **Juego "Jugar a vestir"**: se elige un personaje (Mili, Rumi, Mira, Zoey,
+  Elsa, Anna o Moana — dibujos propios inspirados en Huntrix, Frozen y Moana) y
+  se le cambia la ropa arrastrando prendas del armario hasta el personaje (o
+  tocándolas): poleras, tops, polerones, jeans, faldas, vestidos, chaquetas,
+  capas, zapatillas, botas, peinados, color de pelo, ojos, moños, tiaras,
+  lentes… Todo se guarda solo. **Restablecer** deja al personaje en blanco.
+  En Historial → **Juego de vestir** se fijan los **minutos de juego por día**:
+  al acabarse, el juego se cierra solo hasta el día siguiente (o hasta tocar
+  **Dar más tiempo hoy**).
 
 ## 1. Configurar Supabase (una sola vez)
 
@@ -157,6 +166,13 @@ Corre [`supabase/schema_apariencia.sql`](supabase/schema_apariencia.sql) en
 **SQL Editor** (agrega a `configuracion` la columna donde se guarda cómo se ve
 Mili). No hace falta desplegar nada más.
 
+### 3d. Activar el juego de vestir
+
+Corre [`supabase/schema_juego.sql`](supabase/schema_juego.sql) en **SQL Editor**
+(agrega a `configuracion` dónde se guarda la ropa de cada personaje y los
+minutos de juego por día). Sin esto el juego igual funciona, pero la ropa se
+guarda solo en ese dispositivo.
+
 ## 4. Publicar en GitHub Pages
 
 Si clonaste este repo tal cual, en **Settings → Pages** del repositorio elige
@@ -183,11 +199,13 @@ js/supabase-config.js    credenciales de tu proyecto Supabase (paso 1.6)
 js/auth.js                sesión, perfiles, invitación/recuperación de contraseña
 js/core.js                fechas/horas y acceso a la tabla "registros"
 js/mili.js                dibuja a Mili según su apariencia (pelo, ropa, zapatos…)
+js/juego.js               juego de vestir personajes (armario, arrastrar, tiempo por día)
 js/app.js                 toda la interacción de la app
 supabase/schema.sql            tablas, RLS y el disparador que crea tu perfil
 supabase/schema_temporizador.sql  duración, suscripciones push y el cron (paso 3)
 supabase/schema_recordatorio.sql  hora del recordatorio diario (paso 3b)
 supabase/schema_apariencia.sql    apariencia personalizable de Mili (paso 3c)
+supabase/schema_juego.sql         ropa de los personajes y minutos de juego (paso 3d)
 supabase/functions/invite-user           Edge Function que envía invitaciones (paso 2)
 supabase/functions/send-patch-reminders  Edge Function que manda los avisos y el recordatorio (pasos 3 y 3b)
 manifest.json, sw.js      configuración PWA (instalable, caché del cascarón, avisos push)

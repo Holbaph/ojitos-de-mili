@@ -203,6 +203,12 @@
     <button class="history-btn ghost" id="openMili">🎨 Personalizar</button>
   </div>
 
+  <button class="juego-entrar" id="openJuego">
+    <span class="je-emoji">👗</span>
+    <span><strong>Jugar a vestir</strong><small>Mili, Huntrix, Frozen y Moana</small></span>
+    <span class="je-flecha">›</span>
+  </button>
+
   <footer class="note">Hecho con cariño para el tratamiento de Mili 🩹</footer>
 </div>
 
@@ -312,6 +318,27 @@
       </p>
     </div>
   </section>
+
+  <section class="block">
+    <p class="block-title">Juego de vestir</p>
+    <div class="settings-row">
+      <label for="juegoMinutosInput">Tiempo de juego por día</label>
+      <div class="duracion-edit">
+        <input type="number" id="juegoMinutosInput" min="0" step="1" inputmode="numeric">
+        <span>minutos</span>
+        <button class="btn-save small" id="juegoMinutosSave">Guardar</button>
+      </div>
+      <p class="settings-hint" id="juegoMinutosHint"></p>
+    </div>
+    <div class="settings-row">
+      <button class="history-btn ghost" id="juegoMasTiempo">⏱ Dar más tiempo hoy</button>
+      <p class="settings-hint">Vuelve a empezar la cuenta de hoy en este dispositivo.</p>
+    </div>
+    <div class="settings-row">
+      <button class="history-btn ghost" id="juegoResetTodos">↺ Restablecer todos los personajes</button>
+      <p class="settings-hint">Deja a todos los personajes del juego en blanco: sin ropa ni accesorios, con su peinado original.</p>
+    </div>
+  </section>
 </div>
 
 <div class="sheet sheet-mili" id="sheetMili" role="dialog" aria-label="Personalizar a Mili">
@@ -341,6 +368,33 @@
   </div>
 </div>
 
+<!-- ============ Juego de vestir (js/juego.js) ============ -->
+<div class="juego hidden" id="juego" role="dialog" aria-label="Juego de vestir">
+  <div class="juego-top">
+    <button class="icon-btn" id="juegoSalir" aria-label="Salir del juego">✕</button>
+    <div class="juego-titulo"><strong id="juegoNombre">Mili</strong><small id="juegoGrupo"></small></div>
+    <div class="juego-reloj" id="juegoReloj">⏱ 20:00</div>
+    <button class="juego-reset" id="juegoReset">↺ Restablecer</button>
+  </div>
+  <div class="juego-personajes" id="juegoPersonajes"></div>
+  <div class="juego-escenario" id="juegoEscenario">
+    <svg id="juegoSvg" viewBox="0 0 320 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+  </div>
+  <div class="juego-armario">
+    <div class="juego-cats" id="juegoCats"></div>
+    <div class="juego-items" id="juegoItems"></div>
+    <p class="juego-ayuda">Arrastra la ropa hasta el personaje, o tócala 👆</p>
+  </div>
+  <div class="juego-fin hidden" id="juegoFin">
+    <div class="juego-fin-box">
+      <div class="big">⏰</div>
+      <h2>¡Se acabó el tiempo de juego!</h2>
+      <p>La ropa de tus personajes quedó guardada. Mañana puedes seguir jugando 💖</p>
+      <button class="btn-save" id="juegoFinOk">Salir</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -348,6 +402,7 @@
 <script src="js/auth.js"></script>
 <script src="js/core.js"></script>
 <script src="js/mili.js"></script>
+<script src="js/juego.js"></script>
 <script src="js/app.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
