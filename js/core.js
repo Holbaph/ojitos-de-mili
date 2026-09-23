@@ -142,6 +142,41 @@ const Config = {
       .eq('id', 'general');
     if (error) throw error;
   },
+
+  // Juego de vestir: la ropa de cada personaje (js/juego.js) y cuántos minutos
+  // al día se puede jugar (0 = sin límite).
+  async obtenerJuego() {
+    const { data, error } = await supabaseClient
+      .from('configuracion')
+      .select('juego')
+      .eq('id', 'general')
+      .maybeSingle();
+    if (error || !data) return null;
+    return data.juego || null;
+  },
+  async guardarJuego(juego) {
+    const { error } = await supabaseClient
+      .from('configuracion')
+      .update({ juego })
+      .eq('id', 'general');
+    if (error) throw error;
+  },
+  async obtenerJuegoMinutos() {
+    const { data, error } = await supabaseClient
+      .from('configuracion')
+      .select('juego_minutos_dia')
+      .eq('id', 'general')
+      .maybeSingle();
+    if (error || !data || data.juego_minutos_dia == null) return 20; // también si aún no se corrió schema_juego.sql
+    return data.juego_minutos_dia;
+  },
+  async guardarJuegoMinutos(minutos) {
+    const { error } = await supabaseClient
+      .from('configuracion')
+      .update({ juego_minutos_dia: minutos, updated_at: new Date().toISOString() })
+      .eq('id', 'general');
+    if (error) throw error;
+  },
 };
 
 // ---------- avisos push (temporizador y recordatorio) ----------

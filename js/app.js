@@ -10,6 +10,7 @@
   let pendingAuthScreen = null; // 'setpassword' cuando el enlace de invitación/recuperación trae ese tipo
   let duracionMinutos = 120;    // cuánto dura el parche puesto (temporizador)
   let timerTick = null;
+  let juegoMinutos = 20;        // minutos de juego por día (0 = sin límite)
 
   if (location.hash.includes('type=invite') || location.hash.includes('type=recovery') ||
       location.search.includes('type=invite') || location.search.includes('type=recovery')) {
@@ -97,6 +98,7 @@
     document.getElementById('btnLogout').addEventListener('click', async () => {
       if (realtimeChannel) { supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
       if (timerTick) { clearInterval(timerTick); timerTick = null; }
+      Juego.cerrar();
       await Auth.logout();
       entries = {}; perfil = null;
       showOverlay('authLogin');
@@ -137,6 +139,9 @@
       guardarAparienciaLocal();
       renderMili();
     }
+    juegoMinutos = await Config.obtenerJuegoMinutos();
+    document.getElementById('juegoMinutosInput').value = juegoMinutos;
+    renderJuegoHint();
     renderTimer();
     refrescarEstadoAvisos();
     if (!timerTick) timerTick = setInterval(renderTimer, 30000);
@@ -596,6 +601,60 @@
     }
   });
 
+  // ================= JUEGO DE VESTIR (js/juego.js) =================
+  document.getElementById('openJuego').addEventListener('click', () => {
+    Juego.abrir({ apariencia, minutosDia: juegoMinutos, toast: showToast });
+  });
+
+  function renderJuegoHint() {
+    const quedan = Juego.minutosRestantesHoy(juegoMinutos);
+    document.getElementById('juegoMinutosHint').textContent = quedan === Infinity
+      ? 'Sin límite (0 minutos = se puede jugar todo lo que quiera).'
+      : 'Hoy le quedan ' + quedan + ' min de juego en este dispositivo. Al acabarse, el juego se cierra solo hasta mañana. 0 = sin límite.';
+  }
+
+  document.getElementById('juegoMinutosSave').addEventListener('click', async () => {
+    const v = parseInt(document.getElementById('juegoMinutosInput').value, 10);
+    if (isNaN(v) || v < 0) { showToast('Escribe un número de minutos válido (0 = sin límite)'); return; }
+    try {
+      await Config.guardarJuegoMinutos(v);
+      juegoMinutos = v;
+      renderJuegoHint();
+      showToast('Tiempo de juego guardado');
+    } catch (e) {
+      showToast(/juego/i.test(e.message || '')
+        ? 'No se pudo guardar (¿corriste supabase/schema_juego.sql?)'
+        : 'No se pudo guardar: ' + (e.message || 'intenta de nuevo'));
+    }
+  });
+
+  document.getElementById('juegoMasTiempo').addEventListener('click', () => {
+    Juego.darMasTiempo();
+    renderJuegoHint();
+    showToast('Listo, la cuenta de hoy empieza de nuevo');
+  });
+
+  // Pide un segundo toque para confirmar, igual que en el juego.
+  let confirmarResetTodos = null;
+  document.getElementById('juegoResetTodos').addEventListener('click', async () => {
+    const b = document.getElementById('juegoResetTodos');
+    if (!confirmarResetTodos) {
+      b.textContent = '¿Seguro? Toca otra vez para restablecer';
+      confirmarResetTodos = setTimeout(() => { confirmarResetTodos = null; b.textContent = '↺ Restablecer todos los personajes'; }, 3000);
+      return;
+    }
+    clearTimeout(confirmarResetTodos); confirmarResetTodos = null;
+    b.textContent = '↺ Restablecer todos los personajes';
+    try {
+      await Juego.restablecerTodos(apariencia);
+      showToast('Todos los personajes quedaron en blanco');
+    } catch (e) {
+      showToast(/juego/i.test(e.message || '')
+        ? 'No se pudo (¿corriste supabase/schema_juego.sql?)'
+        : 'No se pudo restablecer: ' + (e.message || 'intenta de nuevo'));
+    }
+  });
+
   // ---------- personas / admin ----------
   let personasCache = {};
   async function cargarPersonas() {
@@ -661,7 +720,7 @@
   const sheet = document.getElementById('sheet'), scrim = document.getElementById('scrim');
   function openSheet() { sheet.classList.add('show'); scrim.classList.add('show'); }
   function closeSheet() { sheet.classList.remove('show'); scrim.classList.remove('show'); }
-  document.getElementById('openHistory').addEventListener('click', () => { openSheet(); refrescarEstadoAvisos(); });
+  document.getElementById('openHistory').addEventListener('click', () => { openSheet(); refrescarEstadoAvisos(); renderJuegoHint(); });
   document.getElementById('closeHistory').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
   scrim.addEventListener('click', () => { if (sheetMili.classList.contains('show')) cerrarMili(); });

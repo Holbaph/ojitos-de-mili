@@ -1,0 +1,715 @@
+// juego.js — "Jugar a vestir": elegir un personaje y cambiarle la ropa, los
+// zapatos, el peinado, el color de pelo, los ojos y los accesorios, arrastrando
+// (o tocando) las prendas del armario.
+//
+// - Los personajes son dibujos propios, en el mismo estilo que Mili, inspirados
+//   en Huntrix, Frozen y Moana (no son imágenes oficiales).
+// - Cada cambio se guarda solo: al instante en este dispositivo (localStorage)
+//   y, un segundo después, en Supabase (configuracion.juego), así la ropa queda
+//   igual en todos los celulares de la familia.
+// - El tiempo de juego por día se configura en Historial → Juego de vestir
+//   (configuracion.juego_minutos_dia). Se cuenta por dispositivo y por día.
+//
+// Reutiliza las piezas de dibujo de js/mili.js (misma geometría: cabeza en
+// (160,176) de radio 118, ojos en (112,168) y (208,168), viewBox 0 0 320 440).
+
+const Juego = (function () {
+  const { oscurecer, aclarar, contraste } = Mili.color;
+  const P = Mili.piezas;
+
+  // ---------- colores ----------
+  const C = {
+    rosado: '#e88fae', fucsia: '#d0487e', rojo: '#d9534f', burdeo: '#8e2c48', naranjo: '#f0a04b',
+    amarillo: '#f2cf5b', dorado: '#e2b64a', verde: '#6fbf73', menta: '#8fd8c4', celeste: '#7cc4ea',
+    hielo: '#bfe6f5', azul: '#4a78c2', mezclilla: '#5b7fb0', mezclillaClara: '#8fb0d6', lila: '#b392d6',
+    morado: '#7e57c2', blanco: '#f7f5f2', crema: '#f3e3c3', gris: '#9aa0a6', negro: '#3a3540',
+    cafe: '#8a5a3a', plateado: '#c9ced6',
+  };
+  const NOMBRE_COLOR = {};
+  Object.keys(C).forEach((k) => { NOMBRE_COLOR[C[k]] = k.replace(/([A-Z])/g, ' $1').toLowerCase(); });
+  NOMBRE_COLOR[C.mezclilla] = 'mezclilla'; NOMBRE_COLOR[C.mezclillaClara] = 'mezclilla clara';
+
+  const COLORES_PELO = [
+    { c: '#1f1a1c', n: 'Negro' }, { c: '#4a3222', n: 'Castaño oscuro' }, { c: '#6b4428', n: 'Castaño' },
+    { c: '#a8744a', n: 'Castaño claro' }, { c: '#d9b46a', n: 'Rubio' }, { c: '#f1e6c8', n: 'Rubio platinado' },
+    { c: '#b5522b', n: 'Pelirrojo' }, { c: '#8e2c48', n: 'Burdeo' }, { c: '#6a3fa0', n: 'Morado' },
+    { c: '#e88fae', n: 'Rosado' }, { c: '#4a78c2', n: 'Azul' }, { c: '#8fd8c4', n: 'Menta' },
+  ];
+  const COLORES_OJOS = [
+    { c: '#8b5e3c', n: 'Café' }, { c: '#3a2a22', n: 'Café oscuro' }, { c: '#c79a3a', n: 'Ámbar' },
+    { c: '#5f8a4c', n: 'Verde' }, { c: '#4f7fb5', n: 'Azul' }, { c: '#7d8a93', n: 'Gris' }, { c: '#7e57c2', n: 'Morado' },
+  ];
+  const PEINADOS = [
+    { v: 'largo', n: 'Pelo largo' }, { v: 'melena', n: 'Melena' }, { v: 'corto', n: 'Cortito' },
+    { v: 'trenza', n: 'Trenza' }, { v: 'dos-trenzas', n: 'Dos trenzas' }, { v: 'cola-alta', n: 'Cola alta' },
+    { v: 'cola', n: 'Cola al lado' }, { v: 'colitas', n: 'Dos colitas' }, { v: 'tomate', n: 'Tomate' },
+    { v: 'crespo', n: 'Crespo' },
+  ];
+
+  // ---------- armario: qué prendas hay y en qué colores ----------
+  const TIPOS = {
+    arriba: { polera: 'Polera', 'manga-larga': 'Polera manga larga', top: 'Top', poleron: 'Polerón' },
+    abajo: { jeans: 'Jeans', falda: 'Falda', short: 'Short', 'falda-larga': 'Falda larga' },
+    vestido: { vestido: 'Vestido', 'vestido-largo': 'Vestido largo', 'vestido-princesa': 'Vestido de princesa' },
+    encima: { chaqueta: 'Chaqueta', capa: 'Capa' },
+    zapatos: { zapatillas: 'Zapatillas', botas: 'Botas', botines: 'Botines', balerinas: 'Balerinas', sandalias: 'Sandalias' },
+    cabeza: { moño: 'Moño', collet: 'Collet', tiara: 'Tiara', flor: 'Flor', cintillo: 'Cintillo' },
+    cara: { lentes: 'Lentes de sol', 'lentes-corazon': 'Lentes de corazón' },
+  };
+  const ARMARIO = {
+    arriba: [
+      ['polera', [C.rosado, C.blanco, C.celeste, C.amarillo, C.negro]],
+      ['manga-larga', [C.lila, C.rojo, C.verde, C.blanco]],
+      ['top', [C.negro, C.rojo, C.rosado, C.crema, C.morado]],
+      ['poleron', [C.lila, C.gris, C.rosado, C.celeste]],
+    ],
+    abajo: [
+      ['jeans', [C.mezclilla, C.mezclillaClara, C.negro]],
+      ['falda', [C.rosado, C.negro, C.rojo, C.celeste, C.morado]],
+      ['short', [C.negro, C.mezclilla, C.rosado]],
+      ['falda-larga', [C.rojo, C.verde, C.lila]],
+    ],
+    vestido: [
+      ['vestido', [C.rosado, C.amarillo, C.celeste, C.rojo]],
+      ['vestido-largo', [C.hielo, C.morado, C.rosado]],
+      ['vestido-princesa', [C.verde, C.rosado, C.amarillo]],
+    ],
+    encima: [
+      ['chaqueta', [C.negro, C.morado, C.rojo, C.mezclilla]],
+      ['capa', [C.hielo, C.rojo, C.morado]],
+    ],
+    zapatos: [
+      ['zapatillas', [C.blanco, C.rosado, C.negro]],
+      ['botas', [C.negro, C.cafe, C.blanco]],
+      ['botines', [C.cafe, C.rosado]],
+      ['balerinas', [C.celeste, C.negro, C.rosado, C.dorado]],
+      ['sandalias', [C.cafe, C.rosado]],
+    ],
+    cabeza: [
+      ['moño', [C.rosado, C.rojo, C.celeste, C.morado]],
+      ['collet', [C.amarillo, C.rosado, C.lila]],
+      ['tiara', [C.dorado, C.plateado]],
+      ['flor', [C.rojo, C.blanco, C.rosado]],
+      ['cintillo', [C.negro, C.rosado]],
+    ],
+    cara: [
+      ['lentes', [C.negro, C.rosado]],
+      ['lentes-corazon', [C.rojo, C.rosado]],
+    ],
+  };
+
+  const CATEGORIAS = [
+    { id: 'arriba', e: '👚', n: 'Poleras' }, { id: 'abajo', e: '👖', n: 'Jeans y faldas' },
+    { id: 'vestido', e: '👗', n: 'Vestidos' }, { id: 'encima', e: '🧥', n: 'Chaquetas' },
+    { id: 'zapatos', e: '👟', n: 'Zapatos' }, { id: 'peinado', e: '💇', n: 'Peinado' },
+    { id: 'pelo', e: '🎨', n: 'Color de pelo' }, { id: 'ojos', e: '👀', n: 'Ojos' },
+    { id: 'cabeza', e: '🎀', n: 'Accesorios' }, { id: 'cara', e: '🕶️', n: 'Lentes' },
+  ];
+  const PRENDAS = ['arriba', 'abajo', 'vestido', 'encima', 'zapatos', 'cabeza', 'cara'];
+
+  // ---------- personajes (dibujos propios, inspirados en…) ----------
+  const PERSONAJES = [
+    { id: 'mili', nombre: 'Mili', grupo: 'Mili' },
+    {
+      id: 'rumi', nombre: 'Rumi', grupo: 'Huntrix', piel: '#e9c3a0', ojos: '#c79a3a', peloEstilo: 'trenza', peloColor: '#6a3fa0',
+      ropa: { arriba: { t: 'top', c: C.negro }, abajo: { t: 'jeans', c: C.negro }, encima: { t: 'chaqueta', c: C.morado }, zapatos: { t: 'botas', c: C.negro } },
+    },
+    {
+      id: 'mira', nombre: 'Mira', grupo: 'Huntrix', piel: '#f0cfb0', ojos: '#3a2a22', peloEstilo: 'largo', peloColor: '#8e2c48',
+      ropa: { arriba: { t: 'top', c: C.rojo }, abajo: { t: 'falda', c: C.negro }, encima: { t: 'chaqueta', c: C.negro }, zapatos: { t: 'botas', c: C.negro } },
+    },
+    {
+      id: 'zoey', nombre: 'Zoey', grupo: 'Huntrix', piel: '#f3d2b5', ojos: '#3a2a22', peloEstilo: 'cola-alta', peloColor: '#1f1a1c',
+      ropa: { arriba: { t: 'poleron', c: C.lila }, abajo: { t: 'short', c: C.negro }, zapatos: { t: 'zapatillas', c: C.blanco }, cara: { t: 'lentes-corazon', c: C.rosado } },
+    },
+    {
+      id: 'elsa', nombre: 'Elsa', grupo: 'Frozen', piel: '#fbe6da', ojos: '#4f7fb5', peloEstilo: 'trenza', peloColor: '#f1e6c8',
+      ropa: { vestido: { t: 'vestido-largo', c: C.hielo }, encima: { t: 'capa', c: C.hielo }, zapatos: { t: 'balerinas', c: C.celeste } },
+    },
+    {
+      id: 'anna', nombre: 'Anna', grupo: 'Frozen', piel: '#fbe0cc', ojos: '#4f7fb5', peloEstilo: 'dos-trenzas', peloColor: '#b5522b',
+      ropa: { vestido: { t: 'vestido-princesa', c: C.verde }, zapatos: { t: 'balerinas', c: C.negro } },
+    },
+    {
+      id: 'moana', nombre: 'Moana', grupo: 'Moana', piel: '#a86b45', ojos: '#3a2a22', peloEstilo: 'crespo', peloColor: '#1f1a1c',
+      ropa: { arriba: { t: 'top', c: C.crema }, abajo: { t: 'falda-larga', c: C.rojo }, cabeza: { t: 'flor', c: C.rojo } },
+    },
+  ];
+
+  // Mili toma su piel, ojos y pelo de su apariencia personalizada (js/mili.js).
+  let aparienciaMili = Mili.DEFAULT;
+  function base(p) {
+    if (p.id !== 'mili') return p;
+    const a = aparienciaMili;
+    return {
+      ...p, piel: a.piel, ojos: a.ojos, peloEstilo: a.peloEstilo, peloColor: a.peloColor,
+      ropa: { vestido: { t: 'vestido', c: a.ropaColor }, zapatos: { t: a.zapatos === 'botitas' ? 'botines' : a.zapatos, c: a.zapatosColor } },
+    };
+  }
+  function personaje(id) { return base(PERSONAJES.find((p) => p.id === id) || PERSONAJES[0]); }
+
+  // "En blanco": sin ropa ni accesorios, con su peinado y ojos originales.
+  function enBlanco(id) {
+    const p = personaje(id);
+    const st = { ojos: p.ojos, peloEstilo: p.peloEstilo, peloColor: p.peloColor };
+    PRENDAS.forEach((k) => { st[k] = null; });
+    return st;
+  }
+  function inicial(id) { return { ...enBlanco(id), ...personaje(id).ropa }; }
+
+  // Lo guardado viene de la base de datos compartida y se mete en el SVG: se
+  // valida todo (solo colores #rrggbb y prendas/peinados conocidos).
+  const HEX = /^#[0-9a-f]{6}$/i;
+  function normalizar(id, raw) {
+    const st = inicial(id);
+    if (!raw || typeof raw !== 'object') return st;
+    if (HEX.test(raw.ojos || '')) st.ojos = raw.ojos;
+    if (HEX.test(raw.peloColor || '')) st.peloColor = raw.peloColor;
+    if (PEINADOS.some((p) => p.v === raw.peloEstilo)) st.peloEstilo = raw.peloEstilo;
+    PRENDAS.forEach((k) => {
+      const v = raw[k];
+      if (v === null) st[k] = null;
+      else if (v && TIPOS[k][v.t] && HEX.test(v.c || '')) st[k] = { t: v.t, c: v.c };
+    });
+    return st;
+  }
+
+  // ================= DIBUJO =================
+  const TORSO = 'M120 284 L200 284 Q210 296 212 312 L212 350 L108 350 L108 312 Q110 296 120 284 Z';
+
+  function mangas(tipo, c) {
+    if (tipo === 'corta') return `<ellipse cx="118" cy="298" rx="15" ry="13" fill="${c}"/><ellipse cx="202" cy="298" rx="15" ry="13" fill="${c}"/>`;
+    if (tipo === 'globo') return `<ellipse cx="116" cy="298" rx="20" ry="16" fill="${c}"/><ellipse cx="204" cy="298" rx="20" ry="16" fill="${c}"/>`;
+    if (tipo === 'larga' || tipo === 'velo') {
+      const op = tipo === 'velo' ? ' opacity=".75"' : '';
+      return `<g${op}><path d="M118 298 L103 354 M202 298 L217 354" stroke="${c}" stroke-width="18" stroke-linecap="round"/>` +
+        `<ellipse cx="118" cy="298" rx="14" ry="12" fill="${c}"/><ellipse cx="202" cy="298" rx="14" ry="12" fill="${c}"/></g>`;
+    }
+    return '';
+  }
+
+  // Cada prenda devuelve { svg, manga } — la manga se dibuja encima de los brazos.
+  function prenda(cat, p) {
+    const c = p.c, o = oscurecer(c, 0.18), d = contraste(c);
+    switch (cat + ':' + p.t) {
+      case 'arriba:polera':
+        return {
+          svg: `<path d="${TORSO}" fill="${c}"/>` +
+            `<path d="M160 306 l4 8.5 9.5 1 -7 6.5 2 9.5 -8.5 -5 -8.5 5 2 -9.5 -7 -6.5 9.5 -1z" fill="${d}"/>`,
+          manga: mangas('corta', c),
+        };
+      case 'arriba:manga-larga':
+        return { svg: `<path d="${TORSO}" fill="${c}"/><path d="M110 344 L210 344" stroke="${o}" stroke-width="4"/>`, manga: mangas('larga', c) };
+      case 'arriba:top':
+        return {
+          svg: `<path d="M122 290 L198 290 Q206 302 208 314 L208 326 L112 326 L112 314 Q114 302 122 290 Z" fill="${c}"/>` +
+            `<path d="M126 292 L122 282 M194 292 L198 282" stroke="${c}" stroke-width="5" stroke-linecap="round"/>`,
+          manga: '',
+        };
+      case 'arriba:poleron':
+        return {
+          svg: `<path d="M116 284 L204 284 Q214 296 216 314 L216 356 L104 356 L104 314 Q106 296 116 284 Z" fill="${c}"/>` +
+            `<path d="M134 334 L186 334 L190 352 L130 352 Z" fill="${o}"/>` +
+            `<path d="M150 292 L148 316 M170 292 L172 316" stroke="${d}" stroke-width="2.5" stroke-linecap="round"/>`,
+          manga: mangas('larga', c),
+        };
+      case 'abajo:jeans':
+        return {
+          svg: `<path d="M110 342 L210 342 L208 422 L168 422 L160 372 L152 422 L112 422 Z" fill="${c}"/>` +
+            `<path d="M160 344 L160 370 M116 352 Q128 358 140 352 M180 352 Q192 358 204 352 M113 414 L151 414 M169 414 L207 414" fill="none" stroke="${aclarar(c, 0.35)}" stroke-width="1.6" stroke-dasharray="3 3"/>`,
+        };
+      case 'abajo:falda':
+        return { svg: `<path d="M106 342 L214 342 L236 388 Q160 402 84 388 Z" fill="${c}"/><path d="M106 346 L214 346" stroke="${o}" stroke-width="5"/>` };
+      case 'abajo:short':
+        return { svg: `<path d="M108 340 L212 340 L214 378 L166 378 L160 362 L154 378 L106 378 Z" fill="${c}"/>` };
+      case 'abajo:falda-larga':
+        return {
+          svg: `<path d="M106 342 L214 342 L232 424 Q160 436 88 424 Z" fill="${c}"/>` +
+            `<path d="M96 402 Q160 414 224 402" fill="none" stroke="${d}" stroke-width="6"/>` +
+            `<path d="M94 412 Q160 424 226 412" fill="none" stroke="${o}" stroke-width="3" stroke-dasharray="6 5"/>`,
+        };
+      case 'vestido:vestido':
+        return {
+          svg: `<path d="M122 284 L198 284 Q206 300 210 318 L236 388 Q160 404 84 388 L110 318 Q114 300 122 284 Z" fill="${c}"/>` +
+            `<path d="M110 322 Q160 332 210 322" fill="none" stroke="${d}" stroke-width="7" stroke-linecap="round"/>`,
+          manga: mangas('corta', c),
+        };
+      case 'vestido:vestido-largo': {
+        const brillos = [[132, 350], [184, 364], [150, 396], [206, 408], [112, 414], [170, 420], [196, 336]]
+          .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.4" fill="#fff" opacity=".85"/>`).join('');
+        return {
+          svg: `<path d="M122 284 L198 284 Q206 300 208 318 L242 430 Q160 442 78 430 L112 318 Q114 300 122 284 Z" fill="${c}"/>` +
+            `<path d="M120 300 L200 300" stroke="${aclarar(c, 0.5)}" stroke-width="3" opacity=".7"/>` + brillos,
+          manga: mangas('velo', aclarar(c, 0.35)),
+        };
+      }
+      case 'vestido:vestido-princesa':
+        return {
+          svg: `<path d="M112 322 L208 322 Q252 360 248 404 Q160 420 72 404 Q68 360 112 322 Z" fill="${c}"/>` +
+            `<path d="M96 380 Q160 394 224 380" fill="none" stroke="${o}" stroke-width="3" opacity=".6"/>` +
+            `<path d="M124 284 L196 284 L204 326 L116 326 Z" fill="${o}"/>` +
+            `<path d="M140 296 L180 296 M142 306 L178 306 M144 316 L176 316" stroke="${aclarar(c, 0.6)}" stroke-width="2"/>`,
+          manga: mangas('globo', c),
+        };
+      case 'encima:chaqueta':
+        return {
+          svg: `<path d="M116 286 L148 290 L144 358 L104 358 L104 314 Q106 298 116 286 Z" fill="${c}"/>` +
+            `<path d="M204 286 L172 290 L176 358 L216 358 L216 314 Q214 298 204 286 Z" fill="${c}"/>` +
+            `<path d="M130 288 L148 290 L138 312 Z M190 288 L172 290 L182 312 Z" fill="${o}"/>` +
+            `<circle cx="206" cy="330" r="2.6" fill="${d}"/>`,
+          manga: mangas('larga', c),
+        };
+      case 'encima:capa':
+        return { atras: `<path d="M118 288 L202 288 L252 432 Q160 444 68 432 Z" fill="${c}" opacity=".88"/>`, svg: '' };
+      default:
+        return { svg: '' };
+    }
+  }
+
+  function zapatos(z, piel) {
+    if (!z) return `<ellipse cx="142" cy="429" rx="10" ry="5" fill="${piel}"/><ellipse cx="178" cy="429" rx="10" ry="5" fill="${piel}"/>`;
+    if (z.t === 'botas') {
+      const o = oscurecer(z.c, 0.25), l = aclarar(z.c, 0.18);
+      return [142, 178].map((cx) =>
+        `<path d="M${cx - 12} 374 L${cx + 12} 374 L${cx + 13} 424 Q${cx + 14} 433 ${cx + 7} 433 L${cx - 7} 433 Q${cx - 14} 433 ${cx - 13} 424 Z" fill="${z.c}"/>` +
+        `<rect x="${cx - 13.5}" y="371" width="27" height="8" rx="3.5" fill="${l}"/>` +
+        `<rect x="${cx - 13}" y="430" width="26" height="3.5" rx="1.5" fill="${o}"/>`
+      ).join('');
+    }
+    const ap = { zapatos: z.t === 'botines' ? 'botitas' : z.t, zapatosColor: z.c, piel };
+    return P.zapato(142, ap) + P.zapato(178, ap);
+  }
+
+  // Peinados que no están en Mili: trenzas, cola alta y crespo.
+  function peloAtras(st) {
+    const h = st.peloColor;
+    if (st.peloEstilo === 'crespo') {
+      let s = `<path d="M24 190 A136 136 0 0 1 296 190 L296 316 Q160 350 24 316 Z" fill="${h}"/>`;
+      for (let a = -25; a <= 205; a += 23) {
+        const r = (a * Math.PI) / 180;
+        s += `<circle cx="${(160 + 146 * Math.cos(r)).toFixed(1)}" cy="${(196 - 150 * Math.sin(r)).toFixed(1)}" r="30" fill="${h}"/>`;
+      }
+      [[36, 300], [284, 300], [60, 330], [260, 330]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="28" fill="${h}"/>`; });
+      return s;
+    }
+    if (st.peloEstilo === 'cola-alta') {
+      return `<path d="M35.6 200 A128 128 0 1 1 284.4 200 Z" fill="${h}"/>` +
+        `<path d="M176 52 Q252 18 294 90 Q320 162 290 254 Q282 182 258 132 Q234 92 190 82 Z" fill="${h}"/>`;
+    }
+    return P.peloAtras({ peloEstilo: st.peloEstilo, peloColor: h });
+  }
+
+  function trenza(x0, dx, largo, grosor, h) {
+    const o = oscurecer(h, 0.2);
+    let s = '';
+    for (let i = 0; i < largo; i++) {
+      const cx = x0 + dx * i, cy = 216 + i * 22, rx = grosor - i * 0.8;
+      s += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="14" transform="rotate(${i % 2 ? 22 : -22} ${cx} ${cy})" fill="${h}" stroke="${o}" stroke-width="1.2"/>`;
+    }
+    const fx = x0 + dx * largo, fy = 216 + largo * 22 - 4;
+    return s + `<path d="M${fx - 7} ${fy} Q${fx} ${fy + 26} ${fx + 7} ${fy} Z" fill="${h}"/>` +
+      `<ellipse cx="${fx}" cy="${fy - 2}" rx="7" ry="4.5" fill="${o}"/>`;
+  }
+
+  // Lo que cae por delante del cuerpo (las trenzas).
+  function peloDelante(st) {
+    if (st.peloEstilo === 'trenza') return trenza(274, -3, 7, 18, st.peloColor);
+    if (st.peloEstilo === 'dos-trenzas') return trenza(46, 2.5, 6, 15, st.peloColor) + trenza(274, -2.5, 6, 15, st.peloColor);
+    return '';
+  }
+
+  function amarres(estilo) {
+    if (estilo === 'cola-alta') return [{ x: 190, y: 66, s: 0.75 }];
+    if (estilo === 'trenza') return [{ x: 272, y: 206, s: 0.6 }];
+    if (estilo === 'dos-trenzas') return [{ x: 48, y: 206, s: 0.55 }, { x: 272, y: 206, s: 0.55 }];
+    return P.amarres(estilo);
+  }
+
+  function cabeza(acc, st) {
+    if (!acc) return '';
+    const c = acc.c, puntos = amarres(st.peloEstilo);
+    switch (acc.t) {
+      case 'moño': return puntos.length ? puntos.map((p) => P.moño(p.x, p.y, p.s, c)).join('') : P.moño(160, 46, 1, c);
+      case 'collet':
+        if (puntos.length) return puntos.map((p) => P.collet(p.x, p.y, p.s + 0.2, c)).join('');
+        return `<path d="M160 54 Q138 22 148 10 Q157 28 160 30 Q163 28 172 10 Q182 22 160 54 Z" fill="${st.peloColor}"/>` + P.collet(160, 52, 1, c);
+      case 'flor': return puntos.length ? puntos.map((p) => P.flor(p.x, p.y, p.s, c)).join('') : P.flor(222, 72, 1, c);
+      case 'cintillo': return `<path d="M42 140 A124 124 0 0 1 278 140" fill="none" stroke="${c}" stroke-width="12" stroke-linecap="round"/>`;
+      case 'tiara':
+        return `<path d="M118 76 L126 46 L142 64 L160 34 L178 64 L194 46 L202 76 Q160 66 118 76 Z" fill="${c}" stroke="${oscurecer(c, 0.25)}" stroke-width="1.5"/>` +
+          `<circle cx="160" cy="54" r="4.5" fill="#e8578a"/><circle cx="127" cy="60" r="3" fill="#7cc4ea"/><circle cx="193" cy="60" r="3" fill="#7cc4ea"/>`;
+      default: return '';
+    }
+  }
+
+  function cara(acc) {
+    if (!acc) return '';
+    const c = acc.c, o = oscurecer(c, 0.3);
+    const patillas = `<path d="M82 158 L46 148 M238 158 L274 148" stroke="${o}" stroke-width="4" stroke-linecap="round"/>`;
+    if (acc.t === 'lentes-corazon') {
+      const corazon = (x, y) => `<path d="M${x} ${y + 18} L${x - 24} ${y - 4} A12 12 0 0 1 ${x} ${y - 14} A12 12 0 0 1 ${x + 24} ${y - 4} Z" fill="${c}" opacity=".92" stroke="${o}" stroke-width="2.5" stroke-linejoin="round"/>`;
+      return patillas + corazon(112, 168) + corazon(208, 168) +
+        `<path d="M136 160 Q160 152 184 160" fill="none" stroke="${o}" stroke-width="4"/>`;
+    }
+    return patillas +
+      `<rect x="80" y="146" width="64" height="44" rx="18" fill="${c}" opacity=".94" stroke="${o}" stroke-width="3"/>` +
+      `<rect x="176" y="146" width="64" height="44" rx="18" fill="${c}" opacity=".94" stroke="${o}" stroke-width="3"/>` +
+      `<path d="M144 160 Q160 152 176 160" fill="none" stroke="${o}" stroke-width="4"/>` +
+      `<path d="M92 156 L104 152 M188 156 L200 152" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55"/>`;
+  }
+
+  function ojos(color) {
+    return [112, 208].map((x) =>
+      `<circle cx="${x}" cy="168" r="27" fill="#fff"/><circle cx="${x}" cy="168" r="13" fill="${color}"/>` +
+      `<circle cx="${x}" cy="168" r="5.5" fill="#2a2740"/><circle cx="${x - 5}" cy="163" r="3" fill="#fff"/>`
+    ).join('');
+  }
+
+  function figura(id, st) {
+    const piel = personaje(id).piel;
+    const ap = { piel, peloColor: st.peloColor };
+    const partes = {};
+    ['vestido', 'arriba', 'abajo', 'encima'].forEach((k) => { if (st[k]) partes[k] = prenda(k, st[k]); });
+
+    let s = peloAtras(st);
+    if (partes.encima && partes.encima.atras) s += partes.encima.atras;
+
+    // piernas, zapatos (las botas van sobre el pantalón), torso
+    s += `<rect x="134" y="366" width="16" height="64" rx="7" fill="${piel}"/><rect x="170" y="366" width="16" height="64" rx="7" fill="${piel}"/>`;
+    if (!st.zapatos || st.zapatos.t !== 'botas') s += zapatos(st.zapatos, piel);
+    s += `<path d="${TORSO}" fill="${piel}"/>`;
+
+    // ropa (o la ropa interior blanca si no tiene nada puesto)
+    const blanco = '#f4f1ee';
+    if (partes.vestido) s += partes.vestido.svg;
+    else {
+      s += partes.abajo ? partes.abajo.svg : `<path d="M110 338 L210 338 L210 362 L166 362 L160 356 L154 362 L110 362 Z" fill="${blanco}"/>`;
+      s += partes.arriba ? partes.arriba.svg
+        : `<path d="M126 292 L194 292 L200 342 L120 342 Z" fill="${blanco}"/><path d="M130 294 L126 284 M190 294 L194 284" stroke="${blanco}" stroke-width="5" stroke-linecap="round"/>`;
+    }
+    if (st.zapatos && st.zapatos.t === 'botas') s += zapatos(st.zapatos, piel);
+    if (partes.encima) s += partes.encima.svg;
+
+    // brazos y mangas (la chaqueta tapa las mangas de lo de abajo)
+    s += `<path d="M118 298 L102 362 M202 298 L218 362" stroke="${piel}" stroke-width="15" stroke-linecap="round"/>` +
+      `<circle cx="101" cy="366" r="9" fill="${piel}"/><circle cx="219" cy="366" r="9" fill="${piel}"/>`;
+    const deArriba = partes.vestido || partes.arriba;
+    if (deArriba && deArriba.manga) s += deArriba.manga;
+    if (partes.encima && partes.encima.manga) s += partes.encima.manga;
+
+    s += peloDelante(st) + P.cara(ap) + ojos(st.ojos) + P.flequillo(ap) + cabeza(st.cabeza, st) + cara(st.cara);
+    return s;
+  }
+
+  // Ícono de cada cosa del armario (la prenda sola, recortada con el viewBox).
+  const CAJAS = {
+    arriba: '94 270 132 96', abajo: '78 334 164 104', vestido: '66 274 188 170', encima: '62 272 196 172',
+    zapatos: '120 366 80 72', cabeza: '86 4 208 100', cara: '40 134 240 72', peinado: '-4 4 328 356',
+  };
+  function icono(cat, valor, st, id) {
+    let dentro = '', caja = CAJAS[cat] || '0 0 320 440';
+    if (cat === 'pelo') return `<span class="jcolor" style="background:${valor}"></span>`;
+    if (cat === 'ojos') return `<svg viewBox="78 134 68 68"><circle cx="112" cy="168" r="30" fill="#fff" stroke="#ddd" stroke-width="2"/><circle cx="112" cy="168" r="15" fill="${valor}"/><circle cx="112" cy="168" r="6" fill="#2a2740"/><circle cx="107" cy="163" r="3.5" fill="#fff"/></svg>`;
+    if (cat === 'peinado') {
+      const s2 = { ...st, peloEstilo: valor };
+      const ap = { piel: personaje(id).piel, peloColor: st.peloColor };
+      dentro = peloAtras(s2) + peloDelante(s2) + P.cara(ap) + ojos(st.ojos) + P.flequillo(ap);
+    } else if (cat === 'zapatos') {
+      dentro = zapatos(valor, '#f1c9a5');
+      if (valor.t === 'botas') caja = '120 362 80 76';
+    } else if (cat === 'cabeza') {
+      const s2 = { peloEstilo: 'melena', peloColor: '#b9a597' };
+      dentro = cabeza(valor, s2);
+      caja = { moño: '122 14 76 64', collet: '124 2 72 70', tiara: '110 28 100 54', flor: '194 44 56 56', cintillo: '30 40 260 110' }[valor.t] || caja;
+    } else if (cat === 'cara') {
+      dentro = cara(valor);
+    } else {
+      const pr = prenda(cat, valor);
+      dentro = (pr.atras || '') + pr.svg + (pr.manga || '');
+    }
+    return `<svg viewBox="${caja}" preserveAspectRatio="xMidYMid meet">${dentro}</svg>`;
+  }
+
+  // ================= ESTADO Y GUARDADO =================
+  const LOCAL = 'ojitos-juego';
+  const USO = 'ojitos-juego-uso';
+  let estados = {};           // id -> estado
+  let actual = 'mili';
+  let cat = 'arriba';
+  let guardarTimer = null;
+  let toast = () => {};
+
+  function leerLocal() {
+    try {
+      const j = JSON.parse(localStorage.getItem(LOCAL));
+      if (j && j.personajes) return j;
+    } catch (e) {}
+    return null;
+  }
+  function aplicarGuardado(j) {
+    estados = {};
+    PERSONAJES.forEach((p) => { estados[p.id] = normalizar(p.id, j && j.personajes && j.personajes[p.id]); });
+    if (j && PERSONAJES.some((p) => p.id === j.actual)) actual = j.actual;
+  }
+  function paquete() { return { personajes: estados, actual }; }
+
+  function guardar() {
+    try { localStorage.setItem(LOCAL, JSON.stringify(paquete())); } catch (e) {}
+    clearTimeout(guardarTimer);
+    guardarTimer = setTimeout(guardarRemoto, 1000);
+  }
+  async function guardarRemoto() {
+    clearTimeout(guardarTimer); guardarTimer = null;
+    try { await Config.guardarJuego(paquete()); } catch (e) { /* queda en este dispositivo; se sube en el próximo cambio */ }
+  }
+
+  // ---------- tiempo de juego (por día, en este dispositivo) ----------
+  let minutosDia = 20;
+  let tick = null;
+  function uso() {
+    const hoy = Utils.todayId();
+    try {
+      const u = JSON.parse(localStorage.getItem(USO));
+      if (u && u.fecha === hoy && typeof u.seg === 'number') return u;
+    } catch (e) {}
+    return { fecha: hoy, seg: 0 };
+  }
+  function guardarUso(u) { try { localStorage.setItem(USO, JSON.stringify(u)); } catch (e) {} }
+  function segundosRestantes() { return minutosDia > 0 ? Math.max(0, minutosDia * 60 - uso().seg) : Infinity; }
+
+  function renderReloj() {
+    const el = document.getElementById('juegoReloj');
+    const r = segundosRestantes();
+    if (r === Infinity) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    el.textContent = '⏱ ' + Math.floor(r / 60) + ':' + String(Math.floor(r % 60)).padStart(2, '0');
+    el.classList.toggle('poco', r <= 60);
+  }
+
+  function empezarReloj() {
+    clearInterval(tick);
+    renderReloj();
+    tick = setInterval(() => {
+      if (document.hidden) return;
+      const u = uso(); u.seg += 1; guardarUso(u);
+      renderReloj();
+      if (segundosRestantes() <= 0) terminarTiempo();
+    }, 1000);
+  }
+
+  function terminarTiempo() {
+    clearInterval(tick); tick = null;
+    guardarRemoto();
+    document.getElementById('juegoFin').classList.remove('hidden');
+  }
+
+  // ================= PANTALLA =================
+  const $ = (id) => document.getElementById(id);
+
+  function renderPersonajes() {
+    $('juegoPersonajes').innerHTML = PERSONAJES.map((p) =>
+      `<button class="jpersonaje${p.id === actual ? ' activo' : ''}" data-id="${p.id}" aria-label="${p.nombre}">` +
+      `<svg viewBox="22 18 276 276">${figura(p.id, estados[p.id])}</svg><span>${p.nombre}</span></button>`
+    ).join('');
+  }
+
+  function renderEscenario(pop) {
+    const svg = $('juegoSvg');
+    svg.innerHTML = figura(actual, estados[actual]);
+    const p = personaje(actual);
+    $('juegoNombre').textContent = p.nombre;
+    $('juegoGrupo').textContent = p.grupo === p.nombre ? '' : p.grupo;
+    if (pop) { svg.classList.remove('pop'); void svg.getBoundingClientRect(); svg.classList.add('pop'); }
+  }
+
+  function renderCats() {
+    $('juegoCats').innerHTML = CATEGORIAS.map((c) =>
+      `<button data-cat="${c.id}"${c.id === cat ? ' class="activo"' : ''}><span>${c.e}</span>${c.n}</button>`
+    ).join('');
+  }
+
+  // Lista de cosas de la categoría actual: [{ key, valor, nombre, puesto }]
+  function itemsDeCategoria() {
+    const st = estados[actual];
+    if (cat === 'peinado') return PEINADOS.map((p) => ({ key: 'peinado|' + p.v, valor: p.v, nombre: p.n, puesto: st.peloEstilo === p.v }));
+    if (cat === 'pelo') return COLORES_PELO.map((p) => ({ key: 'pelo|' + p.c, valor: p.c, nombre: 'Pelo ' + p.n.toLowerCase(), puesto: st.peloColor === p.c }));
+    if (cat === 'ojos') return COLORES_OJOS.map((p) => ({ key: 'ojos|' + p.c, valor: p.c, nombre: 'Ojos ' + p.n.toLowerCase(), puesto: st.ojos === p.c }));
+    const out = [];
+    ARMARIO[cat].forEach(([t, colores]) => colores.forEach((c) => {
+      const puesto = !!st[cat] && st[cat].t === t && st[cat].c === c;
+      out.push({ key: cat + '|' + t + '|' + c, valor: { t, c }, nombre: TIPOS[cat][t] + ' ' + (NOMBRE_COLOR[c] || ''), puesto });
+    }));
+    return out;
+  }
+
+  function renderItems() {
+    const st = estados[actual];
+    $('juegoItems').innerHTML = itemsDeCategoria().map((it) =>
+      `<button class="jitem${it.puesto ? ' puesto' : ''}" data-key="${it.key}" title="${it.nombre}" aria-label="${it.nombre}">` +
+      icono(cat, it.valor, st, actual) + '</button>'
+    ).join('');
+  }
+
+  function valorDeKey(key) {
+    const [c, a, b] = key.split('|');
+    if (c === 'peinado' || c === 'pelo' || c === 'ojos') return { cat: c, valor: a };
+    return { cat: c, valor: { t: a, c: b } };
+  }
+
+  function equipar(key) {
+    const { cat: c, valor } = valorDeKey(key);
+    const st = estados[actual];
+    if (c === 'peinado') st.peloEstilo = valor;
+    else if (c === 'pelo') st.peloColor = valor;
+    else if (c === 'ojos') st.ojos = valor;
+    else {
+      const igual = st[c] && st[c].t === valor.t && st[c].c === valor.c;
+      st[c] = igual ? null : valor; // tocar lo que ya tiene puesto, se lo saca
+      if (!igual && c === 'vestido') { st.arriba = null; st.abajo = null; }
+      if (!igual && (c === 'arriba' || c === 'abajo')) st.vestido = null;
+    }
+    renderEscenario(true); renderItems(); renderPersonajes();
+    guardar();
+  }
+
+  // ---------- arrastrar prendas hasta el personaje ----------
+  let arrastre = null;
+  let sinClick = false;
+  function sobreEscenario(e) {
+    const r = $('juegoEscenario').getBoundingClientRect();
+    return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  }
+  function limpiarArrastre() {
+    if (arrastre && arrastre.fantasma) arrastre.fantasma.remove();
+    $('juegoEscenario').classList.remove('sobre');
+    arrastre = null;
+  }
+
+  function cablear() {
+    $('juegoSalir').addEventListener('click', cerrar);
+    $('juegoFinOk').addEventListener('click', cerrar);
+
+    $('juegoPersonajes').addEventListener('click', (e) => {
+      const b = e.target.closest('.jpersonaje');
+      if (!b) return;
+      actual = b.dataset.id;
+      renderPersonajes(); renderEscenario(true); renderItems();
+      guardar();
+    });
+
+    $('juegoCats').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-cat]');
+      if (!b) return;
+      cat = b.dataset.cat;
+      renderCats(); renderItems();
+      $('juegoItems').scrollLeft = 0;
+    });
+
+    // Restablecer: pide un segundo toque para confirmar (a prueba de dedos chicos)
+    let confirmarReset = null;
+    $('juegoReset').addEventListener('click', () => {
+      const b = $('juegoReset');
+      if (!confirmarReset) {
+        b.textContent = '¿Seguro? Toca otra vez';
+        b.classList.add('confirmar');
+        confirmarReset = setTimeout(() => { confirmarReset = null; b.textContent = '↺ Restablecer'; b.classList.remove('confirmar'); }, 3000);
+        return;
+      }
+      clearTimeout(confirmarReset); confirmarReset = null;
+      b.textContent = '↺ Restablecer'; b.classList.remove('confirmar');
+      estados[actual] = enBlanco(actual);
+      renderEscenario(true); renderItems(); renderPersonajes();
+      guardar();
+    });
+
+    const items = $('juegoItems');
+    items.addEventListener('click', (e) => {
+      if (sinClick) return;
+      const b = e.target.closest('.jitem');
+      if (b) equipar(b.dataset.key);
+    });
+    items.addEventListener('pointerdown', (e) => {
+      const b = e.target.closest('.jitem');
+      if (!b) return;
+      arrastre = { key: b.dataset.key, boton: b, x0: e.clientX, y0: e.clientY, pid: e.pointerId, mouse: e.pointerType === 'mouse', fantasma: null };
+    });
+    document.addEventListener('pointermove', (e) => {
+      if (!arrastre || e.pointerId !== arrastre.pid) return;
+      const dx = e.clientX - arrastre.x0, dy = e.clientY - arrastre.y0;
+      if (!arrastre.fantasma) {
+        // con el dedo, moverse de lado es para recorrer el armario; hacia arriba, para arrastrar
+        const empezar = arrastre.mouse ? Math.hypot(dx, dy) > 6 : (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx));
+        if (!empezar) return;
+        const f = arrastre.boton.cloneNode(true);
+        f.classList.add('fantasma');
+        $('juego').appendChild(f);
+        arrastre.fantasma = f;
+      }
+      e.preventDefault();
+      const f = arrastre.fantasma;
+      f.style.left = (e.clientX - f.offsetWidth / 2) + 'px';
+      f.style.top = (e.clientY - f.offsetHeight / 2) + 'px';
+      $('juegoEscenario').classList.toggle('sobre', sobreEscenario(e));
+    }, { passive: false });
+    document.addEventListener('pointerup', (e) => {
+      if (!arrastre || e.pointerId !== arrastre.pid) return;
+      if (arrastre.fantasma) {
+        if (sobreEscenario(e)) equipar(arrastre.key);
+        sinClick = true; setTimeout(() => { sinClick = false; }, 60);
+      }
+      limpiarArrastre();
+    });
+    document.addEventListener('pointercancel', limpiarArrastre);
+  }
+
+  // ================= API =================
+  let cableado = false;
+
+  async function abrir(opts) {
+    if (!cableado) { cablear(); cableado = true; }
+    toast = opts.toast || toast;
+    aparienciaMili = opts.apariencia || Mili.DEFAULT;
+    minutosDia = opts.minutosDia;
+
+    aplicarGuardado(leerLocal());
+    $('juegoFin').classList.add('hidden');
+    $('juego').classList.remove('hidden');
+    document.body.classList.add('jugando');
+    renderPersonajes(); renderEscenario(false); renderCats(); renderItems();
+
+    if (segundosRestantes() <= 0) { terminarTiempo(); return; }
+    empezarReloj();
+
+    // lo de Supabase manda (puede venir de otro celular)
+    const remoto = await Config.obtenerJuego();
+    if (remoto && !$('juego').classList.contains('hidden')) {
+      aplicarGuardado(remoto);
+      try { localStorage.setItem(LOCAL, JSON.stringify(paquete())); } catch (e) {}
+      renderPersonajes(); renderEscenario(false); renderItems();
+    }
+  }
+
+  function cerrar() {
+    clearInterval(tick); tick = null;
+    limpiarArrastre();
+    if (guardarTimer) guardarRemoto();
+    $('juego').classList.add('hidden');
+    document.body.classList.remove('jugando');
+  }
+
+  function minutosRestantesHoy(min) {
+    if (!(min > 0)) return Infinity;
+    return Math.max(0, Math.ceil((min * 60 - uso().seg) / 60));
+  }
+  function darMasTiempo() { guardarUso({ fecha: Utils.todayId(), seg: 0 }); }
+
+  async function restablecerTodos(apariencia) {
+    aparienciaMili = apariencia || Mili.DEFAULT;
+    estados = {};
+    PERSONAJES.forEach((p) => { estados[p.id] = enBlanco(p.id); });
+    try { localStorage.setItem(LOCAL, JSON.stringify(paquete())); } catch (e) {}
+    await Config.guardarJuego(paquete());
+  }
+
+  return { abrir, cerrar, minutosRestantesHoy, darMasTiempo, restablecerTodos };
+})();
