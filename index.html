@@ -197,7 +197,13 @@
 
   <button class="juego-entrar" id="openJuego">
     <span class="je-emoji">👗</span>
-    <span><strong>Jugar a vestir</strong><small>Mili, Huntrix, Frozen y Moana</small></span>
+    <span><strong>Jugar a vestir</strong><small>Mili, Huntrix, Frozen, Moana y más</small></span>
+    <span class="je-flecha">›</span>
+  </button>
+
+  <button class="juego-entrar jp-entrar" id="openJuegosParche">
+    <span class="je-emoji">🎯</span>
+    <span><strong>Juegos con el parche</strong><small id="jpEntrarSub">Se abren cuando tienes el parche puesto</small></span>
     <span class="je-flecha">›</span>
   </button>
 
@@ -433,6 +439,26 @@
   </div>
 </div>
 
+<!-- ============ Juegos con el parche (js/juegos-parche.js) ============ -->
+<div class="jp hidden" id="jp" role="dialog" aria-label="Juegos con el parche">
+  <div class="jp-top">
+    <button class="icon-btn" id="jpVolver" aria-label="Volver">←</button>
+    <div class="jp-titulo"><strong id="jpTitulo">Juegos con el parche</strong><small id="jpSub"></small></div>
+    <div class="jp-estrellas" id="jpEstrellas">⭐ 0</div>
+  </div>
+  <div class="jp-cuerpo" id="jpCuerpo"></div>
+  <div class="jp-mensaje" id="jpMensaje" aria-live="polite"></div>
+  <div class="jp-premio hidden" id="jpPremio">
+    <div class="jp-premio-box">
+      <div class="big">⭐⭐⭐</div>
+      <h2>¡Muy bien!</h2>
+      <p id="jpPremioTexto"></p>
+      <button class="btn-save" id="jpSiguiente">Siguiente nivel ▶</button>
+      <button class="btn-cancel" id="jpOtro">Elegir otro juego</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -442,6 +468,7 @@
 <script src="js/mili.js"></script>
 <script src="js/juego.js"></script>
 <script src="js/camara.js"></script>
+<script src="js/juegos-parche.js"></script>
 <script src="js/app.js"></script>
 <script>
   if ('serviceWorker' in navigator) {

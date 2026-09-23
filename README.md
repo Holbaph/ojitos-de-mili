@@ -56,6 +56,13 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   dedo y se cambia de tamaño) para sacarse una foto con él; las fotos quedan en
   **Mis fotos**, guardadas **solo en ese celular** (no se suben a ningún lado),
   y se pueden guardar en la galería o compartir.
+- **Juegos con el parche**: cinco juegos de visión fina para entretenerse
+  *mientras* se usa el parche (así trabaja el ojito destapado): 🔍 Diferencias,
+  ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y 🫧 Burbujas. Tienen
+  niveles que se van poniendo más difíciles y dan estrellitas ⭐. Solo se abren
+  si el parche de hoy está registrado y todavía no se cumple su tiempo. Son
+  para acompañar el tratamiento, **no lo reemplazan** ni son ejercicios
+  indicados por un oftalmólogo.
   En Historial → **Juego de vestir** se fijan los **minutos de juego por día**:
   al acabarse, el juego se cierra solo hasta el día siguiente (o hasta tocar
   **Dar más tiempo hoy**).
@@ -209,6 +216,7 @@ js/core.js                fechas/horas y acceso a la tabla "registros"
 js/mili.js                dibuja a Mili según su apariencia (pelo, ropa, zapatos…)
 js/juego.js               juego de vestir personajes (armario, arrastrar, tiempo por día)
 js/camara.js              foto con el personaje + "Mis fotos" (solo en el dispositivo)
+js/juegos-parche.js       juegos de visión fina para el rato con el parche puesto
 js/app.js                 toda la interacción de la app
 supabase/schema.sql            tablas, RLS y el disparador que crea tu perfil
 supabase/schema_temporizador.sql  duración, suscripciones push y el cron (paso 3)

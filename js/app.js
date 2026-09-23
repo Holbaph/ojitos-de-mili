@@ -99,6 +99,7 @@
       if (realtimeChannel) { supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
       if (timerTick) { clearInterval(timerTick); timerTick = null; }
       Juego.cerrar();
+      JuegosParche.cerrar();
       await Auth.logout();
       entries = {}; perfil = null;
       showOverlay('authLogin');
@@ -335,6 +336,17 @@
     document.getElementById('duracionHint').textContent = 'Ahora mismo: ' + partes.join(' ');
   }
 
+  // Botón de "Juegos con el parche": se destaca mientras el parche está puesto.
+  function renderEntradaJuegosParche(rec, fraccion) {
+    const btn = document.getElementById('openJuegosParche');
+    const sub = document.getElementById('jpEntrarSub');
+    const puesto = !!rec && fraccion < 1;
+    btn.classList.toggle('activo', puesto);
+    sub.textContent = puesto ? '¡A jugar mientras usas el parche! ⏳'
+      : rec ? 'Por hoy ya se cumplió el tiempo del parche 🎉'
+      : 'Se abren cuando tienes el parche puesto';
+  }
+
   function renderTimer() {
     const card = document.getElementById('timerCard');
     const text = document.getElementById('timerText');
@@ -343,6 +355,7 @@
     const rec = entries[Utils.todayId()];
 
     if (!rec) {
+      renderEntradaJuegosParche(null, 0);
       card.classList.add('idle'); card.classList.remove('done');
       sandTop.setAttribute('y', 26); sandTop.setAttribute('height', 110);
       sandBottom.setAttribute('y', 254); sandBottom.setAttribute('height', 0);
@@ -353,6 +366,7 @@
     const duracionMs = duracionMinutos * 60000;
     const transcurrido = Date.now() - new Date(rec.hora).getTime();
     const fraccion = Math.max(0, Math.min(1, transcurrido / duracionMs));
+    renderEntradaJuegosParche(rec, fraccion);
 
     const topApexY = 136, topStartY = 26;
     const nivelTop = topStartY + (topApexY - topStartY) * fraccion;
@@ -605,6 +619,15 @@
     } finally {
       btn.disabled = false;
     }
+  });
+
+  // ================= JUEGOS CON EL PARCHE (js/juegos-parche.js) =================
+  document.getElementById('openJuegosParche').addEventListener('click', () => {
+    const rec = entries[Utils.todayId()];
+    JuegosParche.abrir({
+      registrado: !!rec,
+      finMs: rec ? new Date(rec.hora).getTime() + duracionMinutos * 60000 : null,
+    });
   });
 
   // ================= JUEGO DE VESTIR (js/juego.js) =================

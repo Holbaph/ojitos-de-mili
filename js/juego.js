@@ -848,5 +848,10 @@ const Juego = (function () {
     await guardarRemoto();
   }
 
-  return { abrir, cerrar, minutosRestantesHoy, darMasTiempo, restablecerTodos, figura };
+  // Para los juegos con el parche (js/juegos-parche.js): la lista de
+  // personajes y su ropa original, para dibujarlos con figura().
+  function personajes() { return PERSONAJES.map((p) => ({ id: p.id, nombre: p.nombre })); }
+  function original(id) { return JSON.parse(JSON.stringify(inicial(id))); }
+
+  return { abrir, cerrar, minutosRestantesHoy, darMasTiempo, restablecerTodos, figura, personajes, original };
 })();
