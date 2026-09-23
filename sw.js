@@ -1,7 +1,7 @@
 // Service worker — cachea el "cascarón" estático de la app (HTML/CSS/JS/íconos) para
 // que cargue rápido. No garantiza uso sin conexión: la app necesita internet para
 // hablar con Supabase (los registros y las cuentas viven ahí, no en este dispositivo).
-const CACHE_NAME = 'ojitos-de-mili-v2';
+const CACHE_NAME = 'ojitos-de-mili-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -45,19 +45,21 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// ---------- avisos del temporizador del parche ----------
+// ---------- avisos del temporizador y del recordatorio diario ----------
 // La Edge Function send-patch-reminders manda esto cuando se cumple el
-// tiempo de hoy (ver supabase/functions/send-patch-reminders). Llega aunque
-// la app esté cerrada, mientras el dispositivo esté suscrito (js/core.js).
+// tiempo de hoy, o a la hora del recordatorio si aún no se pone el parche
+// (ver supabase/functions/send-patch-reminders). Llega aunque la app esté
+// cerrada, mientras el dispositivo esté suscrito (js/core.js). Cada tipo
+// trae su propio "tag" para que uno no reemplace al otro en la bandeja.
 self.addEventListener('push', (event) => {
-  let data = { title: '¡Ya se puede sacar el parche! 🎉', body: 'Se cumplió el tiempo de hoy para Mili.' };
+  let data = { title: '¡Ya se puede sacar el parche! 🎉', body: 'Se cumplió el tiempo de hoy para Mili.', tag: 'ojitos-de-mili-temporizador' };
   try { if (event.data) data = { ...data, ...event.data.json() }; } catch (e) {}
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: 'icons/icon-192.png',
       badge: 'icons/icon-192.png',
-      tag: 'ojitos-de-mili-temporizador',
+      tag: data.tag,
       renotify: true,
     })
   );

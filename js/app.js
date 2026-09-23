@@ -130,6 +130,7 @@
     duracionMinutos = await Config.obtenerDuracionMinutos();
     document.getElementById('duracionInput').value = duracionMinutos;
     actualizarDuracionHint(duracionMinutos);
+    renderRecordatorio(await Config.obtenerRecordatorio());
     renderTimer();
     refrescarEstadoAvisos();
     if (!timerTick) timerTick = setInterval(renderTimer, 30000);
@@ -388,6 +389,36 @@
     }
   });
 
+  // ================= RECORDATORIO DIARIO =================
+  function renderRecordatorio(hora) {
+    document.getElementById('recordatorioInput').value = hora || '';
+    document.getElementById('recordatorioOff').classList.toggle('hidden', !hora);
+    document.getElementById('recordatorioHint').textContent = hora
+      ? 'Todos los días a las ' + Utils.fmtTime('2000-01-01T' + hora + ':00') +
+        ', si todavía no se registra el parche, llega un aviso a los dispositivos con avisos activados.'
+      : 'Sin recordatorio. Elige una hora y te avisamos cada día si aún no se pone el parche.';
+  }
+
+  async function guardarRecordatorio(hora) {
+    try {
+      await Config.guardarRecordatorio(hora);
+      renderRecordatorio(hora);
+      showToast(hora ? 'Recordatorio guardado' : 'Recordatorio quitado');
+    } catch (e) {
+      const esColumnaFaltante = /recordatorio/i.test(e.message || '');
+      showToast(esColumnaFaltante
+        ? 'No se pudo guardar (¿corriste supabase/schema_recordatorio.sql?)'
+        : 'No se pudo guardar: ' + (e.message || 'intenta de nuevo'));
+    }
+  }
+
+  document.getElementById('recordatorioSave').addEventListener('click', () => {
+    const hora = document.getElementById('recordatorioInput').value;
+    if (!hora) { showToast('Elige una hora para el recordatorio'); return; }
+    guardarRecordatorio(hora);
+  });
+  document.getElementById('recordatorioOff').addEventListener('click', () => guardarRecordatorio(null));
+
   // ================= AVISOS (push) =================
   async function refrescarEstadoAvisos() {
     const btn = document.getElementById('pushToggle');
@@ -408,7 +439,7 @@
     btn.textContent = suscrito ? '🔔 Avisos activados en este dispositivo' : '🔔 Activar avisos en este dispositivo';
     hint.textContent = suscrito
       ? 'Toca el botón para desactivarlos en este dispositivo.'
-      : 'Te avisa apenas se cumpla el tiempo del parche, aunque tengas el celular bloqueado o la app cerrada.';
+      : 'Te avisa a la hora del recordatorio y apenas se cumpla el tiempo del parche, aunque tengas el celular bloqueado o la app cerrada.';
   }
   document.getElementById('pushToggle').addEventListener('click', async () => {
     const btn = document.getElementById('pushToggle');

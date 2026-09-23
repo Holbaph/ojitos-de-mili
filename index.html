@@ -296,6 +296,15 @@
   <section class="block">
     <p class="block-title">Temporizador y avisos</p>
     <div class="settings-row">
+      <label for="recordatorioInput">Recordatorio diario para ponerle el parche</label>
+      <div class="duracion-edit">
+        <input type="time" id="recordatorioInput" class="time-input">
+        <button class="btn-save small" id="recordatorioSave">Guardar</button>
+      </div>
+      <p class="settings-hint" id="recordatorioHint"></p>
+      <button class="link-btn hidden" id="recordatorioOff">Quitar recordatorio</button>
+    </div>
+    <div class="settings-row">
       <label for="duracionInput">Cuánto tiempo dura el parche puesto</label>
       <div class="duracion-edit">
         <input type="number" id="duracionInput" min="1" step="1" inputmode="numeric">
@@ -307,8 +316,8 @@
     <div class="settings-row">
       <button class="history-btn ghost" id="pushToggle">🔔 Activar avisos en este dispositivo</button>
       <p class="settings-hint" id="pushHint">
-        Te avisa apenas se cumpla el tiempo del parche, aunque tengas el celular bloqueado o la
-        app cerrada.
+        Te avisa a la hora del recordatorio y apenas se cumpla el tiempo del parche, aunque
+        tengas el celular bloqueado o la app cerrada.
       </p>
     </div>
   </section>

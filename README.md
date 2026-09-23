@@ -34,6 +34,10 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
 - **Avisos aunque la app esté cerrada**: al activarlos en un dispositivo (mismo
   bloque de Ajustes), llega una notificación exactamente cuando se cumple el
   tiempo — no hace falta tener la app abierta ni el celular desbloqueado.
+- **Recordatorio diario**: en Historial → Temporizador y avisos se elige una hora
+  (por ejemplo, 9:00 a.m.) y cada día, a esa hora, llega un aviso para ponerle el
+  parche a Mili — solo si todavía nadie lo registró ese día. Llega a los mismos
+  dispositivos que tienen los avisos activados.
 
 ## 1. Configurar Supabase (una sola vez)
 
@@ -125,6 +129,24 @@ si la app está agregada a la pantalla de inicio (iOS 16.4 o más nuevo).
    que estar agregada a la pantalla de inicio primero, no una pestaña suelta de
    Safari/Chrome).
 
+### 3b. Activar el recordatorio diario
+
+Usa las mismas piezas del paso 3 (avisos push y el cron de cada minuto), así que
+solo hay que agregar dos cosas:
+
+1. Corre [`supabase/schema_recordatorio.sql`](supabase/schema_recordatorio.sql)
+   completo en **SQL Editor** (agrega la hora del recordatorio a `configuracion`).
+2. Vuelve a desplegar la función de avisos, que ahora también revisa el
+   recordatorio:
+   ```
+   supabase functions deploy send-patch-reminders
+   ```
+
+Después, en la app: Historial → **Temporizador y avisos** → elige la hora del
+recordatorio → **Guardar**. El aviso sale dentro de la hora siguiente a la
+elegida (si se guarda una hora que ya pasó hoy, parte mañana) y una sola vez al
+día.
+
 ## 4. Publicar en GitHub Pages
 
 Si clonaste este repo tal cual, en **Settings → Pages** del repositorio elige
@@ -153,8 +175,9 @@ js/core.js                fechas/horas y acceso a la tabla "registros"
 js/app.js                 toda la interacción de la app
 supabase/schema.sql            tablas, RLS y el disparador que crea tu perfil
 supabase/schema_temporizador.sql  duración, suscripciones push y el cron (paso 3)
+supabase/schema_recordatorio.sql  hora del recordatorio diario (paso 3b)
 supabase/functions/invite-user           Edge Function que envía invitaciones (paso 2)
-supabase/functions/send-patch-reminders  Edge Function que manda los avisos (paso 3)
+supabase/functions/send-patch-reminders  Edge Function que manda los avisos y el recordatorio (pasos 3 y 3b)
 manifest.json, sw.js      configuración PWA (instalable, caché del cascarón, avisos push)
 icons/                    íconos de la app
 ```

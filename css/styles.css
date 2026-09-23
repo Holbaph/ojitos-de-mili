@@ -339,6 +339,8 @@ section.block{ margin-bottom:20px; }
   background:var(--surface-2); color:var(--ink); font-size:14px; font-variant-numeric:tabular-nums;
 }
 .duracion-edit span{ font-size:13px; color:var(--ink-soft); }
+.duracion-edit input.time-input{ width:auto; min-width:110px; }
+.link-btn{ background:none; border:0; padding:6px 0 0; font:inherit; font-size:12px; font-weight:700; color:var(--ink-soft); text-decoration:underline; cursor:pointer; }
 .btn-save.small{ padding:9px 14px; border-radius:10px; font-size:12.5px; margin-left:auto; }
 .settings-hint{ font-size:12px; color:var(--ink-faint); margin:8px 0 0; line-height:1.5; }
 #pushToggle.active{ background:var(--success-soft); color:var(--success); border-color:var(--success); }
