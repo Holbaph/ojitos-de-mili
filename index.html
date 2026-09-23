@@ -137,11 +137,7 @@
             <circle cx="112" cy="168" r="5.5" fill="var(--ink)"/>
             <circle cx="107" cy="163" r="3" fill="#fff"/>
           </g>
-          <g class="eye-patch">
-            <ellipse cx="112" cy="168" rx="33" ry="24" transform="rotate(-8 112 168)" fill="var(--patch)"/>
-            <ellipse cx="112" cy="168" rx="27" ry="18" transform="rotate(-8 112 168)" fill="none" stroke="var(--patch-edge)" stroke-width="1.5" stroke-dasharray="3 4"/>
-            <path d="M84 150 q-14 -30 6 -58" fill="none" stroke="var(--patch)" stroke-width="7" stroke-linecap="round"/>
-          </g>
+          <g class="eye-patch" data-lado="-1"><!-- lo dibuja js/mili.js (forma, estampado, color) --></g>
         </g>
 
         <g class="eye" data-side="izquierdo" id="eyeIzquierdo" role="button" tabindex="0" aria-label="Ojo izquierdo de Mili">
@@ -153,11 +149,7 @@
             <circle cx="208" cy="168" r="5.5" fill="var(--ink)"/>
             <circle cx="203" cy="163" r="3" fill="#fff"/>
           </g>
-          <g class="eye-patch">
-            <ellipse cx="208" cy="168" rx="33" ry="24" transform="rotate(8 208 168)" fill="var(--patch)"/>
-            <ellipse cx="208" cy="168" rx="27" ry="18" transform="rotate(8 208 168)" fill="none" stroke="var(--patch-edge)" stroke-width="1.5" stroke-dasharray="3 4"/>
-            <path d="M236 150 q14 -30 -6 -58" fill="none" stroke="var(--patch)" stroke-width="7" stroke-linecap="round"/>
-          </g>
+          <g class="eye-patch" data-lado="1"><!-- lo dibuja js/mili.js (forma, estampado, color) --></g>
         </g>
       </svg>
     </div>
@@ -356,6 +348,7 @@
   <div class="mili-tabs" id="miliTabs" role="tablist">
     <button data-tab="piel" class="active">Piel</button>
     <button data-tab="ojos">Ojos</button>
+    <button data-tab="parche">🩹 Parche</button>
     <button data-tab="pelo">Pelo</button>
     <button data-tab="accesorio">Accesorio</button>
     <button data-tab="ropa">Ropa</button>

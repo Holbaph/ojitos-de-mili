@@ -486,6 +486,12 @@
   const GRUPOS = {
     piel: [{ t: 'Color de piel', k: 'piel', colores: Mili.PIELES }],
     ojos: [{ t: 'Color de ojos', k: 'ojos', colores: Mili.OJOS }],
+    parche: [
+      { t: 'Forma del parche', k: 'parcheForma', chips: Mili.PARCHE_FORMAS },
+      { t: 'Estampado', k: 'parcheEstampado', chips: Mili.PARCHE_ESTAMPADOS },
+      { t: 'Color del parche', k: 'parcheColor', colores: Mili.PARCHE_COLORES, si: (b) => b.parcheEstampado !== 'arcoiris' },
+      { t: 'Adorno', k: 'parcheAdorno', chips: Mili.PARCHE_ADORNOS },
+    ],
     pelo: [
       { t: 'Peinado', k: 'peloEstilo', chips: Mili.PEINADOS },
       { t: 'Color de pelo', k: 'peloColor', colores: Mili.PELOS },
@@ -508,6 +514,7 @@
 
   function renderPreview() {
     Mili.dibujar(document.getElementById('miliPreviewSvg'), document.getElementById('miliPreviewFigura'), borrador, 'prev');
+    document.getElementById('miliPreviewOjos').innerHTML = Mili.ojos(borrador, 'prev');
   }
 
   function renderPanel() {
@@ -539,7 +546,6 @@
   const sheetMili = document.getElementById('sheetMili');
   function abrirMili() {
     borrador = { ...apariencia };
-    document.getElementById('miliPreviewOjos').innerHTML = Mili.ojos();
     renderPreview(); renderPanel();
     sheetMili.classList.add('show'); scrim.classList.add('show');
   }
