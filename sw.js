@@ -1,7 +1,7 @@
 // Service worker — cachea el "cascarón" estático de la app (HTML/CSS/JS/íconos) para
 // que cargue rápido. No garantiza uso sin conexión: la app necesita internet para
 // hablar con Supabase (los registros y las cuentas viven ahí, no en este dispositivo).
-const CACHE_NAME = 'ojitos-de-mili-v11';
+const CACHE_NAME = 'ojitos-de-mili-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const ASSETS = [
   './js/tiempo-juego.js',
   './js/mili.js',
   './js/juego.js',
+  './js/ar.js',
   './js/camara.js',
   './js/juegos-parche.js',
   './js/app.js',

@@ -721,3 +721,11 @@ body.jugando, body.con-camara{ overflow:hidden; }
 @keyframes cam-late{ 50%{ transform:scale(1.18); } }
 @keyframes cam-salta{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7%); } }
 @media (prefers-reduced-motion: reduce){ .cam-personaje svg, .cam-personaje .brazo, .cam-personaje .corazon-manos{ animation:none !important; } }
+
+/* realidad aumentada */
+.cam-ra{ position:absolute; inset:0; width:100%; height:100%; }
+.cam-vista video.oculto{ opacity:0; }
+.cam-efectos{ align-items:center; }
+.cam-efectos-titulo{ flex-shrink:0; font-size:12px; font-weight:800; color:#f6d26b; }
+.cam-efectos button.activo{ background:#f6d26b; color:#2a2740; border-color:#f6d26b; }
+.cam-btn.invisible{ visibility:hidden; }

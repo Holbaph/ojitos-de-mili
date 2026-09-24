@@ -447,7 +447,7 @@ const Vestuario = (function () {
     hurra: { izq: [[118, 298], [56, 304], [24, 236]], der: [[202, 298], [264, 304], [296, 236]] },
   };
   const NOMBRES_POSES = [
-    { v: 'normal', n: '🙂 Normal' }, { v: 'saludo', n: '👋 Saludo' }, { v: 'abrazo', n: '🤗 Abrazo' },
+    { v: 'normal', n: '🙂 Normal' }, { v: 'saludo', n: '👋 Saludo' }, { v: 'abrazo', n: '👐 Brazos abiertos' },
     { v: 'victoria', n: '✌️ La V' }, { v: 'corazon', n: '💗 Corazón' }, { v: 'hurra', n: '🙌 ¡Hurra!' },
   ];
 
@@ -712,8 +712,11 @@ const Vestuario = (function () {
 
   // ================= PERSONA COMPLETA =================
   // opts: { piel, relleno (estampado de la prenda principal), sinOjos,
-  //         pose (ver POSES), sobreOjos (algo justo encima de los ojos: el parche) }
-  // Devuelve { figura, delante }: `delante` va por encima de los ojos (lentes).
+  //         pose (ver POSES), sobreOjos (algo justo encima de los ojos: el parche),
+  //         sinBrazo ('izq' | 'der': ese brazo no se dibuja; lo dibuja la cámara
+  //         con realidad aumentada, p. ej. para abrazar) }
+  // Devuelve { figura, delante, brazo }: `delante` va por encima de los ojos
+  // (lentes); `brazo` = { piel, contorno, manga } para dibujar un brazo aparte.
   function persona(st, opts) {
     const piel = opts.piel;
     const pose = POSES[opts.pose] || POSES.normal;
@@ -759,6 +762,7 @@ const Vestuario = (function () {
     s += collar(st.collar);
     const contorno = oscurecer(piel, 0.14);
     ['izq', 'der'].forEach((lado) => {
+      if (opts.sinBrazo === lado) return;
       const pts = pose[lado];
       const [hx, hy] = pts[pts.length - 1];
       const d = 'M' + pts.map(([x, y]) => `${x} ${y}`).join(' L');
@@ -778,8 +782,14 @@ const Vestuario = (function () {
     // cabeza
     s += peloDelante(st) + cara(piel, st.peloColor) + pendientes(st.pendientes);
     const arribaDeLosOjos = flequillo(st) + cabeza(st.cabeza, st) + sombrero(st.sombrero);
-    if (opts.sinOjos) return { figura: s + arribaDeLosOjos, delante: lentes(st.cara) };
-    return { figura: s + ojos(st.ojos) + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '' };
+    // para dibujar un brazo aparte (en canvas no sirve un estampado url(#…): va el color base)
+    const prendaPrincipal = st.vestido || st.arriba;
+    const brazo = {
+      piel, contorno,
+      manga: mangaVisible ? { tipo: mangaVisible.tipo, c: String(mangaVisible.c).startsWith('url') ? ((prendaPrincipal && prendaPrincipal.c) || piel) : mangaVisible.c } : null,
+    };
+    if (opts.sinOjos) return { figura: s + arribaDeLosOjos, delante: lentes(st.cara), brazo };
+    return { figura: s + ojos(st.ojos) + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '', brazo };
   }
 
   // Ícono de una cosa del guardarropa (la pieza sola, recortada con el viewBox).
@@ -817,7 +827,7 @@ const Vestuario = (function () {
 
   return {
     TIPOS, SLOTS, PEINADOS, FLEQUILLOS, HEX, POSES: NOMBRES_POSES,
-    pieza, esPeinado, esFlequillo, persona, icono, iconoPeinado, flor,
+    pieza, esPeinado, esFlequillo, persona, icono, iconoPeinado, flor, sombrero,
     color: { oscurecer, aclarar, mezclar, contraste, esClaro },
   };
 })();

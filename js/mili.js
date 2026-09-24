@@ -305,8 +305,15 @@ const Mili = (function () {
     const est = estampado(pfx, ap);
     const p = Vestuario.persona(aPersona(ap), {
       piel: ap.piel, relleno: est.relleno, pose: o && o.pose, sobreOjos: parcheFoto(ap, pfx, o && o.parche),
+      sinBrazo: o && o.sinBrazo,
     });
     return (est.defs ? `<defs>${est.defs}</defs>` : '') + p.figura;
+  }
+
+  // Datos del brazo de Mili (piel, contorno, manga) para dibujarlo aparte.
+  function brazoFoto(ap) {
+    ap = normalizar(ap);
+    return Vestuario.persona(aPersona(ap), { piel: ap.piel }).brazo;
   }
 
   // Para la Mili del juego de vestir: si lleva puesta la prenda principal de
@@ -322,6 +329,6 @@ const Mili = (function () {
   return {
     DEFAULT, PIELES, OJOS, PELOS, COLORES, JOYAS_COLORES, PEINADOS, FLEQUILLOS, ESTAMPADOS, OPC,
     PARCHE_COLORES, PARCHE_FORMAS, PARCHE_ESTAMPADOS, PARCHE_ADORNOS,
-    normalizar, aPersona, dibujar, ojos, figuraFoto, parcheFoto, estampadoEn,
+    normalizar, aPersona, dibujar, ojos, figuraFoto, parcheFoto, estampadoEn, brazoFoto,
   };
 })();
