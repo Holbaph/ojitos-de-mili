@@ -424,7 +424,7 @@ footer.note{ text-align:center; font-size:11.5px; color:var(--ink-faint); paddin
 .juego-entrar small{ display:block; font-size:12.5px; opacity:.9; }
 .juego-entrar .je-flecha{ margin-left:auto; font-size:26px; opacity:.85; }
 
-body.jugando{ overflow:hidden; }
+body.jugando, body.con-camara{ overflow:hidden; }
 .juego{
   position:fixed; inset:0; z-index:70; display:flex; flex-direction:column;
   height:100vh; height:100dvh; max-width:560px; margin:0 auto;
@@ -521,7 +521,7 @@ body.jugando{ overflow:hidden; }
 .juego-acciones button.confirmar{ background:var(--danger); border-color:var(--danger); color:#fff; }
 
 /* ---------- cámara ---------- */
-.camara{ position:absolute; inset:0; z-index:80; background:#000; color:#fff; display:flex; flex-direction:column; }
+.camara{ position:fixed; inset:0; z-index:85; max-width:560px; margin:0 auto; background:#000; color:#fff; display:flex; flex-direction:column; }
 .cam-vista{ position:relative; flex:1; min-height:0; overflow:hidden; background:#111; }
 .cam-vista video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .cam-vista video.selfie{ transform:scaleX(-1); }
@@ -688,3 +688,36 @@ body.jugando{ overflow:hidden; }
 .jp-premio-box button{ width:100%; padding:12px; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; margin-top:6px; }
 
 .jp .juego-reloj{ flex-shrink:0; }
+
+/* foto con el avatar (pantalla principal) */
+.btn-foto-avatar{
+  display:block; margin:6px auto 0; padding:9px 16px; border-radius:99px; border:none; cursor:pointer;
+  background:linear-gradient(135deg,#d0487e,#7e57c2); color:#fff; font-weight:800; font-size:13.5px; box-shadow:var(--shadow-sm);
+}
+
+/* cámara: poses, IA y parche */
+.cam-poses{ display:flex; gap:6px; overflow-x:auto; margin-bottom:8px; scrollbar-width:none; }
+.cam-poses::-webkit-scrollbar{ display:none; }
+.cam-poses button, .cam-chip{
+  flex-shrink:0; padding:7px 11px; border-radius:99px; border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.1); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer;
+}
+.cam-poses button.activo, .cam-chip.activo{ background:#fff; color:#2a2740; border-color:#fff; }
+.cam-extras{ display:flex; gap:8px; margin-bottom:8px; }
+
+/* poses animadas (en la foto queda la pose quieta) */
+.cam-personaje svg{ transform-origin:50% 100%; }
+.cam-personaje .brazo{ transform-box:view-box; }
+.cam-personaje.pose-normal svg{ animation:cam-respira 2.4s ease-in-out infinite; }
+.cam-personaje.pose-saludo .brazo-der{ transform-origin:202px 298px; animation:cam-saluda .45s ease-in-out infinite alternate; }
+.cam-personaje.pose-abrazo svg{ animation:cam-mece 1.6s ease-in-out infinite; }
+.cam-personaje.pose-victoria .brazo-der{ transform-origin:202px 298px; animation:cam-v 1s ease-in-out infinite; }
+.cam-personaje.pose-corazon .corazon-manos{ transform-box:fill-box; transform-origin:center; animation:cam-late .8s ease-in-out infinite; }
+.cam-personaje.pose-hurra svg{ animation:cam-salta .7s ease-in-out infinite; }
+@keyframes cam-respira{ 50%{ transform:scale(1.015,.99); } }
+@keyframes cam-saluda{ from{ transform:rotate(-14deg); } to{ transform:rotate(12deg); } }
+@keyframes cam-mece{ 0%,100%{ transform:rotate(-3deg); } 50%{ transform:rotate(3deg); } }
+@keyframes cam-v{ 50%{ transform:rotate(-9deg); } }
+@keyframes cam-late{ 50%{ transform:scale(1.18); } }
+@keyframes cam-salta{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7%); } }
+@media (prefers-reduced-motion: reduce){ .cam-personaje svg, .cam-personaje .brazo, .cam-personaje .corazon-manos{ animation:none !important; } }

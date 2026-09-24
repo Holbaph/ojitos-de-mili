@@ -389,32 +389,82 @@ const Vestuario = (function () {
     }
   }
 
-  function muneca(p) {
-    if (!p) return '';
+  // muñeca y mano de cada brazo según la pose
+  // (un brazo es [hombro, (codo), mano]; lo que cuenta para la muñeca es el último tramo)
+  function puntosBrazo(pose, lado) {
+    const pts = pose[lado];
+    const [sx, sy] = pts[pts.length - 2], [hx, hy] = pts[pts.length - 1];
+    const dx = hx - sx, dy = hy - sy, largo = Math.hypot(dx, dy);
+    return {
+      muneca: [sx + dx * 0.86, sy + dy * 0.86], mano: [hx, hy],
+      giro: -Math.atan2(dx, dy) * 180 / Math.PI, // para que la banda quede cruzada al brazo
+      u: [dx / largo, dy / largo], perp: [dy / largo, -dx / largo],
+    };
+  }
+  const f1 = (n) => n.toFixed(1);
+
+  // reloj en la muñeca izquierda de la pantalla; pulseras en la derecha
+  function muneca(p, pose) {
+    if (!p) return { izq: '', der: '' };
     const c = p.c, o = oscurecer(c, 0.25);
-    const banda = (x, y) => `<rect x="${x - 10}" y="${y - 4.5}" width="20" height="9" rx="3" fill="${c}" transform="rotate(14 ${x} ${y})"/>`;
+    const L = puntosBrazo(pose, 'izq'), R = puntosBrazo(pose, 'der');
+    const [lx, ly] = L.muneca, [rx, ry] = R.muneca;
+    const banda = `<rect x="${f1(lx - 10)}" y="${f1(ly - 4.5)}" width="20" height="9" rx="3" fill="${c}" transform="rotate(${f1(L.giro)} ${f1(lx)} ${f1(ly)})"/>`;
     switch (p.t) {
       case 'reloj':
-        return banda(104, 353) + `<circle cx="104" cy="353" r="6.5" fill="#fff" stroke="${o}" stroke-width="2"/><path d="M104 353 L104 349 M104 353 L107 354" stroke="#2a2740" stroke-width="1.2"/>`;
+        return { izq: banda + `<circle cx="${f1(lx)}" cy="${f1(ly)}" r="6.5" fill="#fff" stroke="${o}" stroke-width="2"/><path d="M${f1(lx)} ${f1(ly)} l0 -4 M${f1(lx)} ${f1(ly)} l3 1" stroke="#2a2740" stroke-width="1.2"/>`, der: '' };
       case 'reloj-digital':
-        return banda(104, 353) + `<rect x="97" y="347" width="14" height="12" rx="3" fill="#2a2740" transform="rotate(14 104 353)"/><rect x="99.5" y="349.5" width="9" height="7" rx="1.5" fill="${aclarar(c, 0.3)}" transform="rotate(14 104 353)"/>`;
+        return { izq: banda + `<rect x="${f1(lx - 7)}" y="${f1(ly - 6)}" width="14" height="12" rx="3" fill="#2a2740" transform="rotate(${f1(L.giro)} ${f1(lx)} ${f1(ly)})"/><rect x="${f1(lx - 4.5)}" y="${f1(ly - 3.5)}" width="9" height="7" rx="1.5" fill="${aclarar(c, 0.3)}" transform="rotate(${f1(L.giro)} ${f1(lx)} ${f1(ly)})"/>`, der: '' };
       case 'brazaletes':
-        return [0, 1, 2].map((i) => `<ellipse cx="${217 - i * 1.2}" cy="${350 - i * 5}" rx="10" ry="3.2" fill="none" stroke="${i === 1 ? aclarar(c, 0.3) : c}" stroke-width="2.6" transform="rotate(-14 ${217 - i * 1.2} ${350 - i * 5})"/>`).join('');
+        return { izq: '', der: [0, 1, 2].map((i) => { const x = rx - R.u[0] * i * 5, y = ry - R.u[1] * i * 5; return `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="10" ry="3.2" fill="none" stroke="${i === 1 ? aclarar(c, 0.3) : c}" stroke-width="2.6" transform="rotate(${f1(R.giro)} ${f1(x)} ${f1(y)})"/>`; }).join('') };
       default: // pulsera de cuentas
-        return [...Array(6).keys()].map((i) => `<circle cx="${209 + i * 3.8}" cy="${351 - i * 0.9}" r="2.8" fill="${i % 2 ? c : aclarar(c, 0.45)}"/>`).join('');
+        return { izq: '', der: [...Array(6).keys()].map((i) => { const k = (i - 2.5) * 3.8; return `<circle cx="${f1(rx + R.perp[0] * k)}" cy="${f1(ry + R.perp[1] * k)}" r="2.8" fill="${i % 2 ? c : aclarar(c, 0.45)}"/>`; }).join('') };
     }
   }
 
-  function anillo(p) {
+  function anillo(p, pose) {
     if (!p) return '';
-    const c = p.c;
-    const aro = `<rect x="212.5" y="365" width="13" height="4" rx="2" fill="#e2b64a"/>`;
+    const c = p.c, [x, y] = puntosBrazo(pose, 'der').mano;
+    const aro = `<rect x="${f1(x - 6.5)}" y="${f1(y - 1)}" width="13" height="4" rx="2" fill="#e2b64a"/>`;
     switch (p.t) {
-      case 'anillo-gema': return aro + `<circle cx="219" cy="364" r="3.6" fill="${c}" stroke="#fff" stroke-width="1"/>`;
-      case 'anillo-corazon': return aro + `<path d="${pathCorazon(219, 364, 4)}" fill="${c}"/>`;
-      case 'anillo-flor': return aro + flor(219, 363, 0.3, c);
-      default: return `<rect x="212.5" y="365" width="13" height="4" rx="2" fill="${c}"/>`;
+      case 'anillo-gema': return aro + `<circle cx="${f1(x)}" cy="${f1(y - 2)}" r="3.6" fill="${c}" stroke="#fff" stroke-width="1"/>`;
+      case 'anillo-corazon': return aro + `<path d="${pathCorazon(x, y - 2, 4)}" fill="${c}"/>`;
+      case 'anillo-flor': return aro + flor(x, y - 3, 0.3, c);
+      default: return `<rect x="${f1(x - 6.5)}" y="${f1(y - 1)}" width="13" height="4" rx="2" fill="${c}"/>`;
     }
+  }
+
+  // ================= POSES =================
+  // Hombro -> (codo) -> mano de cada brazo (izq = a la izquierda de la
+  // pantalla). Los brazos levantados salen hacia el lado con el codo doblado,
+  // para que no queden pegados a la cara.
+  const POSES = {
+    normal: { izq: [[118, 298], [102, 362]], der: [[202, 298], [218, 362]] },
+    saludo: { izq: [[118, 298], [102, 362]], der: [[202, 298], [264, 304], [296, 236]] },
+    abrazo: { izq: [[118, 298], [44, 306]], der: [[202, 298], [276, 306]] },
+    victoria: { izq: [[118, 298], [102, 362]], der: [[202, 298], [262, 306], [290, 246]] },
+    corazon: { izq: [[118, 298], [146, 316]], der: [[202, 298], [174, 316]] },
+    hurra: { izq: [[118, 298], [56, 304], [24, 236]], der: [[202, 298], [264, 304], [296, 236]] },
+  };
+  const NOMBRES_POSES = [
+    { v: 'normal', n: '🙂 Normal' }, { v: 'saludo', n: '👋 Saludo' }, { v: 'abrazo', n: '🤗 Abrazo' },
+    { v: 'victoria', n: '✌️ La V' }, { v: 'corazon', n: '💗 Corazón' }, { v: 'hurra', n: '🙌 ¡Hurra!' },
+  ];
+
+  // Una manga ({ tipo, c }) sobre el brazo de un lado.
+  function manga(m, lado, pose) {
+    if (!m) return '';
+    const pts = pose[lado];
+    const [sx, sy] = pts[0];
+    const afuera = lado === 'izq' ? -1 : 1;
+    if (m.tipo === 'corta') return `<ellipse cx="${sx}" cy="${sy}" rx="15" ry="13" fill="${m.c}"/>`;
+    if (m.tipo === 'globo') return `<ellipse cx="${sx + afuera * 2}" cy="${sy}" rx="20" ry="16" fill="${m.c}"/>`;
+    // manga larga: por todo el brazo, hasta un poco antes de la mano
+    const [ax, ay] = pts[pts.length - 2], [hx, hy] = pts[pts.length - 1];
+    const ex = ax + (hx - ax) * 0.875, ey = ay + (hy - ay) * 0.875;
+    const medio = pts.slice(1, -1).map(([x, y]) => ` L${x} ${y}`).join('');
+    const op = m.tipo === 'velo' ? ' opacity=".75"' : '';
+    return `<g${op}><path d="M${sx} ${sy}${medio} L${f1(ex)} ${f1(ey)}" fill="none" stroke="${m.c}" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="${sx}" cy="${sy}" rx="14" ry="12" fill="${m.c}"/></g>`;
   }
 
   // ================= ROPA =================
@@ -424,16 +474,7 @@ const Vestuario = (function () {
   const PANTALONES = ['jeans', 'calzas', 'bombacho'];
   const BOTAS = ['botas', 'botas-lluvia'];
 
-  function mangas(tipo, c) {
-    if (tipo === 'corta') return `<ellipse cx="118" cy="298" rx="15" ry="13" fill="${c}"/><ellipse cx="202" cy="298" rx="15" ry="13" fill="${c}"/>`;
-    if (tipo === 'globo') return `<ellipse cx="116" cy="298" rx="20" ry="16" fill="${c}"/><ellipse cx="204" cy="298" rx="20" ry="16" fill="${c}"/>`;
-    if (tipo === 'larga' || tipo === 'velo') {
-      const op = tipo === 'velo' ? ' opacity=".75"' : '';
-      return `<g${op}><path d="M118 298 L103 354 M202 298 L217 354" stroke="${c}" stroke-width="18" stroke-linecap="round"/>` +
-        `<ellipse cx="118" cy="298" rx="14" ry="12" fill="${c}"/><ellipse cx="202" cy="298" rx="14" ry="12" fill="${c}"/></g>`;
-    }
-    return '';
-  }
+  function mangas(tipo, c) { return { tipo, c }; }
 
   // Cada prenda devuelve { svg, manga, atras?, sobre? }. `relleno` (opcional)
   // reemplaza el color de la parte principal (para los estampados de Mili).
@@ -670,10 +711,12 @@ const Vestuario = (function () {
   }
 
   // ================= PERSONA COMPLETA =================
-  // opts: { piel, relleno (estampado de la prenda principal), sinOjos }
+  // opts: { piel, relleno (estampado de la prenda principal), sinOjos,
+  //         pose (ver POSES), sobreOjos (algo justo encima de los ojos: el parche) }
   // Devuelve { figura, delante }: `delante` va por encima de los ojos (lentes).
   function persona(st, opts) {
     const piel = opts.piel;
+    const pose = POSES[opts.pose] || POSES.normal;
     const partes = {};
     const principal = st.vestido ? 'vestido' : 'arriba';
     ['vestido', 'arriba', 'abajo', 'encima'].forEach((k) => {
@@ -707,20 +750,36 @@ const Vestuario = (function () {
     if (botasMetidas) s += zapatos(st.zapatos, piel, true);
     if (partes.encima) s += partes.encima.svg;
 
-    // brazos, mangas (la chaqueta tapa las de abajo), reloj/pulsera y anillo
-    s += `<path d="M118 298 L102 362 M202 298 L218 362" stroke="${piel}" stroke-width="15" stroke-linecap="round"/>` +
-      `<circle cx="101" cy="366" r="9" fill="${piel}"/><circle cx="219" cy="366" r="9" fill="${piel}"/>`;
+    // brazos (cada uno en su grupo, para poder animarlo), con su manga (la
+    // chaqueta tapa la de abajo), reloj/pulsera y anillo
     const deArriba = partes.vestido || partes.arriba;
     const mangaEncima = partes.encima && partes.encima.manga;
-    if (deArriba && deArriba.manga && !mangaEncima) s += deArriba.manga;
-    if (mangaEncima) s += mangaEncima;
-    s += muneca(st.muneca) + anillo(st.anillo) + collar(st.collar);
+    const mangaVisible = mangaEncima || (deArriba && deArriba.manga) || null;
+    const joyasMuneca = muneca(st.muneca, pose);
+    s += collar(st.collar);
+    const contorno = oscurecer(piel, 0.14);
+    ['izq', 'der'].forEach((lado) => {
+      const pts = pose[lado];
+      const [hx, hy] = pts[pts.length - 1];
+      const d = 'M' + pts.map(([x, y]) => `${x} ${y}`).join(' L');
+      let b = `<path d="${d}" fill="none" stroke="${contorno}" stroke-width="17.5" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `<path d="${d}" fill="none" stroke="${piel}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `<circle cx="${hx}" cy="${hy}" r="9" fill="${piel}" stroke="${contorno}" stroke-width="1.2"/>`;
+      if (opts.pose === 'victoria' && lado === 'der') {
+        b += `<path d="M${hx - 3} ${hy - 6} l-5 -15 M${hx + 3} ${hy - 6} l5 -15" stroke="${piel}" stroke-width="5.5" stroke-linecap="round"/>`;
+      }
+      b += manga(mangaVisible, lado, pose) + joyasMuneca[lado] + (lado === 'der' ? anillo(st.anillo, pose) : '');
+      s += `<g class="brazo brazo-${lado}">${b}</g>`;
+    });
+    if (opts.pose === 'corazon') {
+      s += `<g class="corazon-manos"><path d="${pathCorazon(160, 300, 16)}" fill="#e8578a" stroke="#c23f6f" stroke-width="2"/></g>`;
+    }
 
     // cabeza
     s += peloDelante(st) + cara(piel, st.peloColor) + pendientes(st.pendientes);
     const arribaDeLosOjos = flequillo(st) + cabeza(st.cabeza, st) + sombrero(st.sombrero);
     if (opts.sinOjos) return { figura: s + arribaDeLosOjos, delante: lentes(st.cara) };
-    return { figura: s + ojos(st.ojos) + arribaDeLosOjos + lentes(st.cara), delante: '' };
+    return { figura: s + ojos(st.ojos) + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '' };
   }
 
   // Ícono de una cosa del guardarropa (la pieza sola, recortada con el viewBox).
@@ -741,11 +800,11 @@ const Vestuario = (function () {
       case 'cara': dentro = lentes(valor); break;
       case 'pendientes': dentro = pendientes(valor); break;
       case 'collar': dentro = collar(valor); break;
-      case 'muneca': dentro = `<path d="M118 298 L102 362" stroke="#f1c9a5" stroke-width="15" stroke-linecap="round"/><path d="M202 298 L218 362" stroke="#f1c9a5" stroke-width="15" stroke-linecap="round"/>` + muneca(valor);
+      case 'muneca': { const m = muneca(valor, POSES.normal); dentro = `<path d="M118 298 L102 362" stroke="#f1c9a5" stroke-width="15" stroke-linecap="round"/><path d="M202 298 L218 362" stroke="#f1c9a5" stroke-width="15" stroke-linecap="round"/>` + m.izq + m.der; }
         if (valor.t === 'pulsera' || valor.t === 'brazaletes') caja = '196 332 40 36';
         break;
-      case 'anillo': dentro = `<circle cx="219" cy="366" r="9" fill="#f1c9a5"/>` + anillo(valor); break;
-      default: { const pr = prenda(slot, valor); dentro = (pr.atras || '') + pr.svg + (pr.sobre || '') + (pr.manga || ''); }
+      case 'anillo': dentro = `<circle cx="219" cy="366" r="9" fill="#f1c9a5"/>` + anillo(valor, POSES.normal); break;
+      default: { const pr = prenda(slot, valor); dentro = (pr.atras || '') + pr.svg + (pr.sobre || '') + manga(pr.manga, 'izq', POSES.normal) + manga(pr.manga, 'der', POSES.normal); }
     }
     return `<svg viewBox="${caja}" preserveAspectRatio="xMidYMid meet">${dentro}</svg>`;
   }
@@ -757,7 +816,7 @@ const Vestuario = (function () {
   }
 
   return {
-    TIPOS, SLOTS, PEINADOS, FLEQUILLOS, HEX,
+    TIPOS, SLOTS, PEINADOS, FLEQUILLOS, HEX, POSES: NOMBRES_POSES,
     pieza, esPeinado, esFlequillo, persona, icono, iconoPeinado, flor,
     color: { oscurecer, aclarar, mezclar, contraste, esClaro },
   };

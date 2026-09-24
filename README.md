@@ -58,7 +58,15 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   Con **📸 Foto** se abre la cámara con el personaje encima (se mueve con el
   dedo y se cambia de tamaño) para sacarse una foto con él; las fotos quedan en
   **Mis fotos**, guardadas **solo en ese celular** (no se suben a ningún lado),
-  y se pueden guardar en la galería o compartir.
+  y se pueden guardar en la galería o compartir. En la cámara se elige una
+  **pose animada** (saludo, abrazo, la V, corazón, ¡hurra!) y, con Mili, si
+  sale con el parche y en qué ojo. Con **🤖 IA**, el personaje se ubica solo
+  junto a la cara de quien sale en la foto (MediaPipe, que corre en el mismo
+  celular: la imagen no se envía a ningún lado).
+- **📸 Foto con mi avatar**: bajo el avatar, en la pantalla principal; abre la
+  misma cámara con Mili tal cual está en su avatar (no gasta tiempo de juego).
+  La Mili del juego de vestir también queda igual al avatar cada vez que este
+  cambia.
 - **Juegos con el parche**: cinco juegos de visión fina para entretenerse
   *mientras* se usa el parche (así trabaja el ojito destapado): 🔍 Diferencias,
   ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y 🫧 Burbujas. Tienen

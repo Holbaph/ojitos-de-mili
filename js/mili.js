@@ -291,9 +291,37 @@ const Mili = (function () {
     if (delante) delante.innerHTML = p.delante;
   }
 
+  // Parche para las fotos: 'derecho' | 'izquierdo' | 'ninguno' (con sus <defs>).
+  function parcheFoto(ap, pfx, cual) {
+    if (cual !== 'derecho' && cual !== 'izquierdo') return '';
+    ap = normalizar(ap);
+    return `<defs>${parcheEstampado(pfx, ap)}</defs>` + parche(ap, pfx, cual === 'derecho' ? -1 : 1);
+  }
+
+  // Mili completa (con ojos) para la cámara: tal cual su avatar, en la pose
+  // pedida y con o sin parche. o = { pose, parche }
+  function figuraFoto(ap, pfx, o) {
+    ap = normalizar(ap);
+    const est = estampado(pfx, ap);
+    const p = Vestuario.persona(aPersona(ap), {
+      piel: ap.piel, relleno: est.relleno, pose: o && o.pose, sobreOjos: parcheFoto(ap, pfx, o && o.parche),
+    });
+    return (est.defs ? `<defs>${est.defs}</defs>` : '') + p.figura;
+  }
+
+  // Para la Mili del juego de vestir: si lleva puesta la prenda principal de
+  // su avatar (mismo tipo y color), se le pone también su estampado.
+  function estampadoEn(ap, pfx, st) {
+    ap = normalizar(ap);
+    const lugar = ap.vestido !== 'ninguno' ? 'vestido' : 'arriba';
+    const pieza = st[lugar];
+    if (!pieza || pieza.t !== ap[lugar] || pieza.c !== ap[lugar + 'Color']) return { defs: '', relleno: null };
+    return estampado(pfx, ap);
+  }
+
   return {
     DEFAULT, PIELES, OJOS, PELOS, COLORES, JOYAS_COLORES, PEINADOS, FLEQUILLOS, ESTAMPADOS, OPC,
     PARCHE_COLORES, PARCHE_FORMAS, PARCHE_ESTAMPADOS, PARCHE_ADORNOS,
-    normalizar, aPersona, dibujar, ojos,
+    normalizar, aPersona, dibujar, ojos, figuraFoto, parcheFoto, estampadoEn,
   };
 })();

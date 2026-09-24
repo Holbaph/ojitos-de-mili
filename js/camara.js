@@ -1,9 +1,12 @@
 // camara.js — "Sacarse una foto" con el personaje del juego de vestir.
 //
 // Abre la cámara del celular (la de adelante por defecto, para que Mili se vea
-// a sí misma) y pone encima al personaje que creó; se puede mover con el dedo,
-// cambiar de tamaño y voltear. Al sacar la foto se junta todo en una imagen
-// (canvas) que se puede guardar o compartir.
+// a sí misma) y pone encima al personaje (o a su avatar): se puede mover con el
+// dedo, cambiar de tamaño, voltear, elegir una pose animada (saludo, abrazo…)
+// y, con Mili, ponerle o sacarle el parche. Con "🤖 IA", el personaje se ubica
+// solo junto a la cara de quien sale en la cámara (MediaPipe, que corre en el
+// mismo celular: la imagen de la cámara no se envía a ningún lado). Al sacar
+// la foto se junta todo en una imagen (canvas) que se puede guardar o compartir.
 //
 // Las fotos se guardan SOLO en este dispositivo (IndexedDB, "Mis fotos"): no
 // se suben a Supabase ni a ningún otro lado, porque son fotos de una niña.
@@ -20,6 +23,10 @@ const Camara = (function () {
   let pos = { x: 0.68, y: 0.64 }; // centro del personaje, en fracción de la vista (a un lado, para que se vea quien está atrás)
   let tamano = 0.45;              // alto del personaje, en fracción de la vista
   let figuraActual = '';
+  let dibujante = null;           // (o: { pose, parche }) => SVG del personaje
+  let pose = 'normal';
+  let conParche = false;          // si el personaje puede llevar el parche (Mili)
+  let parche = 'ninguno';         // 'ninguno' | 'derecho' | 'izquierdo'
   let fotoActual = null;          // { id, blob, url }
   let urlsGaleria = [];
   let cableado = false;
@@ -44,6 +51,7 @@ const Camara = (function () {
     }
   }
   function detener() {
+    if (ia.activa) apagarIA();
     if (stream) stream.getTracks().forEach((t) => t.stop());
     stream = null;
     const video = $('camVideo');
@@ -59,7 +67,103 @@ const Camara = (function () {
     el.style.height = alto + 'px';
     el.style.left = (pos.x * vista.width - ancho / 2) + 'px';
     el.style.top = (pos.y * vista.height - alto / 2) + 'px';
-    $('camPersonajeSvg').style.transform = espejo ? 'scaleX(-1)' : '';
+    el.style.transform = espejo ? 'scaleX(-1)' : '';
+  }
+
+  // redibuja al personaje con la pose y el parche elegidos
+  function redibujar() {
+    figuraActual = dibujante({ pose, parche });
+    $('camPersonajeSvg').innerHTML = figuraActual;
+    $('camPersonaje').className = 'cam-personaje pose-' + pose;
+    $('camPoses').querySelectorAll('button').forEach((b) => b.classList.toggle('activo', b.dataset.pose === pose));
+    const bp = $('camParche');
+    bp.classList.toggle('hidden', !conParche);
+    bp.textContent = { ninguno: '🩹 Sin parche', derecho: '🩹 Ojo derecho', izquierdo: '🩹 Ojo izquierdo' }[parche];
+  }
+
+  // ================= 🤖 IA: ubicarse junto a la cara =================
+  // FaceDetector de MediaPipe (se descarga la primera vez, ~3 MB, y corre en
+  // el celular). Busca la cara más grande y pone al personaje al lado, con su
+  // cabeza del mismo tamaño y a la misma altura.
+  const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+  const MODELO = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
+  const ia = { activa: false, detector: null, cargando: null, raf: null, ultimo: 0, vista: false };
+
+  async function cargarIA() {
+    if (ia.detector) return ia.detector;
+    if (!ia.cargando) {
+      ia.cargando = (async () => {
+        const { FilesetResolver, FaceDetector } = await import(MP + '/vision_bundle.mjs');
+        const vision = await FilesetResolver.forVisionTasks(MP + '/wasm');
+        const opciones = (delegate) => ({ baseOptions: { modelAssetPath: MODELO, delegate }, runningMode: 'VIDEO', minDetectionConfidence: 0.5 });
+        try { ia.detector = await FaceDetector.createFromOptions(vision, opciones('GPU')); }
+        catch (e) { ia.detector = await FaceDetector.createFromOptions(vision, opciones('CPU')); }
+        return ia.detector;
+      })();
+      ia.cargando.catch(() => { ia.cargando = null; });
+    }
+    return ia.cargando;
+  }
+
+  function ayuda(texto) { $('camAyuda').textContent = texto; }
+
+  function pintarBotonIA() {
+    const b = $('camIA');
+    b.classList.toggle('activo', ia.activa);
+    b.textContent = ia.activa ? '🤖 IA encendida' : '🤖 IA';
+  }
+
+  async function encenderIA() {
+    if (!stream) { ayuda('La IA necesita la cámara encendida 📷'); return; }
+    ia.activa = true; pintarBotonIA();
+    ayuda('🤖 Preparando la IA…');
+    try { await cargarIA(); }
+    catch (e) { ia.activa = false; pintarBotonIA(); ayuda('No se pudo cargar la IA (revisa el internet)'); return; }
+    if (!ia.activa) return;
+    ayuda('🤖 Buscando tu carita…');
+    ia.vista = false;
+    cancelAnimationFrame(ia.raf);
+    ia.raf = requestAnimationFrame(bucleIA);
+  }
+  function apagarIA(texto) {
+    ia.activa = false; pintarBotonIA();
+    cancelAnimationFrame(ia.raf); ia.raf = null;
+    ayuda(texto || 'Mueve al personaje con el dedo');
+  }
+
+  function bucleIA(t) {
+    if (!ia.activa) return;
+    ia.raf = requestAnimationFrame(bucleIA);
+    const video = $('camVideo');
+    if (!stream || !video.videoWidth || t - ia.ultimo < 120) return;
+    ia.ultimo = t;
+    let caras = [];
+    try { caras = ia.detector.detectForVideo(video, performance.now()).detections || []; } catch (e) { return; }
+    if (!caras.length) { if (ia.vista) { ia.vista = false; ayuda('🤖 Buscando tu carita…'); } return; }
+    if (!ia.vista) { ia.vista = true; ayuda('🤖 ¡Te encontré!'); }
+    const cara = caras.reduce((a, b) => (b.boundingBox.width > a.boundingBox.width ? b : a)).boundingBox;
+
+    // de coordenadas del video a la pantalla (object-fit: cover, y espejo si es selfie)
+    const v = $('camVista').getBoundingClientRect();
+    const k = Math.max(v.width / video.videoWidth, v.height / video.videoHeight);
+    const offX = (v.width - video.videoWidth * k) / 2, offY = (v.height - video.videoHeight * k) / 2;
+    let x = offX + cara.originX * k;
+    const y = offY + cara.originY * k, w = cara.width * k, h = cara.height * k;
+    if (frontal) x = v.width - x - w;
+
+    // la cabeza del personaje mide 236/440 de su alto: que quede como la cara
+    const diam = w * 1.2;
+    const alto = Math.min(v.height * 0.95, Math.max(v.height * 0.25, diam * 440 / 236));
+    const junto = pose === 'abrazo' ? 0.3 : 0.62; // en el abrazo se acerca más
+    const alLado = (x + w / 2) > v.width / 2 ? -1 : 1; // hacia donde hay más espacio
+    const cx = alLado > 0 ? x + w + diam * junto : x - diam * junto;
+    const cy = y + h / 2 + alto * 0.1; // centro del personaje (su cabeza está a 0.4 del alto)
+    const suave = 0.35;
+    tamano += (alto / v.height - tamano) * suave;
+    pos.x += (Math.min(1, Math.max(0, cx / v.width)) - pos.x) * suave;
+    pos.y += (Math.min(1, Math.max(0, cy / v.height)) - pos.y) * suave;
+    $('camTamano').value = Math.round(tamano * 100);
+    posicionar();
   }
 
   // ---------- sacar la foto ----------
@@ -273,6 +377,7 @@ const Camara = (function () {
     let inicio = null;
     el.addEventListener('pointerdown', (e) => {
       try { el.setPointerCapture(e.pointerId); } catch (err) { /* sigue funcionando sin captura */ }
+      if (ia.activa) apagarIA('Lo moviste tú: la IA se apagó');
       inicio = { x: e.clientX, y: e.clientY, pos: { ...pos } };
     });
     el.addEventListener('pointermove', (e) => {
@@ -292,7 +397,17 @@ const Camara = (function () {
     $('camCerrar').addEventListener('click', cerrar);
     $('camGirar').addEventListener('click', () => { frontal = !frontal; iniciar(); });
     $('camEspejo').addEventListener('click', () => { espejo = !espejo; posicionar(); });
-    $('camTamano').addEventListener('input', (e) => { tamano = Number(e.target.value) / 100; posicionar(); });
+    $('camTamano').addEventListener('input', (e) => { if (ia.activa) apagarIA(); tamano = Number(e.target.value) / 100; posicionar(); });
+    $('camPoses').innerHTML = Vestuario.POSES.map((p) => `<button data-pose="${p.v}">${p.n}</button>`).join('');
+    $('camPoses').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-pose]');
+      if (b) { pose = b.dataset.pose; redibujar(); }
+    });
+    $('camParche').addEventListener('click', () => {
+      parche = { ninguno: 'derecho', derecho: 'izquierdo', izquierdo: 'ninguno' }[parche];
+      redibujar();
+    });
+    $('camIA').addEventListener('click', () => (ia.activa ? apagarIA() : encenderIA()));
     $('camDisparo').addEventListener('click', disparar);
     $('camOtra').addEventListener('click', cerrarFoto);
     $('camCompartir').addEventListener('click', compartir);
@@ -303,27 +418,35 @@ const Camara = (function () {
   }
 
   // ================= API =================
-  // `figura` es el SVG que arma Juego.figura() a partir de un estado ya
-  // validado (solo colores #rrggbb y prendas/peinados de listas cerradas).
-  function abrir(figura) {
+  // cfg = { dibujar(o: { pose, parche }) -> SVG, conParche, parche }
+  // dibujar() arma el SVG desde estados ya validados (Juego.figura /
+  // Mili.figuraFoto: solo colores #rrggbb y opciones de listas cerradas).
+  function abrir(cfg) {
     if (!cableado) { cablear(); cableado = true; }
-    figuraActual = figura;
-    $('camPersonajeSvg').innerHTML = figura;
+    dibujante = cfg.dibujar;
+    conParche = !!cfg.conParche;
+    parche = conParche && cfg.parche ? cfg.parche : 'ninguno';
+    pose = 'normal';
+    redibujar();
+    apagarIA();
     $('camTamano').value = Math.round(tamano * 100);
     $('camResultado').classList.add('hidden');
     $('camGaleria').classList.add('hidden');
     $('camara').classList.remove('hidden');
+    document.body.classList.add('con-camara');
     posicionar();
     iniciar();
     actualizarMiniatura();
   }
 
   function cerrar() {
+    apagarIA();
     detener();
     cerrarGaleria();
     cerrarFoto();
     const c = $('camara');
     if (c) c.classList.add('hidden');
+    document.body.classList.remove('con-camara');
   }
 
   return { abrir, cerrar };

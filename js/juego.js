@@ -243,7 +243,19 @@ const Juego = (function () {
   }
 
   // ================= DIBUJO (js/vestuario.js) =================
-  function figura(id, st) { return Vestuario.persona(st, { piel: personaje(id).piel }).figura; }
+  // o = { pose, parche } (para la cámara). Mili lleva el estampado de su
+  // avatar y, si se pide, su parche.
+  function figura(id, st, o) {
+    o = o || {};
+    let defs = '', relleno = null, sobreOjos = '';
+    if (id === 'mili') {
+      const e = Mili.estampadoEn(aparienciaMili, 'jmili', st);
+      if (e.defs) defs = `<defs>${e.defs}</defs>`;
+      relleno = e.relleno;
+      sobreOjos = Mili.parcheFoto(aparienciaMili, 'jmili', o.parche);
+    }
+    return defs + Vestuario.persona(st, { piel: personaje(id).piel, relleno, pose: o.pose, sobreOjos }).figura;
+  }
 
   function icono(cat, valor, st, id) {
     if (cat === 'pelo') return `<span class="jcolor" style="background:${valor}"></span>`;
@@ -259,6 +271,10 @@ const Juego = (function () {
   let cat = 'arriba';
   let guardarTimer = null;
   let toast = () => {};
+  let parcheHoy = 'ninguno';
+  // "firma" de la apariencia del avatar con la que se armó la Mili del juego:
+  // si el avatar cambia, la Mili del juego vuelve a quedar igual a él.
+  let miliFirma = null;
 
   function leerLocal() {
     try {
@@ -271,8 +287,18 @@ const Juego = (function () {
     estados = {};
     PERSONAJES.forEach((p) => { estados[p.id] = normalizar(p.id, j && j.personajes && j.personajes[p.id]); });
     if (j && PERSONAJES.some((p) => p.id === j.actual)) actual = j.actual;
+    miliFirma = (j && typeof j.miliFirma === 'string') ? j.miliFirma : null;
   }
-  function paquete() { return { personajes: estados, actual }; }
+  function paquete() { return { personajes: estados, actual, miliFirma }; }
+
+  // Si el avatar cambió desde la última vez, la Mili del juego se pone igual a él.
+  function sincronizarMili() {
+    const firma = JSON.stringify(aparienciaMili);
+    if (miliFirma === firma) return false;
+    estados.mili = inicial('mili');
+    miliFirma = firma;
+    return true;
+  }
 
   // La copia local lleva "pendiente: true" mientras no se haya podido subir a
   // Supabase (p. ej. sin internet). Así, al abrir, lo local no se pisa con una
@@ -429,7 +455,10 @@ const Juego = (function () {
     conConfirmacion('juegoReset', () => { estados[actual] = enBlanco(actual); });
     conConfirmacion('juegoOriginal', () => { estados[actual] = inicial(actual); });
 
-    $('juegoFoto').addEventListener('click', () => Camara.abrir(figura(actual, estados[actual])));
+    $('juegoFoto').addEventListener('click', () => {
+      const id = actual;
+      Camara.abrir({ dibujar: (o) => figura(id, estados[id], o), conParche: id === 'mili', parche: parcheHoy });
+    });
 
     const items = $('juegoItems');
     items.addEventListener('click', (e) => {
@@ -478,10 +507,12 @@ const Juego = (function () {
     if (!cableado) { cablear(); cableado = true; }
     toast = opts.toast || toast;
     aparienciaMili = Mili.normalizar(opts.apariencia);
+    parcheHoy = opts.parcheHoy || 'ninguno';
     TiempoJuego.configurar(opts.minutosDia);
 
     const local = leerLocal();
     aplicarGuardado(local);
+    if (sincronizarMili()) guardar();
     $('juegoFin').classList.add('hidden');
     $('juego').classList.remove('hidden');
     document.body.classList.add('jugando');
@@ -498,7 +529,7 @@ const Juego = (function () {
     const remoto = await Config.obtenerJuego();
     if (remoto && v === version && !$('juego').classList.contains('hidden')) {
       aplicarGuardado(remoto);
-      guardarLocal(false);
+      if (sincronizarMili()) guardar(); else guardarLocal(false);
       renderPersonajes(); renderEscenario(false); renderItems();
     }
   }
