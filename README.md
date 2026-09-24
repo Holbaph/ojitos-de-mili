@@ -39,9 +39,12 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   parche a Mili — solo si todavía nadie lo registró ese día. Llega a los mismos
   dispositivos que tienen los avisos activados.
 - **Mili personalizable**: con el botón **🎨 Personalizar** se elige su color de
-  piel y de ojos, el peinado y color de pelo, un accesorio (moño, collet, cintillo
-  o flor), la ropa (vestido, polera con falda o pantalón, jardinera — con
-  estampado y colores), los zapatos y **el parche** (forma ovalada, redonda, de
+  piel y de ojos; 17 peinados, 5 flequillos y el color de pelo; la ropa (vestidos,
+  poleras, camisas, suéteres, jeans, calzas, faldas, tutú, jardinera, enterito,
+  chaquetas, abrigo… con estampado y colores); zapatos (zapatillas, botas, botas
+  de lluvia, guillerminas, pantuflas, patines…); coronas y gorros (corona, corona
+  de flores o de estrellas, gorro de lana, jockey, sombrero, orejitas, cuerno de
+  unicornio); joyas (aros, collares, reloj, pulseras, anillos); lentes; y **el parche** (forma ovalada, redonda, de
   corazón o nube; estampado liso, lunares, corazones, estrellas, rayas o arcoíris;
   color y un adornito). Toda la familia ve a la misma Mili.
 - **Juego "Jugar a vestir"**: se elige un personaje (Mili; Rumi, Mira y Zoey;
@@ -59,13 +62,14 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
 - **Juegos con el parche**: cinco juegos de visión fina para entretenerse
   *mientras* se usa el parche (así trabaja el ojito destapado): 🔍 Diferencias,
   ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y 🫧 Burbujas. Tienen
-  niveles que se van poniendo más difíciles y dan estrellitas ⭐. Solo se abren
-  si el parche de hoy está registrado y todavía no se cumple su tiempo. Son
-  para acompañar el tratamiento, **no lo reemplazan** ni son ejercicios
-  indicados por un oftalmólogo.
-  En Historial → **Juego de vestir** se fijan los **minutos de juego por día**:
-  al acabarse, el juego se cierra solo hasta el día siguiente (o hasta tocar
-  **Dar más tiempo hoy**).
+  niveles que se van poniendo más difíciles y dan estrellitas ⭐. Son para
+  acompañar el tratamiento, **no lo reemplazan** ni son ejercicios indicados
+  por un oftalmólogo.
+- **Un solo tiempo de juego**: en Historial → **Tiempo de juego** se fijan los
+  minutos por día, que valen para "Jugar a vestir" y "Juegos con el parche"
+  sumados. Al acabarse, los juegos se cierran solos hasta el día siguiente (o
+  hasta tocar **Dar más tiempo hoy**).
+  El guardarropa es el mismo del avatar de Mili (coronas, joyas, etc.).
 
 ## 1. Configurar Supabase (una sola vez)
 
@@ -213,7 +217,9 @@ css/styles.css           estilos (claro/oscuro automático)
 js/supabase-config.js    credenciales de tu proyecto Supabase (paso 1.6)
 js/auth.js                sesión, perfiles, invitación/recuperación de contraseña
 js/core.js                fechas/horas y acceso a la tabla "registros"
-js/mili.js                dibuja a Mili según su apariencia (pelo, ropa, zapatos…)
+js/vestuario.js           dibuja a una persona completa: pelo, ropa, zapatos, coronas, joyas, lentes
+js/mili.js                el avatar de Mili (apariencia, parche) usando vestuario.js
+js/tiempo-juego.js        el reloj de juego compartido (vestir + juegos con el parche)
 js/juego.js               juego de vestir personajes (armario, arrastrar, tiempo por día)
 js/camara.js              foto con el personaje + "Mis fotos" (solo en el dispositivo)
 js/juegos-parche.js       juegos de visión fina para el rato con el parche puesto

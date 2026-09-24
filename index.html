@@ -151,6 +151,9 @@
           </g>
           <g class="eye-patch" data-lado="1"><!-- lo dibuja js/mili.js (forma, estampado, color) --></g>
         </g>
+
+        <!-- lo que va por encima de los ojos (lentes); no bloquea los toques en los ojos -->
+        <g class="mili-delante" pointer-events="none"></g>
       </svg>
     </div>
 
@@ -203,7 +206,7 @@
 
   <button class="juego-entrar jp-entrar" id="openJuegosParche">
     <span class="je-emoji">🎯</span>
-    <span><strong>Juegos con el parche</strong><small id="jpEntrarSub">Se abren cuando tienes el parche puesto</small></span>
+    <span><strong>Juegos con el parche</strong><small>Diferencias, burbujas, caminitos y más</small></span>
     <span class="je-flecha">›</span>
   </button>
 
@@ -318,9 +321,9 @@
   </section>
 
   <section class="block">
-    <p class="block-title">Juego de vestir</p>
+    <p class="block-title">Tiempo de juego</p>
     <div class="settings-row">
-      <label for="juegoMinutosInput">Tiempo de juego por día</label>
+      <label for="juegoMinutosInput">Minutos de juego por día (vestir + juegos con el parche)</label>
       <div class="duracion-edit">
         <input type="number" id="juegoMinutosInput" min="0" step="1" inputmode="numeric">
         <span>minutos</span>
@@ -356,9 +359,11 @@
     <button data-tab="ojos">Ojos</button>
     <button data-tab="parche">🩹 Parche</button>
     <button data-tab="pelo">Pelo</button>
-    <button data-tab="accesorio">Accesorio</button>
     <button data-tab="ropa">Ropa</button>
     <button data-tab="zapatos">Zapatos</button>
+    <button data-tab="cabeza">👑 Cabeza</button>
+    <button data-tab="joyas">💍 Joyas</button>
+    <button data-tab="lentes">🕶️ Lentes</button>
   </div>
   <div class="mili-panel" id="miliPanel"></div>
   <div class="mili-actions">
@@ -444,10 +449,19 @@
   <div class="jp-top">
     <button class="icon-btn" id="jpVolver" aria-label="Volver">←</button>
     <div class="jp-titulo"><strong id="jpTitulo">Juegos con el parche</strong><small id="jpSub"></small></div>
+    <div class="juego-reloj" id="jpReloj">⏱ 20:00</div>
     <div class="jp-estrellas" id="jpEstrellas">⭐ 0</div>
   </div>
   <div class="jp-cuerpo" id="jpCuerpo"></div>
   <div class="jp-mensaje" id="jpMensaje" aria-live="polite"></div>
+  <div class="juego-fin hidden" id="jpFin">
+    <div class="juego-fin-box">
+      <div class="big">⏰</div>
+      <h2>¡Se acabó el tiempo de juego!</h2>
+      <p>Por hoy ya jugaste todo el tiempo. Mañana puedes seguir jugando 💖</p>
+      <button class="btn-save" id="jpFinOk">Salir</button>
+    </div>
+  </div>
   <div class="jp-premio hidden" id="jpPremio">
     <div class="jp-premio-box">
       <div class="big">⭐⭐⭐</div>
@@ -465,7 +479,9 @@
 <script src="js/supabase-config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/core.js"></script>
+<script src="js/vestuario.js"></script>
 <script src="js/mili.js"></script>
+<script src="js/tiempo-juego.js"></script>
 <script src="js/juego.js"></script>
 <script src="js/camara.js"></script>
 <script src="js/juegos-parche.js"></script>

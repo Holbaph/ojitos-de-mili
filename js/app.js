@@ -336,17 +336,6 @@
     document.getElementById('duracionHint').textContent = 'Ahora mismo: ' + partes.join(' ');
   }
 
-  // Botón de "Juegos con el parche": se destaca mientras el parche está puesto.
-  function renderEntradaJuegosParche(rec, fraccion) {
-    const btn = document.getElementById('openJuegosParche');
-    const sub = document.getElementById('jpEntrarSub');
-    const puesto = !!rec && fraccion < 1;
-    btn.classList.toggle('activo', puesto);
-    sub.textContent = puesto ? '¡A jugar mientras usas el parche! ⏳'
-      : rec ? 'Por hoy ya se cumplió el tiempo del parche 🎉'
-      : 'Se abren cuando tienes el parche puesto';
-  }
-
   function renderTimer() {
     const card = document.getElementById('timerCard');
     const text = document.getElementById('timerText');
@@ -355,7 +344,6 @@
     const rec = entries[Utils.todayId()];
 
     if (!rec) {
-      renderEntradaJuegosParche(null, 0);
       card.classList.add('idle'); card.classList.remove('done');
       sandTop.setAttribute('y', 26); sandTop.setAttribute('height', 110);
       sandBottom.setAttribute('y', 254); sandBottom.setAttribute('height', 0);
@@ -366,7 +354,6 @@
     const duracionMs = duracionMinutos * 60000;
     const transcurrido = Date.now() - new Date(rec.hora).getTime();
     const fraccion = Math.max(0, Math.min(1, transcurrido / duracionMs));
-    renderEntradaJuegosParche(rec, fraccion);
 
     const topApexY = 136, topStartY = 26;
     const nivelTop = topStartY + (topApexY - topStartY) * fraccion;
@@ -497,6 +484,8 @@
   let borrador = null;     // lo que se está eligiendo en el editor, antes de Guardar
   let miliTab = 'piel';
 
+  const O = Mili.OPC;
+  const hay = (k) => (b) => b[k] !== 'ninguno';
   const GRUPOS = {
     piel: [{ t: 'Color de piel', k: 'piel', colores: Mili.PIELES }],
     ojos: [{ t: 'Color de ojos', k: 'ojos', colores: Mili.OJOS }],
@@ -508,21 +497,43 @@
     ],
     pelo: [
       { t: 'Peinado', k: 'peloEstilo', chips: Mili.PEINADOS },
+      { t: 'Flequillo', k: 'flequillo', chips: Mili.FLEQUILLOS },
       { t: 'Color de pelo', k: 'peloColor', colores: Mili.PELOS },
     ],
-    accesorio: [
-      { t: 'Accesorio', k: 'accesorio', chips: Mili.ACCESORIOS },
-      { t: 'Color del accesorio', k: 'accesorioColor', colores: Mili.COLORES, si: (b) => b.accesorio !== 'ninguno' },
-    ],
     ropa: [
-      { t: 'Modelo', k: 'ropa', chips: Mili.ROPAS },
-      { t: 'Estampado', k: 'estampado', chips: Mili.ESTAMPADOS },
-      { t: 'Color principal', k: 'ropaColor', colores: Mili.COLORES },
-      { t: (b) => Mili.ROPAS.find((r) => r.v === b.ropa).c2, k: 'ropaColor2', colores: Mili.COLORES },
+      { t: 'Vestido', k: 'vestido', chips: O.vestido },
+      { t: 'Color del vestido', k: 'vestidoColor', colores: Mili.COLORES, si: hay('vestido') },
+      { t: 'Arriba', k: 'arriba', chips: O.arriba, si: (b) => b.vestido === 'ninguno' },
+      { t: 'Color de arriba', k: 'arribaColor', colores: Mili.COLORES, si: (b) => b.vestido === 'ninguno' },
+      { t: 'Abajo', k: 'abajo', chips: O.abajo, si: (b) => b.vestido === 'ninguno' },
+      { t: 'Color de abajo', k: 'abajoColor', colores: Mili.COLORES, si: (b) => b.vestido === 'ninguno' },
+      { t: (b) => 'Estampado ' + (b.vestido !== 'ninguno' ? 'del vestido' : 'de arriba'), k: 'estampado', chips: Mili.ESTAMPADOS },
+      { t: 'Encima', k: 'encima', chips: O.encima },
+      { t: 'Color de lo de encima', k: 'encimaColor', colores: Mili.COLORES, si: hay('encima') },
     ],
     zapatos: [
-      { t: 'Modelo', k: 'zapatos', chips: Mili.ZAPATOS },
-      { t: 'Color de los zapatos', k: 'zapatosColor', colores: Mili.COLORES },
+      { t: 'Zapatos', k: 'zapatos', chips: O.zapatos },
+      { t: 'Color de los zapatos', k: 'zapatosColor', colores: Mili.COLORES, si: hay('zapatos') },
+    ],
+    cabeza: [
+      { t: 'Coronas y gorros', k: 'sombrero', chips: O.sombrero },
+      { t: 'Color', k: 'sombreroColor', colores: Mili.JOYAS_COLORES, si: hay('sombrero') },
+      { t: 'Accesorio del pelo', k: 'accesorio', chips: O.accesorio },
+      { t: 'Color del accesorio', k: 'accesorioColor', colores: Mili.COLORES, si: hay('accesorio') },
+    ],
+    joyas: [
+      { t: 'Aros', k: 'pendientes', chips: O.pendientes },
+      { t: 'Color de los aros', k: 'pendientesColor', colores: Mili.JOYAS_COLORES, si: hay('pendientes') },
+      { t: 'Collar', k: 'collar', chips: O.collar },
+      { t: 'Color del collar', k: 'collarColor', colores: Mili.JOYAS_COLORES, si: hay('collar') },
+      { t: 'Reloj o pulsera', k: 'muneca', chips: O.muneca },
+      { t: 'Color', k: 'munecaColor', colores: Mili.JOYAS_COLORES, si: hay('muneca') },
+      { t: 'Anillo', k: 'anillo', chips: O.anillo },
+      { t: 'Color de la piedrita', k: 'anilloColor', colores: Mili.JOYAS_COLORES, si: hay('anillo') },
+    ],
+    lentes: [
+      { t: 'Lentes', k: 'lentes', chips: O.lentes },
+      { t: 'Color de los lentes', k: 'lentesColor', colores: Mili.COLORES, si: hay('lentes') },
     ],
   };
 
@@ -623,11 +634,7 @@
 
   // ================= JUEGOS CON EL PARCHE (js/juegos-parche.js) =================
   document.getElementById('openJuegosParche').addEventListener('click', () => {
-    const rec = entries[Utils.todayId()];
-    JuegosParche.abrir({
-      registrado: !!rec,
-      finMs: rec ? new Date(rec.hora).getTime() + duracionMinutos * 60000 : null,
-    });
+    JuegosParche.abrir({ minutosDia: juegoMinutos });
   });
 
   // ================= JUEGO DE VESTIR (js/juego.js) =================
@@ -636,10 +643,11 @@
   });
 
   function renderJuegoHint() {
-    const quedan = Juego.minutosRestantesHoy(juegoMinutos);
+    const quedan = TiempoJuego.minutosRestantesHoy(juegoMinutos);
     document.getElementById('juegoMinutosHint').textContent = quedan === Infinity
       ? 'Sin límite (0 minutos = se puede jugar todo lo que quiera).'
-      : 'Hoy le quedan ' + quedan + ' min de juego en este dispositivo. Al acabarse, el juego se cierra solo hasta mañana. 0 = sin límite.';
+      : 'Vale para "Jugar a vestir" y "Juegos con el parche", sumados. Hoy le quedan ' + quedan +
+        ' min en este dispositivo; al acabarse, los juegos se cierran solos hasta mañana. 0 = sin límite.';
   }
 
   document.getElementById('juegoMinutosSave').addEventListener('click', async () => {
@@ -658,7 +666,7 @@
   });
 
   document.getElementById('juegoMasTiempo').addEventListener('click', () => {
-    Juego.darMasTiempo();
+    TiempoJuego.darMasTiempo();
     renderJuegoHint();
     showToast('Listo, la cuenta de hoy empieza de nuevo');
   });

@@ -1,8 +1,8 @@
 // juegos-parche.js — "Juegos con el parche": actividades de visión fina para
 // entretenerse MIENTRAS se usa el parche (así trabaja el ojo destapado).
-// Solo se abren si el parche de hoy está registrado y todavía no se cumple su
-// tiempo (el del temporizador). No son un tratamiento ni reemplazan las
-// indicaciones del oftalmólogo; la pantalla lo dice.
+// Usan el mismo tiempo de juego por día que "Jugar a vestir"
+// (js/tiempo-juego.js). No son un tratamiento ni reemplazan las indicaciones
+// del oftalmólogo; la pantalla lo dice.
 //
 // Cinco juegos, con niveles que se van poniendo más difíciles (cosas más
 // chicas, más parecidas, caminos más angostos):
@@ -24,8 +24,6 @@ const JuegosParche = (function () {
   const otroColor = (lista, actual) => pick(lista.filter((c) => c !== actual));
 
   // ---------- estado general ----------
-  let finMs = null;          // cuándo se cumple el tiempo del parche
-  let vigilante = null;
   let enJuego = null;        // { id, limpiar }
   const NIVELES = 'ojitos-jp-niveles';
   const ESTRELLAS = 'ojitos-jp-estrellas';
@@ -377,21 +375,15 @@ const JuegosParche = (function () {
     $('jpPremio').classList.add('hidden');
   }
 
-  function restante() {
-    if (!finMs) return '';
-    const min = Math.max(0, Math.ceil((finMs - Date.now()) / 60000));
-    return min >= 60 ? `Quedan ${Math.floor(min / 60)} h ${min % 60} min de parche` : `Quedan ${min} min de parche`;
-  }
-
   function mostrarMenu() {
     limpiarJuego();
     $('jpTitulo').textContent = 'Juegos con el parche';
-    $('jpSub').textContent = restante();
+    $('jpSub').textContent = 'Elige un juego';
     $('jpCuerpo').innerHTML =
       '<div class="jp-menu">' + JUEGOS.map((j) =>
         `<button class="jp-tarjeta" data-juego="${j.id}"><span class="jp-emoji">${j.e}</span><strong>${j.n}</strong><small>${j.d}</small><span class="jp-nivel">Nivel ${nivelDe(j.id)}</span></button>`
       ).join('') + '</div>' +
-      '<p class="jp-nota">🩹 Juegos para entretenerse mientras usas el parche: hacen trabajar al ojito destapado. No reemplazan las indicaciones de tu oftalmólogo.</p>';
+      '<p class="jp-nota">🩹 Ideales para jugar mientras usas el parche: hacen trabajar al ojito destapado. No reemplazan las indicaciones de tu oftalmólogo.</p>';
   }
 
   function iniciar(id) {
@@ -399,7 +391,7 @@ const JuegosParche = (function () {
     const j = JUEGOS.find((x) => x.id === id);
     const nivel = nivelDe(id);
     $('jpTitulo').textContent = j.e + ' ' + j.n;
-    $('jpSub').textContent = 'Nivel ' + nivel + ' · ' + restante();
+    $('jpSub').textContent = 'Nivel ' + nivel;
     $('jpCuerpo').innerHTML = '<div class="jp-area" id="jpArea"></div>';
     const limpiar = j.f($('jpArea'), nivel, (texto) => premio(id, texto));
     enJuego = { id, limpiar: limpiar || (() => {}) };
@@ -414,31 +406,16 @@ const JuegosParche = (function () {
     $('jpPremio').classList.remove('hidden');
   }
 
-  function avisoPantalla(emoji, titulo, texto) {
+  // se acabó el tiempo de juego del día (el mismo de "Jugar a vestir")
+  function terminarTiempo() {
     limpiarJuego();
-    $('jpTitulo').textContent = 'Juegos con el parche';
-    $('jpSub').textContent = '';
-    $('jpCuerpo').innerHTML = `<div class="jp-aviso"><div class="big">${emoji}</div><h2>${titulo}</h2><p>${texto}</p></div>`;
-  }
-
-  function vigilar() {
-    clearInterval(vigilante);
-    vigilante = setInterval(() => {
-      if (!finMs) return;
-      if (Date.now() >= finMs) {
-        clearInterval(vigilante);
-        avisoPantalla('🎉', '¡Se cumplió el tiempo del parche!', 'Ya se puede sacar el parche. Mañana hay más juegos 💖');
-        return;
-      }
-      const sub = $('jpSub');
-      if (!enJuego) sub.textContent = restante();
-      else sub.textContent = 'Nivel ' + nivelDe(enJuego.id) + ' · ' + restante();
-    }, 15000);
+    $('jpFin').classList.remove('hidden');
   }
 
   let cableado = false;
   function cablear() {
-    $('jpVolver').addEventListener('click', () => (enJuego || !$('jpPremio').classList.contains('hidden')) && finMs && Date.now() < finMs ? mostrarMenu() : cerrar());
+    $('jpVolver').addEventListener('click', () => ((enJuego || !$('jpPremio').classList.contains('hidden')) && $('jpFin').classList.contains('hidden') ? mostrarMenu() : cerrar()));
+    $('jpFinOk').addEventListener('click', cerrar);
     $('jpCuerpo').addEventListener('click', (e) => {
       const b = e.target.closest('.jp-tarjeta');
       if (b) iniciar(b.dataset.juego);
@@ -447,28 +424,21 @@ const JuegosParche = (function () {
     $('jpOtro').addEventListener('click', mostrarMenu);
   }
 
-  // opts: { registrado: bool, finMs: número (ms) o null }
+  // opts: { minutosDia } — el tiempo de juego por día (0 = sin límite)
   function abrir(opts) {
     if (!cableado) { cablear(); cableado = true; }
-    finMs = opts.finMs || null;
+    TiempoJuego.configurar(opts.minutosDia);
+    $('jpFin').classList.add('hidden');
     $('jp').classList.remove('hidden');
     document.body.classList.add('jugando');
     renderEstrellas();
-    if (!opts.registrado) {
-      avisoPantalla('🩹', 'Primero, el parche', 'Estos juegos se abren cuando tienes el parche puesto. Registra el parche de hoy tocando el ojito donde lo tienes, y vuelve 💖');
-      return;
-    }
-    if (Date.now() >= finMs) {
-      avisoPantalla('🎉', '¡Ya se cumplió el tiempo de hoy!', 'Ya te puedes sacar el parche. Mañana hay más juegos 💖');
-      return;
-    }
     mostrarMenu();
-    vigilar();
+    TiempoJuego.empezar($('jpReloj'), terminarTiempo);
   }
 
   function cerrar() {
     limpiarJuego();
-    clearInterval(vigilante); vigilante = null;
+    TiempoJuego.detener();
     const jp = $('jp');
     if (jp) jp.classList.add('hidden');
     document.body.classList.remove('jugando');
