@@ -632,6 +632,18 @@
     }
   });
 
+  // Ojo con el parche registrado hoy ('derecho' | 'izquierdo' | 'ninguno'),
+  // para que el avatar salga con su parche en las fotos (ella puede cambiarlo).
+  function parcheDeHoy() {
+    const rec = entries[Utils.todayId()];
+    return rec ? rec.ojo : 'ninguno';
+  }
+
+  // Foto con el avatar tal cual está (no es un juego: no gasta tiempo de juego)
+  document.getElementById('fotoAvatar').addEventListener('click', () => {
+    Camara.abrir({ dibujar: (o) => Mili.figuraFoto(apariencia, 'cam', o), conParche: true, parche: parcheDeHoy() });
+  });
+
   // ================= JUEGOS CON EL PARCHE (js/juegos-parche.js) =================
   document.getElementById('openJuegosParche').addEventListener('click', () => {
     JuegosParche.abrir({ minutosDia: juegoMinutos });
@@ -639,7 +651,7 @@
 
   // ================= JUEGO DE VESTIR (js/juego.js) =================
   document.getElementById('openJuego').addEventListener('click', () => {
-    Juego.abrir({ apariencia, minutosDia: juegoMinutos, toast: showToast });
+    Juego.abrir({ apariencia, minutosDia: juegoMinutos, toast: showToast, parcheHoy: parcheDeHoy() });
   });
 
   function renderJuegoHint() {
