@@ -254,7 +254,7 @@ const Juego = (function () {
       relleno = e.relleno;
       sobreOjos = Mili.parcheFoto(aparienciaMili, 'jmili', o.parche);
     }
-    return defs + Vestuario.persona(st, { piel: personaje(id).piel, relleno, pose: o.pose, sobreOjos }).figura;
+    return defs + Vestuario.persona(st, { piel: personaje(id).piel, relleno, pose: o.pose, sobreOjos, sinBrazo: o.sinBrazo }).figura;
   }
 
   function icono(cat, valor, st, id) {
@@ -457,7 +457,11 @@ const Juego = (function () {
 
     $('juegoFoto').addEventListener('click', () => {
       const id = actual;
-      Camara.abrir({ dibujar: (o) => figura(id, estados[id], o), conParche: id === 'mili', parche: parcheHoy });
+      Camara.abrir({
+        dibujar: (o) => figura(id, estados[id], o),
+        brazo: () => Vestuario.persona(estados[id], { piel: personaje(id).piel }).brazo,
+        conParche: id === 'mili', parche: parcheHoy,
+      });
     });
 
     const items = $('juegoItems');

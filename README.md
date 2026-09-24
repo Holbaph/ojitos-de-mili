@@ -60,9 +60,12 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   **Mis fotos**, guardadas **solo en ese celular** (no se suben a ningún lado),
   y se pueden guardar en la galería o compartir. En la cámara se elige una
   **pose animada** (saludo, abrazo, la V, corazón, ¡hurra!) y, con Mili, si
-  sale con el parche y en qué ojo. Con **🤖 IA**, el personaje se ubica solo
-  junto a la cara de quien sale en la foto (MediaPipe, que corre en el mismo
-  celular: la imagen no se envía a ningún lado).
+  sale con el parche y en qué ojo. Con los efectos **✨ Con IA** el avatar
+  interactúa con quien sale en la foto: 🤗 la abraza (su brazo pasa por detrás
+  de la espalda y la mano aparece en el otro hombro), 🐰 le hace orejas de
+  conejo detrás de la cabeza, 🤝 le pone la mano en el hombro, 👑 le pone una
+  corona o 😘 le da un besito. Usa MediaPipe (detecta el cuerpo y recorta la
+  silueta) y corre en el mismo celular: la imagen no se envía a ningún lado.
 - **📸 Foto con mi avatar**: bajo el avatar, en la pantalla principal; abre la
   misma cámara con Mili tal cual está en su avatar (no gasta tiempo de juego).
   La Mili del juego de vestir también queda igual al avatar cada vez que este
@@ -230,6 +233,7 @@ js/mili.js                el avatar de Mili (apariencia, parche) usando vestuari
 js/tiempo-juego.js        el reloj de juego compartido (vestir + juegos con el parche)
 js/juego.js               juego de vestir personajes (armario, arrastrar, tiempo por día)
 js/camara.js              foto con el personaje + "Mis fotos" (solo en el dispositivo)
+js/ar.js                  realidad aumentada: el avatar abraza, hace orejitas, etc.
 js/juegos-parche.js       juegos de visión fina para el rato con el parche puesto
 js/app.js                 toda la interacción de la app
 supabase/schema.sql            tablas, RLS y el disparador que crea tu perfil

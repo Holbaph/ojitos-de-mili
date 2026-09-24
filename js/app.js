@@ -641,7 +641,11 @@
 
   // Foto con el avatar tal cual está (no es un juego: no gasta tiempo de juego)
   document.getElementById('fotoAvatar').addEventListener('click', () => {
-    Camara.abrir({ dibujar: (o) => Mili.figuraFoto(apariencia, 'cam', o), conParche: true, parche: parcheDeHoy() });
+    Camara.abrir({
+      dibujar: (o) => Mili.figuraFoto(apariencia, 'cam', o),
+      brazo: () => Mili.brazoFoto(apariencia),
+      conParche: true, parche: parcheDeHoy(),
+    });
   });
 
   // ================= JUEGOS CON EL PARCHE (js/juegos-parche.js) =================
