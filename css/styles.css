@@ -581,7 +581,6 @@ body.jugando{ overflow:hidden; }
 
 /* ---------- juegos con el parche ---------- */
 .jp-entrar{ background:linear-gradient(120deg,#3fb8b0,#4a78c2 60%,#7e57c2); }
-.jp-entrar.activo{ box-shadow:0 0 0 3px var(--success-soft), var(--shadow-sm); }
 
 .jp{
   position:fixed; inset:0; z-index:70; display:flex; flex-direction:column;
@@ -687,3 +686,5 @@ body.jugando{ overflow:hidden; }
 .jp-premio-box h2{ font-family:'Baloo 2'; margin:6px 0 2px; color:var(--ink); }
 .jp-premio-box p{ color:var(--ink-soft); margin:0 0 14px; }
 .jp-premio-box button{ width:100%; padding:12px; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; margin-top:6px; }
+
+.jp .juego-reloj{ flex-shrink:0; }
