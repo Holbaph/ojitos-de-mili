@@ -81,9 +81,15 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   misma cámara con Mili tal cual está en su avatar (no gasta tiempo de juego).
   La Mili del juego de vestir también queda igual al avatar cada vez que este
   cambia.
-- **Juegos con el parche**: cinco juegos de visión fina para entretenerse
-  *mientras* se usa el parche (así trabaja el ojito destapado): 🔍 Diferencias,
-  ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y 🫧 Burbujas. Tienen
+- **Juegos con el parche**: seis juegos de visión fina para entretenerse
+  *mientras* se usa el parche (así trabaja el ojito destapado): 🍰 Cocinita,
+  🔍 Diferencias, ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y
+  🫧 Burbujas. En **Cocinita** un personaje pide un plato (pizza, pastel,
+  helado, hamburguesa, cupcake, brocheta de frutas, panqueques, dona o
+  ensalada) y hay que prepararlo igual al dibujo: elegir salsa o cobertura,
+  apilar capas en orden y poner la cantidad justa de cada ingrediente
+  (arrastrando o tocando). Los niveles no se acaban: más ingredientes,
+  cosas parecidas, series de frutas y, desde el nivel 10, sin lista. Tienen
   niveles que se van poniendo más difíciles y dan estrellitas ⭐. Son para
   acompañar el tratamiento, **no lo reemplazan** ni son ejercicios indicados
   por un oftalmólogo.
@@ -286,6 +292,7 @@ js/juego.js               juego de vestir personajes (armario, arrastrar, tiempo
 js/camara.js              foto con el personaje + "Mis fotos" (solo en el dispositivo)
 js/ar.js                  realidad aumentada: el avatar abraza, hace orejitas, etc.
 js/juegos-parche.js       juegos de visión fina para el rato con el parche puesto
+js/cocina.js              🍰 Cocinita: platos, ingredientes y niveles del juego de cocina
 js/app.js                 toda la interacción de la app
 supabase/schema.sql            tablas, RLS y el disparador que crea tu perfil
 supabase/schema_temporizador.sql  duración, suscripciones push y el cron (paso 3)
