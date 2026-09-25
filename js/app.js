@@ -11,6 +11,8 @@
   let duracionMinutos = 120;    // cuánto dura el parche puesto (temporizador)
   let timerTick = null;
   let juegoMinutos = 20;        // minutos de juego por día (0 = sin límite)
+  // indicación del oftalmólogo, premio, control y resumen (js/tratamiento.js)
+  let conf = Tratamiento.desdeFila(null);
 
   if (location.hash.includes('type=invite') || location.hash.includes('type=recovery') ||
       location.search.includes('type=invite') || location.search.includes('type=recovery')) {
@@ -133,6 +135,10 @@
     duracionMinutos = await Config.obtenerDuracionMinutos();
     document.getElementById('duracionInput').value = duracionMinutos;
     actualizarDuracionHint(duracionMinutos);
+    conf = await Config.obtenerTratamiento();
+    conf.duracion = duracionMinutos;
+    renderConfigTratamiento();
+    renderAll();
     renderRecordatorio(await Config.obtenerRecordatorio());
     const apGuardada = await Config.obtenerApariencia();
     if (apGuardada !== undefined) {
@@ -191,8 +197,8 @@
     }
     const horaISO = new Date().toISOString();
     try {
-      await DB.guardarRegistro(id, side, horaISO, perfil.id);
-      entries[id] = { fecha: id, ojo: side, hora: horaISO, registradoPor: perfil.id };
+      await DB.guardarRegistro(id, side, horaISO, perfil.id, null);
+      entries[id] = { fecha: id, ojo: side, hora: horaISO, horaFin: null, registradoPor: perfil.id };
       renderAll();
       showToast('Registrado: ojo ' + Utils.label(side).toLowerCase() + ' a las ' + Utils.fmtTime(horaISO));
     } catch (e) {
@@ -212,45 +218,35 @@
     document.getElementById('eyeDerecho').classList.toggle('patched', !!rec && rec.ojo === 'derecho');
     document.getElementById('eyeIzquierdo').classList.toggle('patched', !!rec && rec.ojo === 'izquierdo');
 
+    const sacar = document.getElementById('sacarBtn'), sacarDeshacer = document.getElementById('sacarDeshacer');
     if (rec) {
       const autor = personasCache[rec.registradoPor];
       line.innerHTML = '🩹 <span class="pill ' + rec.ojo + '">' + Utils.label(rec.ojo) + '</span> · puesto a las ' + Utils.fmtTime(rec.hora) +
+        (rec.horaFin ? ' · sacado a las ' + Utils.fmtTime(rec.horaFin) : '') +
         (autor ? '<span class="status-by">Registrado por ' + Utils.esc(autor.nombre) + '</span>' : '');
-      hint.innerHTML = '';
+      if (rec.horaFin) {
+        const u = Tratamiento.uso(rec, conf);
+        const corto = u.min < conf.duracion - 5;
+        hint.innerHTML = '<span class="hint-chip">' + (corto ? '🕐' : '✅') + ' Hoy lo usó ' + Tratamiento.fmtDur(u.min) +
+          (corto ? ' de ' + Tratamiento.fmtDur(conf.duracion) : ' ¡completo!') + '</span>';
+      } else hint.innerHTML = '';
       undo.classList.remove('hidden');
+      sacar.classList.toggle('hidden', !!rec.horaFin);
+      sacarDeshacer.classList.toggle('hidden', !rec.horaFin);
     } else {
       line.innerHTML = '<span class="status-empty">Aún no registras el parche de hoy</span>';
       undo.classList.add('hidden');
-      const ids = Object.keys(entries).filter(k => k !== id).sort();
-      const last = ids.length ? entries[ids[ids.length - 1]] : null;
-      if (last) {
-        const suggestion = last.ojo === 'derecho' ? 'izquierdo' : 'derecho';
-        hint.innerHTML = '<span class="hint-chip">💡 La última vez fue ojo ' + last.ojo + ' — hoy probablemente toca ' + suggestion + '</span>';
-      } else {
-        hint.innerHTML = '<span class="hint-chip">Toca un ojito para registrar el parche de hoy</span>';
-      }
+      sacar.classList.add('hidden'); sacarDeshacer.classList.add('hidden');
+      const sug = Tratamiento.sugerencia(conf, entries);
+      hint.innerHTML = '<span class="hint-chip">' + (sug.ojo ? '💡 ' : '') + Utils.esc(sug.texto) + '</span>';
     }
   }
 
+  // constancia y racha cuentan solo los días indicados (js/tratamiento.js):
+  // un día libre no corta la racha
   function computeStats() {
-    const ids = Object.keys(entries).sort();
-    const total = ids.length;
-    let countD = 0, countI = 0;
-    ids.forEach(id => { if (entries[id].ojo === 'derecho') countD++; else countI++; });
-
-    let streak = 0;
-    const cursor = new Date();
-    if (!entries[Utils.todayId()]) cursor.setDate(cursor.getDate() - 1);
-    while (entries[Utils.dateId(cursor)]) { streak++; cursor.setDate(cursor.getDate() - 1); }
-
-    let constancia = 0;
-    if (total > 0) {
-      const first = Utils.parseId(ids[0]);
-      const now = new Date();
-      const days = Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(first.getFullYear(), first.getMonth(), first.getDate())) / 86400000) + 1;
-      constancia = Math.round(100 * total / Math.max(days, 1));
-    }
-    return { total, countD, countI, streak, constancia };
+    const s = Tratamiento.estadisticas(entries, conf);
+    return { ...s, streak: s.racha };
   }
 
   function renderStats() {
@@ -286,9 +282,10 @@
       } else {
         const id = Utils.dateId(d);
         const rec = entries[id];
-        div.className = 'cal-cell' + (rec ? ' ' + rec.ojo : '') + (id === Utils.todayId() ? ' today' : '');
+        const libre = !rec && !Tratamiento.esIndicado(conf, d);
+        div.className = 'cal-cell' + (rec ? ' ' + rec.ojo : '') + (libre ? ' libre' : '') + (id === Utils.todayId() ? ' today' : '');
         div.textContent = d.getDate();
-        div.title = Utils.fmtShort(d) + (rec ? ' · ' + Utils.label(rec.ojo) + ' · ' + Utils.fmtTime(rec.hora) : ' · sin registro');
+        div.title = Utils.fmtShort(d) + (rec ? ' · ' + Utils.label(rec.ojo) + ' · ' + Utils.fmtTime(rec.hora) : libre ? ' · día libre' : ' · sin registro');
       }
       grid.appendChild(div);
     }
@@ -318,14 +315,15 @@
         row.innerHTML =
           '<span class="side-dot ' + rec.ojo + '"></span>' +
           '<div class="txt"><div class="d1">' + Utils.fmtShort(Utils.parseId(id)) + ' · ' + Utils.label(rec.ojo) + '</div>' +
-          '<div class="d2">' + Utils.fmtTime(rec.hora) + (autor ? ' · ' + Utils.esc(autor.nombre) : '') + '</div></div>' +
+          '<div class="d2">' + Utils.fmtTime(rec.hora) + (rec.horaFin ? ' → ' + Utils.fmtTime(rec.horaFin) + ' (' + Tratamiento.fmtDur(Tratamiento.uso(rec, conf).min) + ')' : '') +
+          (autor ? ' · ' + Utils.esc(autor.nombre) : '') + '</div></div>' +
           '<button class="del" data-act="del" title="Eliminar">🗑</button>';
       }
       list.appendChild(row);
     });
   }
 
-  function renderAll() { renderToday(); renderStats(); renderCalendar(); renderList(); renderTimer(); }
+  function renderAll() { renderToday(); renderStats(); renderCalendar(); renderList(); renderTimer(); renderSemana(); renderPremio(); renderControl(); }
 
   // ================= TEMPORIZADOR (reloj de arena) =================
   function actualizarDuracionHint(minutos) {
@@ -343,16 +341,19 @@
     const sandBottom = document.getElementById('sandBottom');
     const rec = entries[Utils.todayId()];
 
+    card.classList.remove('sacado');
     if (!rec) {
       card.classList.add('idle'); card.classList.remove('done');
       sandTop.setAttribute('y', 26); sandTop.setAttribute('height', 110);
       sandBottom.setAttribute('y', 254); sandBottom.setAttribute('height', 0);
-      text.textContent = 'Cuando le pongas el parche, aquí vas a ver cuánto falta ⏳';
+      text.textContent = Tratamiento.esIndicado(conf, new Date())
+        ? 'Cuando le pongas el parche, aquí vas a ver cuánto falta ⏳'
+        : 'Hoy es día libre de parche 🎈';
       return;
     }
 
     const duracionMs = duracionMinutos * 60000;
-    const transcurrido = Date.now() - new Date(rec.hora).getTime();
+    const transcurrido = (rec.horaFin ? new Date(rec.horaFin).getTime() : Date.now()) - new Date(rec.hora).getTime();
     const fraccion = Math.max(0, Math.min(1, transcurrido / duracionMs));
 
     const topApexY = 136, topStartY = 26;
@@ -365,7 +366,14 @@
     sandBottom.setAttribute('y', Math.max(botApexY, nivelBot));
     sandBottom.setAttribute('height', Math.max(0, botStartY - nivelBot));
 
-    if (fraccion >= 1) {
+    if (rec.horaFin) {
+      // ya se lo sacó: el reloj se queda donde llegó
+      card.classList.remove('idle', 'done'); card.classList.add('sacado');
+      const min = transcurrido / 60000;
+      text.textContent = min >= duracionMinutos - 5
+        ? '✅ Hoy lo usó ' + Tratamiento.fmtDur(min) + ': ¡completo! 🎉'
+        : '🕐 Hoy lo usó ' + Tratamiento.fmtDur(min) + ' de ' + Tratamiento.fmtDur(duracionMinutos);
+    } else if (fraccion >= 1) {
       card.classList.remove('idle'); card.classList.add('done');
       text.textContent = '¡Ya se puede sacar el parche! 🎉';
     } else {
@@ -390,8 +398,10 @@
     try {
       await Config.guardarDuracionMinutos(v);
       duracionMinutos = v;
+      conf.duracion = v;
       actualizarDuracionHint(v);
-      renderTimer();
+      renderConfigTratamiento();
+      renderAll();
       showToast('Duración guardada');
     } catch (e) {
       const esTablaFaltante = /relation .* does not exist/i.test(e.message || '');
@@ -792,6 +802,180 @@
     }
   });
 
+  // ================= TRATAMIENTO (js/tratamiento.js) =================
+  const $t = (id) => document.getElementById(id);
+  function avisarError(e) {
+    showToast(/column|sacar_parche|function/i.test((e && e.message) || '')
+      ? 'No se pudo guardar (¿corriste supabase/schema_tratamiento.sql?)'
+      : 'No se pudo guardar, revisa tu conexión');
+  }
+  async function guardarConf(cambios, okTexto) {
+    try { await Config.guardarTratamiento(cambios); if (okTexto) showToast(okTexto); return true; }
+    catch (e) { avisarError(e); return false; }
+  }
+
+  // --- "ya se sacó el parche" ---
+  $t('sacarBtn').addEventListener('click', async () => {
+    const id = Utils.todayId(), rec = entries[id];
+    if (!rec) return;
+    const ahora = new Date().toISOString();
+    try {
+      await DB.sacarParche(id, ahora);
+      rec.horaFin = ahora;
+      renderAll();
+      const min = Tratamiento.uso(rec, conf).min;
+      showToast(min >= conf.duracion - 5 ? '¡Bien! Lo usó ' + Tratamiento.fmtDur(min) + ' 🎉' : 'Anotado: lo usó ' + Tratamiento.fmtDur(min) + ' de ' + Tratamiento.fmtDur(conf.duracion));
+    } catch (e) { avisarError(e); }
+  });
+  $t('sacarDeshacer').addEventListener('click', async () => {
+    const id = Utils.todayId(), rec = entries[id];
+    if (!rec) return;
+    try { await DB.sacarParche(id, null); rec.horaFin = null; renderAll(); showToast('Listo: sigue con el parche puesto'); }
+    catch (e) { avisarError(e); }
+  });
+
+  // --- indicación del oftalmólogo ---
+  function renderConfigTratamiento() {
+    document.querySelectorAll('#indOjo button').forEach(b => b.classList.toggle('active', b.dataset.v === conf.ojo));
+    document.querySelectorAll('#indDias button').forEach(b => b.classList.toggle('active', conf.dias.includes(Number(b.dataset.d))));
+    $t('indHint').textContent = 'Ahora: ' + Tratamiento.textoIndicacion(conf) + '.';
+    $t('premioMeta').value = conf.premioMeta ? String(conf.premioMeta) : '';
+    $t('premioTexto').value = conf.premioTexto;
+    $t('ctrlFecha').value = conf.controlFecha || '';
+    $t('ctrlHora').value = conf.controlHora || '';
+    $t('ctrlDetalle').value = conf.controlDetalle;
+    $t('ctrlPreguntas').value = conf.controlPreguntas;
+    $t('ctrlQuitar').classList.toggle('hidden', !conf.controlFecha && !conf.controlPreguntas);
+    $t('resumenActivo').checked = conf.resumenActivo;
+  }
+  $t('indOjo').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-v]');
+    if (!b || b.dataset.v === conf.ojo) return;
+    const antes = conf.ojo;
+    conf.ojo = b.dataset.v;
+    renderConfigTratamiento(); renderAll();
+    if (!(await guardarConf({ indicacion_ojo: conf.ojo }, 'Indicación guardada'))) { conf.ojo = antes; renderConfigTratamiento(); renderAll(); }
+  });
+  $t('indDias').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-d]');
+    if (!b) return;
+    const d = Number(b.dataset.d), antes = conf.dias.slice();
+    const dias = antes.includes(d) ? antes.filter(x => x !== d) : antes.concat(d).sort();
+    if (!dias.length) { showToast('Tiene que quedar al menos un día'); return; }
+    conf.dias = dias;
+    renderConfigTratamiento(); renderAll();
+    if (!(await guardarConf({ indicacion_dias: dias }, 'Días guardados'))) { conf.dias = antes; renderConfigTratamiento(); renderAll(); }
+  });
+
+  // --- esta semana (gráfico) ---
+  function durCorta(min) {
+    min = Math.round(min);
+    const h = Math.floor(min / 60), m = min % 60;
+    return h ? h + 'h' + (m ? String(m).padStart(2, '0') : '') : m + 'm';
+  }
+  function renderSemana() {
+    const dias = Tratamiento.semana(entries, conf);
+    const tope = Math.max(conf.duracion * 1.25, ...dias.map(x => (x.uso ? x.uso.min : 0)));
+    const meta = Math.round(100 * conf.duracion / tope);
+    $t('semanaGraf').innerHTML = dias.map((x) => {
+      const min = x.uso ? x.uso.min : 0;
+      const cls = 'sem-dia' + (x.hoy ? ' hoy' : '') + (!x.indicado ? ' libre' : '') + (x.futuro ? ' futuro' : '') +
+        (x.rec ? ' ' + x.rec.ojo : '') + (x.uso && x.uso.estimado ? ' estimado' : '') + (x.uso && x.uso.enCurso ? ' encurso' : '');
+      const etq = x.rec ? durCorta(min) : (!x.indicado ? 'libre' : (x.futuro || x.hoy ? '' : '—'));
+      return '<div class="' + cls + '"><div class="sem-barra"><i style="bottom:' + meta + '%"></i><span style="height:' + Math.round(100 * min / tope) + '%"></span></div>' +
+        '<b>' + x.corto + '</b><small>' + etq + '</small></div>';
+    }).join('');
+    const indicados = dias.filter(x => x.indicado && !x.futuro).length;
+    const hechos = dias.filter(x => x.rec && x.indicado).length;
+    const total = dias.reduce((s, x) => s + (x.uso ? x.uso.min : 0), 0);
+    const estimados = dias.filter(x => x.uso && x.uso.estimado).length;
+    $t('semanaResumen').textContent = hechos + ' de ' + indicados + ' días hasta hoy · ' + Tratamiento.fmtDur(total) + ' con el parche' +
+      (estimados ? ' (' + estimados + ' día' + (estimados > 1 ? 's' : '') + ' sin hora de sacado: se estimó la duración indicada)' : '') + '.';
+  }
+
+  // --- premio por constancia (tarjeta de la pantalla principal) ---
+  function renderPremio() {
+    const card = $t('premioCard');
+    const p = Tratamiento.premio(entries, conf);
+    if (!p) { card.classList.add('hidden'); return; }
+    card.classList.remove('hidden');
+    card.classList.toggle('logrado', p.logrado);
+    const texto = Utils.esc(p.texto);
+    const dias = p.dias.map((x) => '<span class="pr-dia' + (x.rec ? ' hecho' : '') + (x.futuro ? ' futuro' : '') + (!x.indicado ? ' libre' : '') + (x.hoy ? ' hoy' : '') + '">' +
+      '<i>' + (x.rec ? '⭐' : '') + '</i><b>' + x.corto + '</b></span>').join('');
+    card.innerHTML =
+      '<div class="pr-titulo">' + (p.logrado ? '🎉 ¡Lo lograste! Ganaste: ' + texto : '🏆 Premio de la semana: ' + texto) + '</div>' +
+      '<div class="pr-sub">' + (p.logrado ? p.hechos + ' días con parche esta semana 💖' : p.hechos + ' de ' + p.meta + ' días · ¡te falta' + (p.faltan > 1 ? 'n ' : ' ') + p.faltan + '!') + '</div>' +
+      '<div class="pr-dias">' + dias + '</div>';
+  }
+  $t('premioGuardar').addEventListener('click', async () => {
+    const meta = parseInt($t('premioMeta').value, 10) || null;
+    let texto = $t('premioTexto').value.trim().slice(0, 60);
+    if (meta && !texto) texto = 'un premio sorpresa 🎁';
+    if (await guardarConf({ premio_meta: meta, premio_texto: texto || null }, meta ? 'Premio guardado' : 'Premio quitado')) {
+      conf.premioMeta = meta; conf.premioTexto = texto;
+      renderConfigTratamiento(); renderPremio();
+    }
+  });
+
+  // --- próximo control ---
+  function renderControl() {
+    const b = $t('controlCard');
+    const c = Tratamiento.control(conf);
+    if (!c) { b.classList.add('hidden'); return; }
+    b.classList.remove('hidden');
+    b.classList.toggle('pronto', c.dias <= 1);
+    b.textContent = '👁️ Control con el oftalmólogo ' + c.cuando + ' · ' + c.fecha;
+  }
+  $t('controlCard').addEventListener('click', () => {
+    openSheet(); refrescarEstadoAvisos(); renderJuegoHint();
+    setTimeout(() => $t('ctrlFecha').scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+  });
+  $t('ctrlGuardar').addEventListener('click', async () => {
+    const fecha = $t('ctrlFecha').value || null, hora = $t('ctrlHora').value || null;
+    const detalle = $t('ctrlDetalle').value.trim().slice(0, 80), preguntas = $t('ctrlPreguntas').value.trim().slice(0, 1500);
+    if (!fecha && !preguntas) { showToast('Elige la fecha del control'); return; }
+    if (fecha && fecha < Utils.todayId()) { showToast('Esa fecha ya pasó'); return; }
+    if (await guardarConf({ control_fecha: fecha, control_hora: hora, control_detalle: detalle || null, control_preguntas: preguntas || null, control_aviso_enviado: null }, 'Control guardado')) {
+      Object.assign(conf, { controlFecha: fecha, controlHora: hora, controlDetalle: detalle, controlPreguntas: preguntas });
+      renderConfigTratamiento(); renderControl();
+    }
+  });
+  $t('ctrlQuitar').addEventListener('click', async () => {
+    if (await guardarConf({ control_fecha: null, control_hora: null, control_detalle: null, control_preguntas: null, control_aviso_enviado: null }, 'Control quitado')) {
+      Object.assign(conf, { controlFecha: null, controlHora: null, controlDetalle: '', controlPreguntas: '' });
+      renderConfigTratamiento(); renderControl();
+    }
+  });
+
+  // --- resumen semanal ---
+  $t('resumenActivo').addEventListener('change', async (e) => {
+    const v = e.target.checked;
+    if (await guardarConf({ resumen_activo: v }, v ? 'Resumen semanal activado' : 'Resumen semanal desactivado')) conf.resumenActivo = v;
+    else e.target.checked = !v;
+  });
+
+  // --- informe para el doctor ---
+  let informeActual = null;
+  $t('infVer').addEventListener('click', () => {
+    const dias = parseInt($t('infPeriodo').value, 10) || 28;
+    const desde = new Date(); desde.setDate(desde.getDate() - (dias - 1));
+    informeActual = Tratamiento.informe(entries, conf, Utils.dateId(desde), Utils.todayId());
+    $t('infHoja').innerHTML = informeActual.html;
+    $t('informe').classList.remove('hidden');
+    document.body.classList.add('con-informe');
+  });
+  $t('infCerrar').addEventListener('click', () => { $t('informe').classList.add('hidden'); document.body.classList.remove('con-informe'); });
+  $t('infImprimir').addEventListener('click', () => window.print());
+  $t('infCompartir').addEventListener('click', async () => {
+    if (!informeActual) return;
+    try {
+      if (navigator.share) { await navigator.share({ title: informeActual.titulo, text: informeActual.texto }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(informeActual.texto); showToast('Informe copiado: pégalo en WhatsApp o en un correo'); }
+    catch (e) { showToast('No se pudo compartir: usa "PDF"'); }
+  });
+
   // ================= interacciones del historial =================
   document.getElementById('list').addEventListener('click', (e) => {
     const btn = e.target.closest('button');
@@ -832,6 +1016,7 @@
       document.getElementById('addDate').value = Utils.todayId();
       const now = new Date();
       document.getElementById('addTime').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('addTimeFin').value = '';
     }
   });
   document.getElementById('addCancel').addEventListener('click', () => addForm.classList.remove('show'));
@@ -846,9 +1031,12 @@
     const timeVal = document.getElementById('addTime').value || '09:00';
     if (!dateVal) { showToast('Elige una fecha'); return; }
     const iso = new Date(dateVal + 'T' + timeVal + ':00').toISOString();
+    const finVal = document.getElementById('addTimeFin').value;
+    const finIso = finVal ? new Date(dateVal + 'T' + finVal + ':00').toISOString() : null;
+    if (finIso && finIso <= iso) { showToast('La hora en que se sacó tiene que ser después de la hora en que se puso'); return; }
     try {
-      await DB.guardarRegistro(dateVal, chosenSide, iso, perfil.id);
-      entries[dateVal] = { fecha: dateVal, ojo: chosenSide, hora: iso, registradoPor: perfil.id };
+      await DB.guardarRegistro(dateVal, chosenSide, iso, perfil.id, finIso);
+      entries[dateVal] = { fecha: dateVal, ojo: chosenSide, hora: iso, horaFin: finIso, registradoPor: perfil.id };
       renderAll();
       addForm.classList.remove('show');
       showToast('Registro guardado');

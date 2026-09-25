@@ -37,7 +37,7 @@ const Utils = {
 };
 
 function rowToRegistro(r) {
-  return { fecha: r.fecha, ojo: r.ojo, hora: r.hora, registradoPor: r.registrado_por, id: r.id };
+  return { fecha: r.fecha, ojo: r.ojo, hora: r.hora, horaFin: r.hora_fin || null, registradoPor: r.registrado_por, id: r.id };
 }
 
 const DB = {
@@ -45,7 +45,7 @@ const DB = {
   async cargarRegistros() {
     const { data, error } = await supabaseClient
       .from('registros')
-      .select('id, fecha, ojo, hora, registrado_por')
+      .select('*')
       .order('fecha', { ascending: false })
       .limit(400);
     if (error) throw error;
@@ -57,8 +57,10 @@ const DB = {
   // Crea o reemplaza el registro de un día (upsert por fecha, que es unique).
   // notificado se resetea a false: si se corrige la hora, el temporizador
   // (Edge Function send-patch-reminders) debe volver a evaluarlo.
-  async guardarRegistro(fecha, ojo, horaISO, userId) {
+  // horaFinISO: a qué hora se sacó (null = sigue puesto / no se sabe).
+  async guardarRegistro(fecha, ojo, horaISO, userId, horaFinISO) {
     const payload = { fecha, ojo, hora: horaISO || new Date().toISOString(), registrado_por: userId, notificado: false };
+    if (horaFinISO !== undefined) payload.hora_fin = horaFinISO;
     let { error } = await supabaseClient.from('registros').upsert(payload, { onConflict: 'fecha' });
     if (error && /notificado/i.test(error.message || '')) {
       // Todavía no corriste supabase/schema_temporizador.sql — sigue funcionando
@@ -66,6 +68,13 @@ const DB = {
       delete payload.notificado;
       ({ error } = await supabaseClient.from('registros').upsert(payload, { onConflict: 'fecha' }));
     }
+    if (error) throw error;
+  },
+
+  // "Se sacó el parche" (o, con null, deshacerlo). Va por una función del
+  // servidor porque el registro puede ser de otra persona (schema_tratamiento.sql).
+  async sacarParche(fecha, horaISO) {
+    const { error } = await supabaseClient.rpc('sacar_parche', { p_fecha: fecha, p_hora: horaISO });
     if (error) throw error;
   },
 
@@ -123,6 +132,25 @@ const Config = {
         recordatorio_ultimo_envio: null,
         updated_at: new Date().toISOString(),
       })
+      .eq('id', 'general');
+    if (error) throw error;
+  },
+
+  // Indicación del oftalmólogo, premio, próximo control y resumen semanal
+  // (schema_tratamiento.sql). Devuelve la config ya validada (Tratamiento.desdeFila).
+  async obtenerTratamiento() {
+    const { data, error } = await supabaseClient
+      .from('configuracion')
+      .select('*')
+      .eq('id', 'general')
+      .maybeSingle();
+    return Tratamiento.desdeFila(error ? null : data);
+  },
+  // cambios: columnas de configuracion (indicacion_ojo, premio_meta, …)
+  async guardarTratamiento(cambios) {
+    const { error } = await supabaseClient
+      .from('configuracion')
+      .update({ ...cambios, updated_at: new Date().toISOString() })
       .eq('id', 'general');
     if (error) throw error;
   },
