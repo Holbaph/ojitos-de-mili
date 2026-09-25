@@ -8,7 +8,7 @@
 //   y, un segundo después, en Supabase (configuracion.juego), así la ropa queda
 //   igual en todos los celulares de la familia.
 // - El tiempo de juego es UNO solo para este juego y los juegos con el parche
-//   (js/tiempo-juego.js), el que se configura en Historial → Tiempo de juego.
+//   (js/tiempo-juego.js), el que se configura en Configuración → Juegos.
 //
 // El dibujo y el guardarropa son los de js/vestuario.js (los mismos del avatar
 // de Mili).
@@ -150,6 +150,52 @@ const Juego = (function () {
   // ---------- personajes (dibujos propios, inspirados en…) ----------
   const PERSONAJES = [
     { id: 'mili', nombre: 'Mili', grupo: 'Mili' },
+    // ---- Frozen (Olaf, Sven y los espíritus no son personas: solo usan accesorios) ----
+    {
+      id: 'elsa', rasgos: { pestanas: true }, nombre: 'Elsa', grupo: 'Frozen', piel: '#fbe6da', ojos: '#4f7fb5', peloEstilo: 'trenza', flequillo: 'sin', peloColor: '#f1e6c8',
+      ropa: { vestido: { t: 'vestido-largo', c: C.hielo }, encima: { t: 'capa', c: C.hielo }, zapatos: { t: 'balerinas', c: C.celeste } },
+    },
+    {
+      id: 'anna', rasgos: { pestanas: true, pecas: true }, nombre: 'Anna', grupo: 'Frozen', piel: '#fbe0cc', ojos: '#4f7fb5', peloEstilo: 'dos-trenzas', peloColor: '#b5522b',
+      ropa: { vestido: { t: 'vestido-princesa', c: C.verde }, zapatos: { t: 'balerinas', c: C.negro } },
+    },
+    {
+      id: 'kristoff', rasgos: { cejas: 'marcadas' }, nombre: 'Kristoff', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#7d5a3c', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#e8c66a',
+      ropa: { arriba: { t: 'manga-larga', c: C.azulOscuro }, abajo: { t: 'jeans', c: '#5a4636' }, encima: { t: 'chaleco', c: C.cafe }, zapatos: { t: 'botas', c: C.cafe }, sombrero: { t: 'gorro-lana', c: C.azulOscuro } },
+    },
+    { id: 'olaf', nombre: 'Olaf', grupo: 'Frozen', especie: 'olaf', ropa: {} },
+    { id: 'sven', nombre: 'Sven', grupo: 'Frozen', especie: 'sven', ropa: {} },
+    {
+      id: 'agnarr', rasgos: { cejas: 'marcadas' }, nombre: 'Rey Agnarr', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#4f7fb5', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#8a5a3a',
+      ropa: { arriba: { t: 'camisa', c: '#2f5a4a' }, abajo: { t: 'jeans', c: '#2a2f3a' }, encima: { t: 'capa', c: '#2f4a7a' }, zapatos: { t: 'botas', c: C.negro }, sombrero: { t: 'corona', c: C.dorado } },
+    },
+    {
+      id: 'iduna', rasgos: { pestanas: true }, nombre: 'Reina Iduna', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#4f7fb5', peloEstilo: 'tomate', peloColor: '#7a3e24',
+      ropa: { vestido: { t: 'vestido-largo', c: '#6b4c9a' }, cabeza: { t: 'tiara', c: C.dorado }, collar: { t: 'cadena', c: C.dorado }, zapatos: { t: 'balerinas', c: C.dorado } },
+    },
+    {
+      id: 'honeymaren', rasgos: { pestanas: true }, nombre: 'Honeymaren', grupo: 'Frozen', piel: '#c98e64', ojos: '#4a3222', peloEstilo: 'trenza', flequillo: 'sin', peloColor: '#2b2220',
+      ropa: { arriba: { t: 'sueter', c: '#5f7fa6' }, abajo: { t: 'falda-larga', c: '#4a3a2e' }, encima: { t: 'chaleco', c: '#c2503a' }, zapatos: { t: 'botas', c: C.cafe }, cabeza: { t: 'cintillo', c: C.crema }, pendientes: { t: 'aros', c: C.dorado } },
+    },
+    {
+      id: 'ryder', rasgos: {}, nombre: 'Ryder', grupo: 'Frozen', piel: '#c98e64', ojos: '#4a3222', peloEstilo: 'corto', flequillo: 'recto', peloColor: '#2b2220',
+      ropa: { arriba: { t: 'sueter', c: '#8a5a3a' }, abajo: { t: 'jeans', c: '#3a3540' }, zapatos: { t: 'botas', c: C.cafe }, sombrero: { t: 'gorro-lana', c: '#c2503a' } },
+    },
+    {
+      id: 'oaken', rasgos: { cejas: 'marcadas' }, nombre: 'Oaken', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#4f7fb5', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#c98a4a',
+      ropa: { arriba: { t: 'sueter', c: '#e8d9b8' }, abajo: { t: 'jeans', c: '#6b4428' }, encima: { t: 'chaleco', c: C.rojo }, zapatos: { t: 'botas', c: C.cafe }, sombrero: { t: 'gorro-lana', c: C.verde } },
+    },
+    {
+      id: 'hans', rasgos: { cejas: 'marcadas' }, nombre: 'Príncipe Hans', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#5f8a4c', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#a8552e',
+      ropa: { arriba: { t: 'camisa', c: C.blanco }, abajo: { t: 'jeans', c: '#2f3a5a' }, encima: { t: 'chaqueta', c: '#3a4f7a' }, zapatos: { t: 'botas', c: C.negro } },
+    },
+    { id: 'pabbie', nombre: 'Gran Pabbie', grupo: 'Frozen', especie: 'pabbie', ropa: {} },
+    { id: 'malvavisco', nombre: 'Malvavisco', grupo: 'Frozen', especie: 'malvavisco', ropa: { sombrero: { t: 'corona', c: C.hielo } } },
+    { id: 'bruni', nombre: 'Bruni', grupo: 'Frozen', especie: 'bruni', ropa: {} },
+    { id: 'viento', nombre: 'Espíritu del viento', grupo: 'Frozen', especie: 'viento', ropa: {} },
+    { id: 'gigante', nombre: 'Gigante de tierra', grupo: 'Frozen', especie: 'gigante', ropa: {} },
+    { id: 'nokk', nombre: 'Nokk', grupo: 'Frozen', especie: 'nokk', ropa: {} },
+    // ---- Huntrix ----
     {
       id: 'rumi', rasgos: { pestanas: true }, nombre: 'Rumi', grupo: 'Huntrix', piel: '#e9c3a0', ojos: '#c79a3a', peloEstilo: 'trenza', peloColor: '#6a3fa0',
       ropa: { arriba: { t: 'top', c: C.negro }, abajo: { t: 'jeans', c: C.negro }, encima: { t: 'chaqueta', c: C.morado }, zapatos: { t: 'botas', c: C.negro } },
@@ -162,74 +208,16 @@ const Juego = (function () {
       id: 'zoey', rasgos: { pestanas: true }, nombre: 'Zoey', grupo: 'Huntrix', piel: '#f3d2b5', ojos: '#3a2a22', peloEstilo: 'cola-alta', peloColor: '#1f1a1c',
       ropa: { arriba: { t: 'poleron', c: C.lila }, abajo: { t: 'short', c: C.negro }, zapatos: { t: 'zapatillas', c: C.blanco }, cara: { t: 'lentes-corazon', c: C.rosado } },
     },
-    {
-      id: 'elsa', rasgos: { pestanas: true }, nombre: 'Elsa', grupo: 'Frozen', piel: '#fbe6da', ojos: '#4f7fb5', peloEstilo: 'trenza', flequillo: 'sin', peloColor: '#f1e6c8',
-      ropa: { vestido: { t: 'vestido-largo', c: C.hielo }, encima: { t: 'capa', c: C.hielo }, zapatos: { t: 'balerinas', c: C.celeste } },
-    },
-    {
-      id: 'anna', rasgos: { pestanas: true, pecas: true }, nombre: 'Anna', grupo: 'Frozen', piel: '#fbe0cc', ojos: '#4f7fb5', peloEstilo: 'dos-trenzas', peloColor: '#b5522b',
-      ropa: { vestido: { t: 'vestido-princesa', c: C.verde }, zapatos: { t: 'balerinas', c: C.negro } },
-    },
+    // ---- Moana ----
     {
       id: 'moana', rasgos: { pestanas: true }, nombre: 'Moana', grupo: 'Moana', piel: '#a86b45', ojos: '#3a2a22', peloEstilo: 'crespo', peloColor: '#1f1a1c',
       ropa: { arriba: { t: 'top', c: C.crema }, abajo: { t: 'falda-larga', c: C.rojo }, cabeza: { t: 'flor', c: C.rojo }, collar: { t: 'concha', c: C.turquesa } },
     },
-    {
-      id: 'rapunzel', rasgos: { pestanas: true }, nombre: 'Rapunzel', grupo: 'Enredados', piel: '#fbe3ce', ojos: '#5f8a4c', peloEstilo: 'muy-largo', peloColor: '#e8c66a',
-      ropa: { vestido: { t: 'vestido-princesa', c: C.lila }, cabeza: { t: 'flor', c: C.rosado } },
-    },
-    {
-      id: 'ariel', rasgos: { pestanas: true }, nombre: 'Ariel', grupo: 'La Sirenita', piel: '#fbe6da', ojos: '#4f7fb5', peloEstilo: 'largo', peloColor: '#d2432f',
-      ropa: { arriba: { t: 'top-concha', c: C.morado }, abajo: { t: 'cola-sirena', c: '#3fa66a' } },
-    },
-    {
-      id: 'bella', rasgos: { pestanas: true }, nombre: 'Bella', grupo: 'La Bella y la Bestia', piel: '#f6d7bd', ojos: '#8b5e3c', peloEstilo: 'largo', peloColor: '#6b4428',
-      ropa: { vestido: { t: 'vestido-princesa', c: C.dorado }, zapatos: { t: 'balerinas', c: C.dorado }, pendientes: { t: 'perlas', c: C.dorado } },
-    },
-    {
-      id: 'cenicienta', rasgos: { pestanas: true }, nombre: 'Cenicienta', grupo: 'Cenicienta', piel: '#fbe6da', ojos: '#4f7fb5', peloEstilo: 'tomate', peloColor: '#e8c66a',
-      ropa: { vestido: { t: 'vestido-princesa', c: C.celeste }, cabeza: { t: 'cintillo', c: C.celeste }, zapatos: { t: 'balerinas', c: C.plateado }, pendientes: { t: 'perlas', c: C.plateado } },
-    },
+    // ---- Encanto: la familia Madrigal ----
     {
       id: 'mirabel', rasgos: { pestanas: true }, nombre: 'Mirabel', grupo: 'Encanto', piel: '#b97d52', ojos: '#4a3222', peloEstilo: 'crespo', peloColor: '#1f1a1c',
       ropa: { arriba: { t: 'blusa', c: C.blanco }, abajo: { t: 'falda-larga', c: C.azul }, zapatos: { t: 'balerinas', c: C.negro }, cara: { t: 'lentes-redondos', c: C.verde }, pendientes: { t: 'largos', c: C.lila } },
     },
-    {
-      id: 'merida', rasgos: { pestanas: true, pecas: true }, nombre: 'Mérida', grupo: 'Valiente', piel: '#fbe3ce', ojos: '#4f7fb5', peloEstilo: 'crespo', peloColor: '#c9432a',
-      ropa: { vestido: { t: 'vestido-largo', c: C.azulOscuro } },
-    },
-    {
-      id: 'tiana', rasgos: { pestanas: true }, nombre: 'Tiana', grupo: 'La princesa y el sapo', piel: '#8a5634', ojos: '#4a3222', peloEstilo: 'tomate', peloColor: '#1f1a1c',
-      ropa: { vestido: { t: 'vestido-largo', c: C.verde }, cabeza: { t: 'tiara', c: C.dorado } },
-    },
-    {
-      id: 'jasmine', rasgos: { pestanas: true }, nombre: 'Jasmine', grupo: 'Aladdín', piel: '#c98e64', ojos: '#4a3222', peloEstilo: 'cola-baja', peloColor: '#1f1a1c',
-      ropa: { arriba: { t: 'top', c: C.turquesa }, abajo: { t: 'bombacho', c: C.turquesa }, cabeza: { t: 'cintillo', c: C.dorado }, zapatos: { t: 'balerinas', c: C.turquesa }, pendientes: { t: 'aros', c: C.dorado } },
-    },
-    {
-      id: 'kristoff', rasgos: { cejas: 'marcadas' }, nombre: 'Kristoff', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#7d5a3c', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#e8c66a',
-      ropa: { arriba: { t: 'manga-larga', c: C.azulOscuro }, abajo: { t: 'jeans', c: '#5a4636' }, encima: { t: 'chaleco', c: C.cafe }, zapatos: { t: 'botas', c: C.cafe }, sombrero: { t: 'gorro-lana', c: C.azulOscuro } },
-    },
-    // Olaf, Sven, Stitch y Ángel no son personas: tienen su propio dibujo y solo
-    // usan accesorios (coronas y gorros, lentes, collares, moños).
-    { id: 'olaf', nombre: 'Olaf', grupo: 'Frozen', especie: 'olaf', ropa: {} },
-    { id: 'sven', nombre: 'Sven', grupo: 'Frozen', especie: 'sven', ropa: {} },
-    {
-      id: 'lilo', rasgos: {}, nombre: 'Lilo', grupo: 'Lilo y Stitch', piel: '#b97d52', ojos: '#3a2a22', peloEstilo: 'largo', flequillo: 'recto', peloColor: '#1f1a1c',
-      ropa: { vestido: { t: 'vestido', c: C.rojo }, cabeza: { t: 'flor', c: C.blanco } },
-    },
-    { id: 'stitch', nombre: 'Stitch', grupo: 'Lilo y Stitch', especie: 'stitch', ropa: { collar: { t: 'mostacillas', c: C.rosado } } },
-    { id: 'angel', nombre: 'Ángel', grupo: 'Lilo y Stitch', especie: 'angel', ropa: { cabeza: { t: 'flor', c: C.amarillo } } },
-    // los papás de Elsa y Anna
-    {
-      id: 'agnarr', rasgos: { cejas: 'marcadas' }, nombre: 'Rey Agnarr', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#4f7fb5', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#8a5a3a',
-      ropa: { arriba: { t: 'camisa', c: '#2f5a4a' }, abajo: { t: 'jeans', c: '#2a2f3a' }, encima: { t: 'capa', c: '#2f4a7a' }, zapatos: { t: 'botas', c: C.negro }, sombrero: { t: 'corona', c: C.dorado } },
-    },
-    {
-      id: 'iduna', rasgos: { pestanas: true }, nombre: 'Reina Iduna', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#4f7fb5', peloEstilo: 'tomate', peloColor: '#7a3e24',
-      ropa: { vestido: { t: 'vestido-largo', c: '#6b4c9a' }, cabeza: { t: 'tiara', c: C.dorado }, collar: { t: 'cadena', c: C.dorado }, zapatos: { t: 'balerinas', c: C.dorado } },
-    },
-    // la familia Madrigal (Mirabel ya está más arriba)
     {
       id: 'alma', rasgos: { pestanas: true }, nombre: 'Abuela Alma', grupo: 'Encanto', piel: '#c98e64', ojos: '#4a3222', peloEstilo: 'tomate', flequillo: 'sin', peloColor: '#c9c9c9',
       ropa: { vestido: { t: 'vestido-largo', c: '#3a2a4a' }, collar: { t: 'perlas', c: C.dorado }, pendientes: { t: 'perlas', c: C.dorado }, zapatos: { t: 'balerinas', c: C.negro } },
@@ -262,7 +250,52 @@ const Juego = (function () {
       id: 'bruno', rasgos: { cejas: 'marcadas' }, nombre: 'Bruno', grupo: 'Encanto', piel: '#c98e64', ojos: '#5f8a4c', peloEstilo: 'crespo', peloColor: '#2b2220',
       ropa: { arriba: { t: 'manga-larga', c: C.negro }, abajo: { t: 'jeans', c: C.negro }, encima: { t: 'ruana', c: '#3f8a5a' }, zapatos: { t: 'botines', c: C.cafe } },
     },
-    // de la tele y los videos
+    // ---- Lilo y Stitch (Stitch y Ángel solo usan accesorios) ----
+    {
+      id: 'lilo', rasgos: {}, nombre: 'Lilo', grupo: 'Lilo y Stitch', piel: '#b97d52', ojos: '#3a2a22', peloEstilo: 'largo', flequillo: 'recto', peloColor: '#1f1a1c',
+      ropa: { vestido: { t: 'vestido', c: C.rojo }, cabeza: { t: 'flor', c: C.blanco } },
+    },
+    { id: 'stitch', nombre: 'Stitch', grupo: 'Lilo y Stitch', especie: 'stitch', ropa: { collar: { t: 'mostacillas', c: C.rosado } } },
+    { id: 'angel', nombre: 'Ángel', grupo: 'Lilo y Stitch', especie: 'angel', ropa: { cabeza: { t: 'flor', c: C.amarillo } } },
+    // ---- Princesas ----
+    {
+      id: 'rapunzel', rasgos: { pestanas: true }, nombre: 'Rapunzel', grupo: 'Enredados', piel: '#fbe3ce', ojos: '#5f8a4c', peloEstilo: 'muy-largo', peloColor: '#e8c66a',
+      ropa: { vestido: { t: 'vestido-princesa', c: C.lila }, cabeza: { t: 'flor', c: C.rosado } },
+    },
+    {
+      id: 'ariel', rasgos: { pestanas: true }, nombre: 'Ariel', grupo: 'La Sirenita', piel: '#fbe6da', ojos: '#4f7fb5', peloEstilo: 'largo', peloColor: '#d2432f',
+      ropa: { arriba: { t: 'top-concha', c: C.morado }, abajo: { t: 'cola-sirena', c: '#3fa66a' } },
+    },
+    {
+      id: 'bella', rasgos: { pestanas: true }, nombre: 'Bella', grupo: 'La Bella y la Bestia', piel: '#f6d7bd', ojos: '#8b5e3c', peloEstilo: 'largo', peloColor: '#6b4428',
+      ropa: { vestido: { t: 'vestido-princesa', c: C.dorado }, zapatos: { t: 'balerinas', c: C.dorado }, pendientes: { t: 'perlas', c: C.dorado } },
+    },
+    {
+      id: 'cenicienta', rasgos: { pestanas: true }, nombre: 'Cenicienta', grupo: 'Cenicienta', piel: '#fbe6da', ojos: '#4f7fb5', peloEstilo: 'tomate', peloColor: '#e8c66a',
+      ropa: { vestido: { t: 'vestido-princesa', c: C.celeste }, cabeza: { t: 'cintillo', c: C.celeste }, zapatos: { t: 'balerinas', c: C.plateado }, pendientes: { t: 'perlas', c: C.plateado } },
+    },
+    {
+      id: 'merida', rasgos: { pestanas: true, pecas: true }, nombre: 'Mérida', grupo: 'Valiente', piel: '#fbe3ce', ojos: '#4f7fb5', peloEstilo: 'crespo', peloColor: '#c9432a',
+      ropa: { vestido: { t: 'vestido-largo', c: C.azulOscuro } },
+    },
+    {
+      id: 'tiana', rasgos: { pestanas: true }, nombre: 'Tiana', grupo: 'La princesa y el sapo', piel: '#8a5634', ojos: '#4a3222', peloEstilo: 'tomate', peloColor: '#1f1a1c',
+      ropa: { vestido: { t: 'vestido-largo', c: C.verde }, cabeza: { t: 'tiara', c: C.dorado } },
+    },
+    {
+      id: 'jasmine', rasgos: { pestanas: true }, nombre: 'Jasmine', grupo: 'Aladdín', piel: '#c98e64', ojos: '#4a3222', peloEstilo: 'cola-baja', peloColor: '#1f1a1c',
+      ropa: { arriba: { t: 'top', c: C.turquesa }, abajo: { t: 'bombacho', c: C.turquesa }, cabeza: { t: 'cintillo', c: C.dorado }, zapatos: { t: 'balerinas', c: C.turquesa }, pendientes: { t: 'aros', c: C.dorado } },
+    },
+    // ---- Mickey y Minnie: cabeza de ratón sobre el cuerpo normal (sí se visten) ----
+    {
+      id: 'mickey', nombre: 'Mickey', grupo: 'Disney', raton: true, piel: '#1f1a1c', ojos: '#1f1a1c', peloEstilo: 'corto', peloColor: '#1f1a1c',
+      ropa: { abajo: { t: 'short-botones', c: C.rojo }, zapatos: { t: 'zapatillas', c: C.amarillo } },
+    },
+    {
+      id: 'minnie', rasgos: { pestanas: true }, nombre: 'Minnie', grupo: 'Disney', raton: true, piel: '#1f1a1c', ojos: '#1f1a1c', peloEstilo: 'corto', peloColor: '#1f1a1c',
+      ropa: { vestido: { t: 'vestido-lunares', c: C.rojo }, cabeza: { t: 'moño-lunares', c: C.rojo }, zapatos: { t: 'balerinas', c: C.amarillo } },
+    },
+    // ---- De la tele y los videos ----
     {
       id: 'luli', rasgos: { pestanas: true }, nombre: 'Luli Pampín', grupo: 'Canciones', piel: '#fbe3ce', ojos: '#8b5e3c', peloEstilo: 'largo', flequillo: 'recto', peloColor: '#d9b46a',
       ropa: { vestido: { t: 'vestido-tutu', c: C.rosado }, cabeza: { t: 'moño', c: C.fucsia }, zapatos: { t: 'zapatillas', c: C.rosado }, pendientes: { t: 'corazones', c: C.rosado } },
@@ -271,15 +304,6 @@ const Juego = (function () {
       id: 'blippi', rasgos: { cejas: 'marcadas' }, nombre: 'Blippi', grupo: 'Videos', piel: '#fbe3ce', ojos: '#4f7fb5', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#8a5a3a',
       // camisa celeste, "suspensores" naranjos (la pechera de la jardinera), lentes y gorro
       ropa: { arriba: { t: 'camisa', c: '#5aa6e0' }, abajo: { t: 'jardinera', c: C.naranjo }, zapatos: { t: 'zapatillas', c: C.naranjo }, cara: { t: 'lentes-redondos', c: C.naranjo }, sombrero: { t: 'gorro-lana', c: '#4a78c2' }, collar: { t: 'humita', c: C.naranjo } },
-    },
-    // Mickey y Minnie: cabeza de ratón sobre el cuerpo normal (sí se visten)
-    {
-      id: 'mickey', nombre: 'Mickey', grupo: 'Disney', raton: true, piel: '#1f1a1c', ojos: '#1f1a1c', peloEstilo: 'corto', peloColor: '#1f1a1c',
-      ropa: { abajo: { t: 'short-botones', c: C.rojo }, zapatos: { t: 'zapatillas', c: C.amarillo } },
-    },
-    {
-      id: 'minnie', rasgos: { pestanas: true }, nombre: 'Minnie', grupo: 'Disney', raton: true, piel: '#1f1a1c', ojos: '#1f1a1c', peloEstilo: 'corto', peloColor: '#1f1a1c',
-      ropa: { vestido: { t: 'vestido-lunares', c: C.rojo }, cabeza: { t: 'moño-lunares', c: C.rojo }, zapatos: { t: 'balerinas', c: C.amarillo } },
     },
   ];
   // categorías (y lugares de Joyas) que les sirven a los que no son personas
@@ -421,11 +445,25 @@ const Juego = (function () {
   // ================= PANTALLA =================
   const $ = (id) => document.getElementById(id);
 
+  // En el selector, los personajes van juntos según su película, con un
+  // título entre un grupo y otro (el orden lo da la lista PERSONAJES).
+  const SECCION = {
+    Frozen: '❄️ Frozen', Huntrix: '🎤 Huntrix', Moana: '🌊 Moana', Encanto: '🦋 Encanto', 'Lilo y Stitch': '🌺 Lilo y Stitch',
+    Disney: '🐭 Mickey y Minnie', Canciones: '📺 Tele y videos', Videos: '📺 Tele y videos',
+  };
+  const seccionDe = (p) => (p.id === 'mili' ? '' : SECCION[p.grupo] || '👑 Princesas');
   function renderPersonajes() {
-    $('juegoPersonajes').innerHTML = PERSONAJES.map((p) =>
-      `<button class="jpersonaje${p.id === actual ? ' activo' : ''}" data-id="${p.id}" aria-label="${p.nombre}">` +
-      `<svg viewBox="22 18 276 276">${figura(p.id, estados[p.id])}</svg><span>${p.nombre}</span></button>`
-    ).join('');
+    let anterior = null;
+    $('juegoPersonajes').innerHTML = PERSONAJES.map((p) => {
+      const sec = seccionDe(p);
+      const titulo = sec && sec !== anterior ? `<span class="jgrupo" aria-hidden="true">${sec}</span>` : '';
+      anterior = sec;
+      return titulo +
+        `<button class="jpersonaje${p.id === actual ? ' activo' : ''}" data-id="${p.id}" aria-label="${p.nombre}">` +
+        `<svg viewBox="22 18 276 276">${figura(p.id, estados[p.id])}</svg><span>${p.nombre}</span></button>`;
+    }).join('');
+    const activo = $('juegoPersonajes').querySelector('.activo');
+    if (activo) activo.scrollIntoView({ block: 'nearest', inline: 'center' });
   }
 
   function renderEscenario(pop) {

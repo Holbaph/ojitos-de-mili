@@ -13,6 +13,8 @@
   let juegoMinutos = 20;        // minutos de juego por día (0 = sin límite)
   // indicación del oftalmólogo, premio, control y resumen (js/tratamiento.js)
   let conf = Tratamiento.desdeFila(null);
+  let recordatorioHora = null;  // para el resumen de "Avisos" en Configuración
+  let avisosEstado = '';
 
   if (location.hash.includes('type=invite') || location.hash.includes('type=recovery') ||
       location.search.includes('type=invite') || location.search.includes('type=recovery')) {
@@ -413,6 +415,8 @@
 
   // ================= RECORDATORIO DIARIO =================
   function renderRecordatorio(hora) {
+    recordatorioHora = hora || null;
+    renderResumenesConfig();
     document.getElementById('recordatorioInput').value = hora || '';
     document.getElementById('recordatorioOff').classList.toggle('hidden', !hora);
     document.getElementById('recordatorioHint').textContent = hora
@@ -448,11 +452,13 @@
     if (!Push.soportado()) {
       btn.classList.add('hidden');
       hint.textContent = 'Los avisos automáticos todavía no están configurados en esta app (falta la llave VAPID) — revisa el README.';
+      avisosEstado = 'sin configurar'; renderResumenesConfig();
       return;
     }
     if (!Push.instalada()) {
       btn.classList.add('hidden');
       hint.textContent = 'Para recibir avisos, primero agrega esta app a tu pantalla de inicio (Compartir → Agregar a inicio) y ábrela desde ese ícono.';
+      avisosEstado = 'pendientes (primero instala la app)'; renderResumenesConfig();
       return;
     }
     btn.classList.remove('hidden');
@@ -460,6 +466,8 @@
     const suscrito = await Push.estaSuscrito();
     btn.classList.toggle('active', suscrito);
     btn.textContent = suscrito ? '🔔 Avisos activados en este dispositivo' : '🔔 Activar avisos en este dispositivo';
+    avisosEstado = suscrito ? 'activados en este celular' : 'apagados en este celular';
+    renderResumenesConfig();
     hint.textContent = suscrito
       ? 'Toca el botón para desactivarlos en este dispositivo.'
       : 'Te avisa a la hora del recordatorio y apenas se cumpla el tiempo del parche, aunque tengas el celular bloqueado o la app cerrada.';
@@ -670,6 +678,7 @@
   });
 
   function renderJuegoHint() {
+    renderResumenesConfig();
     const quedan = TiempoJuego.minutosRestantesHoy(juegoMinutos);
     document.getElementById('juegoMinutosHint').textContent = quedan === Infinity
       ? 'Sin límite (0 minutos = se puede jugar todo lo que quiera).'
@@ -753,6 +762,7 @@
     });
     document.getElementById('inviteForm').classList.toggle('hidden', !esAdmin);
     renderToday(); renderList(); // por si ya cargó gente después del historial (nombres de "registrado por")
+    renderResumenesConfig();
   }
 
   // Quitar acceso (solo admin): pide un segundo toque para confirmar.
@@ -836,6 +846,7 @@
 
   // --- indicación del oftalmólogo ---
   function renderConfigTratamiento() {
+    renderResumenesConfig();
     document.querySelectorAll('#indOjo button').forEach(b => b.classList.toggle('active', b.dataset.v === conf.ojo));
     document.querySelectorAll('#indDias button').forEach(b => b.classList.toggle('active', conf.dias.includes(Number(b.dataset.d))));
     $t('indHint').textContent = 'Ahora: ' + Tratamiento.textoIndicacion(conf) + '.';
@@ -927,10 +938,7 @@
     b.classList.toggle('pronto', c.dias <= 1);
     b.textContent = '👁️ Control con el oftalmólogo ' + c.cuando + ' · ' + c.fecha;
   }
-  $t('controlCard').addEventListener('click', () => {
-    openSheet(); refrescarEstadoAvisos(); renderJuegoHint();
-    setTimeout(() => $t('ctrlFecha').scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
-  });
+  $t('controlCard').addEventListener('click', () => abrirConfig('cfgControl'));
   $t('ctrlGuardar').addEventListener('click', async () => {
     const fecha = $t('ctrlFecha').value || null, hora = $t('ctrlHora').value || null;
     const detalle = $t('ctrlDetalle').value.trim().slice(0, 80), preguntas = $t('ctrlPreguntas').value.trim().slice(0, 1500);
@@ -1003,9 +1011,39 @@
   const sheet = document.getElementById('sheet'), scrim = document.getElementById('scrim');
   function openSheet() { sheet.classList.add('show'); scrim.classList.add('show'); }
   function closeSheet() { sheet.classList.remove('show'); scrim.classList.remove('show'); }
-  document.getElementById('openHistory').addEventListener('click', () => { openSheet(); refrescarEstadoAvisos(); renderJuegoHint(); });
+  document.getElementById('openHistory').addEventListener('click', openSheet);
   document.getElementById('closeHistory').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
+
+  // ================= CONFIGURACIÓN =================
+  // Todo lo que se ajusta (tratamiento, avisos, control, premio, juegos y
+  // personas), en grupos que se abren y cierran; cada uno muestra un resumen.
+  const sheetConfig = document.getElementById('sheetConfig');
+  function abrirConfig(grupo) {
+    refrescarEstadoAvisos(); renderJuegoHint(); renderResumenesConfig();
+    sheetConfig.classList.add('show'); scrim.classList.add('show');
+    if (grupo) {
+      const g = document.getElementById(grupo);
+      g.open = true;
+      setTimeout(() => g.scrollIntoView({ behavior: 'smooth', block: 'start' }), 260);
+    }
+  }
+  function cerrarConfig() { sheetConfig.classList.remove('show'); scrim.classList.remove('show'); }
+  document.getElementById('openConfig').addEventListener('click', () => abrirConfig());
+  document.getElementById('closeConfig').addEventListener('click', cerrarConfig);
+  scrim.addEventListener('click', cerrarConfig);
+  function renderResumenesConfig() {
+    const pon = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+    pon('cfgTratamientoRes', Tratamiento.textoIndicacion(conf));
+    pon('cfgAvisosRes', (avisosEstado ? 'Avisos ' + avisosEstado : 'Avisos') +
+      (recordatorioHora ? ' · recordatorio ' + Utils.fmtTime('2000-01-01T' + recordatorioHora + ':00') : ' · sin recordatorio'));
+    const c = Tratamiento.control(conf);
+    pon('cfgControlRes', c ? c.fecha + ' (' + c.cuando + ')' : 'Sin fecha anotada');
+    pon('cfgPremioRes', conf.premioMeta ? conf.premioMeta + ' días a la semana → ' + (conf.premioTexto || 'premio') : 'Sin premio');
+    pon('cfgJuegosRes', juegoMinutos ? juegoMinutos + ' min de juego al día' : 'Sin límite de juego');
+    const n = Object.keys(personasCache).length;
+    pon('cfgPersonasRes', n ? n + (n === 1 ? ' persona' : ' personas') + (perfil && perfil.role === 'admin' ? ' · tú eres admin' : '') : '');
+  }
   scrim.addEventListener('click', () => { if (sheetMili.classList.contains('show')) cerrarMili(); });
 
   const addForm = document.getElementById('addForm'), addToggle = document.getElementById('addToggle');

@@ -1,7 +1,7 @@
 // tiempo-juego.js — UN solo reloj para todo lo que es juego: "Jugar a vestir"
 // (js/juego.js) y "Juegos con el parche" (js/juegos-parche.js) gastan del
-// mismo tiempo por día, el que define el papá/mamá en Historial → Tiempo de
-// juego (configuracion.juego_minutos_dia; 0 = sin límite).
+// mismo tiempo por día, el que define el papá/mamá en Configuración → Juegos
+// (configuracion.juego_minutos_dia; 0 = sin límite).
 //
 // El tiempo usado se cuenta por dispositivo y por día (localStorage), solo
 // mientras la pantalla del juego está visible.

@@ -871,10 +871,12 @@ const Vestuario = (function () {
   }
 
   // ================= PERSONAJES QUE NO SON PERSONAS =================
-  // Olaf, Sven, Stitch y Ángel tienen su propio cuerpo (la ropa no les calza):
-  // solo usan accesorios. Su cabeza ocupa el mismo lugar que la de una persona
-  // (centro ~160,176), así que coronas, gorros, lentes y collares les quedan.
-  const ESPECIES = ['olaf', 'sven', 'stitch', 'angel'];
+  // Olaf, Sven, Stitch, Ángel y los espíritus y criaturas de Frozen (Bruni,
+  // el viento, el gigante de tierra, el Nokk, Malvavisco y el Gran Pabbie)
+  // tienen su propio cuerpo (la ropa no les calza): solo usan accesorios. Su
+  // cabeza ocupa el mismo lugar que la de una persona (centro ~160,176), así
+  // que coronas, gorros, lentes y collares les quedan.
+  const ESPECIES = ['olaf', 'sven', 'stitch', 'angel', 'bruni', 'viento', 'gigante', 'nokk', 'malvavisco', 'pabbie'];
   const SLOTS_ESPECIE = ['cabeza', 'sombrero', 'cara', 'collar'];
 
   function ojosGrandes(color, brillo) {
@@ -920,6 +922,101 @@ const Vestuario = (function () {
           `<ellipse cx="174" cy="270" rx="12" ry="15" fill="#e8578a"/>` +
           `<path d="M86 132 q24 -14 46 -2 M188 130 q24 -12 46 2" fill="none" stroke="${oscuro}" stroke-width="5" stroke-linecap="round"/>` +
           conOjos([112, 208].map((x) => `<circle cx="${x}" cy="168" r="23" fill="#fff"/><circle cx="${x}" cy="170" r="12" fill="#4a3222"/><circle cx="${x - 4}" cy="165" r="3.5" fill="#fff"/>`).join(''));
+        break;
+      }
+      case 'bruni': { // la salamandra de fuego
+        const lila = '#8e9be0', osc = '#5a63b0', panza = '#cdd2f7', mancha = '#c79be8';
+        color = lila; contorno = osc;
+        s = `<path d="M214 372 C292 392 306 322 270 310 C246 302 236 330 256 338" fill="none" stroke="${osc}" stroke-width="27" stroke-linecap="round"/>` +
+          `<path d="M214 372 C292 392 306 322 270 310 C246 302 236 330 256 338" fill="none" stroke="${lila}" stroke-width="21" stroke-linecap="round"/>` +
+          `<path d="M258 334 Q248 312 262 296 Q262 312 274 304 Q276 324 258 334 Z" fill="#b98af0" opacity=".85"/>` +
+          `<ellipse cx="104" cy="398" rx="22" ry="13" fill="${lila}" stroke="${osc}" stroke-width="2"/><ellipse cx="216" cy="398" rx="22" ry="13" fill="${lila}" stroke="${osc}" stroke-width="2"/>` +
+          `<ellipse cx="160" cy="350" rx="72" ry="60" fill="${lila}" stroke="${osc}" stroke-width="2"/><ellipse cx="160" cy="362" rx="44" ry="40" fill="${panza}"/>` +
+          `<path d="M110 356 q8 4 16 0 M194 356 q8 4 16 0" stroke="${osc}" stroke-width="3" fill="none" stroke-linecap="round"/>` +
+          `<path d="M108 100 L120 70 L134 94 L148 60 L162 90 L176 58 L190 90 L204 68 L214 100 Z" fill="${mancha}" stroke="${osc}" stroke-width="2" stroke-linejoin="round"/>` +
+          `<ellipse cx="160" cy="184" rx="124" ry="100" fill="${lila}" stroke="${osc}" stroke-width="2"/>` +
+          `<g fill="${mancha}"><circle cx="98" cy="118" r="9"/><circle cx="228" cy="112" r="11"/><circle cx="246" cy="142" r="6"/><circle cx="78" cy="146" r="5"/><circle cx="196" cy="98" r="5"/></g>` +
+          `<ellipse cx="84" cy="220" rx="18" ry="11" fill="#f3a6c8" opacity=".6"/><ellipse cx="236" cy="220" rx="18" ry="11" fill="#f3a6c8" opacity=".6"/>` +
+          `<circle cx="150" cy="214" r="3" fill="${osc}"/><circle cx="170" cy="214" r="3" fill="${osc}"/>` +
+          `<path d="M134 234 Q160 254 186 234" fill="none" stroke="${osc}" stroke-width="4.5" stroke-linecap="round"/>` +
+          conOjos(ojosGrandes('#1c1b2e', 0.95));
+        break;
+      }
+      case 'viento': { // el espíritu del viento: un remolino con hojas
+        const aire = '#dff3fc', borde = '#9fd3ea';
+        color = aire; contorno = borde;
+        const hoja = (x, y, r, c) => `<path d="M0 -12 Q10 -2 0 12 Q-10 -2 0 -12 Z" fill="${c}" transform="translate(${x} ${y}) rotate(${r})"/><path d="M0 -10 V10" stroke="#7a4a22" stroke-width="1.2" transform="translate(${x} ${y}) rotate(${r})"/>`;
+        s = [[160, 420, 26, 10], [160, 392, 44, 14], [160, 358, 62, 17], [160, 320, 80, 20]].map(([x, y, rx, ry]) =>
+          `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${aire}" fill-opacity=".45" stroke="${borde}" stroke-width="5" stroke-opacity=".8"/>`).join('') +
+          `<circle cx="160" cy="176" r="118" fill="${aire}" fill-opacity=".8" stroke="${borde}" stroke-width="4"/>` +
+          `<path d="M160 176 m-70 10 a70 60 0 1 1 64 58 a50 44 0 1 1 42 -60 a28 24 0 1 1 -30 20" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".9"/>` +
+          `<path d="M60 250 Q30 300 70 330 M262 240 Q300 290 256 330" fill="none" stroke="${borde}" stroke-width="5" stroke-linecap="round" stroke-dasharray="14 12"/>` +
+          hoja(46, 120, 30, '#e89a3c') + hoja(276, 150, -40, '#d9534f') + hoja(250, 300, 60, '#f2cf5b') + hoja(70, 320, -20, '#b5652e') +
+          hoja(222, 58, 80, '#e89a3c') + hoja(94, 402, 40, '#d9534f') + hoja(236, 396, -70, '#f2cf5b') +
+          conOjos([112, 208].map((x) => `<ellipse cx="${x}" cy="170" rx="13" ry="16" fill="#2c4a5c"/><circle cx="${x - 4}" cy="164" r="4" fill="#fff"/>`).join('')) +
+          `<path d="M140 222 Q160 236 180 222" fill="none" stroke="#2c4a5c" stroke-width="4" stroke-linecap="round"/>`;
+        break;
+      }
+      case 'gigante': { // gigante de tierra: todo de roca, con musgo
+        const roca = '#8a8577', osc = '#4e4a42', sombra = '#6a655a', musgo = '#6f8f4a';
+        color = roca; contorno = osc;
+        s = `<path d="M8 440 L30 334 Q160 282 290 334 L312 440 Z" fill="${sombra}" stroke="${osc}" stroke-width="3" stroke-linejoin="round"/>` +
+          `<path d="M60 360 L96 352 L110 380 M232 350 L262 362 L254 392 M140 400 L176 394" fill="none" stroke="${osc}" stroke-width="3" stroke-linecap="round"/>` +
+          `<path d="M40 340 Q60 318 86 330 Q70 344 40 340 Z M236 326 Q262 314 282 336 Q256 342 236 326 Z" fill="${musgo}"/>` +
+          `<path d="M50 150 L68 84 L118 52 L192 46 L248 76 L274 140 L268 214 L238 264 L170 282 L102 272 L62 230 Z" fill="${roca}" stroke="${osc}" stroke-width="3" stroke-linejoin="round"/>` +
+          `<path d="M70 86 Q100 62 128 70 Q150 50 180 62 Q214 50 244 78 Q220 72 196 80 Q170 70 146 82 Q118 74 96 90 Q82 84 70 86 Z" fill="${musgo}"/>` +
+          `<path d="M92 104 L110 118 L104 138 M232 110 L218 126 M244 190 L226 206 L232 226 M84 196 L100 214" fill="none" stroke="${osc}" stroke-width="3" stroke-linecap="round"/>` +
+          `<path d="M70 146 L140 132 L160 146 L180 132 L250 146 L244 158 L78 158 Z" fill="${sombra}" stroke="${osc}" stroke-width="2" stroke-linejoin="round"/>` +
+          `<path d="M148 176 L172 176 L178 214 L142 214 Z" fill="${sombra}" stroke="${osc}" stroke-width="2" stroke-linejoin="round"/>` +
+          conOjos([112, 208].map((x) => `<ellipse cx="${x}" cy="172" rx="22" ry="13" fill="#2a2724"/><circle cx="${x}" cy="172" r="5.5" fill="#e9d9a8"/><circle cx="${x - 7}" cy="168" r="2.5" fill="#fff" opacity=".7"/>`).join('')) +
+          `<path d="M116 240 Q160 254 204 240" fill="none" stroke="#3f3b34" stroke-width="6" stroke-linecap="round"/>`;
+        break;
+      }
+      case 'nokk': { // el Nokk: caballo de agua
+        const agua = '#7fc7e0', osc = '#3d8fb0', claro = '#c8ecf6';
+        color = agua; contorno = osc;
+        s = `<path d="M84 440 C90 362 108 306 128 270 L192 270 C212 306 230 362 236 440 Z" fill="${agua}" fill-opacity=".92" stroke="${osc}" stroke-width="2"/>` +
+          `<path d="M112 440 C114 380 124 330 140 300" fill="none" stroke="${claro}" stroke-width="8" stroke-linecap="round" opacity=".7"/>` +
+          `<path d="M100 96 L88 34 L134 74 Z M220 96 L232 34 L186 74 Z" fill="${agua}" stroke="${osc}" stroke-width="2" stroke-linejoin="round"/>` +
+          `<path d="M160 56 C216 56 238 110 234 160 C230 212 216 252 202 298 C194 322 126 322 118 298 C104 252 90 212 86 160 C82 110 104 56 160 56 Z" fill="${agua}" fill-opacity=".95" stroke="${osc}" stroke-width="2"/>` +
+          `<path d="M104 118 C98 160 104 214 124 262" fill="none" stroke="${claro}" stroke-width="10" stroke-linecap="round" opacity=".6"/>` +
+          `<path d="M160 50 Q130 70 150 92 Q120 100 138 126 M160 50 Q196 64 180 92 Q210 96 194 126 M130 60 Q96 70 92 110 Q70 150 84 196 M190 60 Q226 72 230 112 Q252 150 238 196" fill="none" stroke="${claro}" stroke-width="7" stroke-linecap="round"/>` +
+          `<ellipse cx="160" cy="286" rx="42" ry="28" fill="#a9dcee" stroke="${osc}" stroke-width="2"/>` +
+          `<ellipse cx="146" cy="290" rx="6" ry="8" fill="${osc}"/><ellipse cx="174" cy="290" rx="6" ry="8" fill="${osc}"/>` +
+          `<g fill="#fff" opacity=".8"><circle cx="64" cy="210" r="4"/><circle cx="258" cy="180" r="5"/><circle cx="246" cy="232" r="3"/><circle cx="72" cy="150" r="3"/></g>` +
+          conOjos([116, 204].map((x) => `<ellipse cx="${x}" cy="170" rx="17" ry="19" fill="#1d4d63"/><circle cx="${x - 5}" cy="163" r="5" fill="#fff"/><circle cx="${x + 5}" cy="178" r="2.2" fill="#fff"/>`).join(''));
+        break;
+      }
+      case 'malvavisco': { // el gran monstruo de nieve, en versión amigable
+        const nieve = '#f4f8fc', borde = '#b8cadf', hielo = '#9fd3ee', hieloOsc = '#5fa9cf';
+        color = nieve; contorno = borde;
+        s = `<path d="M34 440 C34 330 80 284 160 284 C240 284 286 330 286 440 Z" fill="${nieve}" stroke="${borde}" stroke-width="2"/>` +
+          `<ellipse cx="44" cy="360" rx="36" ry="62" fill="${nieve}" stroke="${borde}" stroke-width="2" transform="rotate(14 44 360)"/><ellipse cx="276" cy="360" rx="36" ry="62" fill="${nieve}" stroke="${borde}" stroke-width="2" transform="rotate(-14 276 360)"/>` +
+          `<path d="M24 414 l-8 16 M38 420 l-2 18 M52 418 l6 16 M268 418 l-6 16 M282 420 l2 18 M296 414 l8 16" stroke="${hieloOsc}" stroke-width="4" stroke-linecap="round"/>` +
+          `<path d="M66 110 L78 36 L100 96 L118 20 L140 84 L160 10 L180 84 L202 20 L220 96 L242 36 L254 110 Z" fill="${hielo}" fill-opacity=".85" stroke="${hieloOsc}" stroke-width="2" stroke-linejoin="round"/>` +
+          `<path d="M160 70 C240 70 284 116 284 184 C284 252 236 292 160 292 C84 292 36 252 36 184 C36 116 80 70 160 70 Z" fill="${nieve}" stroke="${borde}" stroke-width="2"/>` +
+          `<path d="M84 130 Q112 118 140 130 M180 130 Q208 118 236 130" fill="none" stroke="#7d8fa3" stroke-width="8" stroke-linecap="round"/>` +
+          conOjos([112, 208].map((x) => `<circle cx="${x}" cy="168" r="15" fill="#1f2a36"/><circle cx="${x - 5}" cy="162" r="5" fill="#fff"/>`).join('')) +
+          `<path d="M104 222 Q160 278 216 222 Q160 238 104 222 Z" fill="#2a3440"/>` +
+          `<path d="M122 228 l6 12 l6 -10 M186 228 l6 10 l6 -12" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>` +
+          `<ellipse cx="86" cy="206" rx="16" ry="9" fill="#cfe6f5" opacity=".7"/><ellipse cx="234" cy="206" rx="16" ry="9" fill="#cfe6f5" opacity=".7"/>`;
+        break;
+      }
+      case 'pabbie': { // el Gran Pabbie, el troll sabio
+        const piedra = '#8f8a7e', osc = '#5c584f', musgo = '#6f9a4a', cristal = '#c7e8f5';
+        color = piedra; contorno = osc;
+        s = `<ellipse cx="116" cy="428" rx="30" ry="12" fill="${osc}"/><ellipse cx="204" cy="428" rx="30" ry="12" fill="${osc}"/>` +
+          `<ellipse cx="44" cy="190" rx="30" ry="40" fill="${piedra}" stroke="${osc}" stroke-width="2"/><ellipse cx="276" cy="190" rx="30" ry="40" fill="${piedra}" stroke="${osc}" stroke-width="2"/>` +
+          `<path d="M160 64 C250 64 292 150 290 250 C288 350 236 424 160 424 C84 424 32 350 30 250 C28 150 70 64 160 64 Z" fill="${piedra}" stroke="${osc}" stroke-width="2.5"/>` +
+          `<path d="M60 150 Q70 70 160 60 Q250 70 260 150 Q236 110 206 116 Q184 92 160 104 Q136 92 114 116 Q84 110 60 150 Z" fill="${musgo}"/>` +
+          `<g fill="#f2cf5b"><circle cx="100" cy="100" r="5"/><circle cx="214" cy="92" r="5"/><circle cx="160" cy="76" r="5"/></g>` +
+          `<ellipse cx="70" cy="330" rx="18" ry="30" fill="${piedra}" stroke="${osc}" stroke-width="2" transform="rotate(20 70 330)"/><ellipse cx="250" cy="330" rx="18" ry="30" fill="${piedra}" stroke="${osc}" stroke-width="2" transform="rotate(-20 250 330)"/>` +
+          `<path d="M92 290 Q160 330 228 290" fill="none" stroke="${osc}" stroke-width="3"/>` +
+          [[108, 300], [134, 312], [160, 318], [186, 312], [212, 300]].map(([x, y]) => `<path d="M${x} ${y - 12} L${x + 8} ${y} L${x} ${y + 14} L${x - 8} ${y} Z" fill="${cristal}" stroke="#7fb8d6" stroke-width="1.5"/>`).join('') +
+          `<path d="M84 140 Q112 128 138 142 M182 142 Q208 128 236 140" fill="none" stroke="#d8d4ca" stroke-width="9" stroke-linecap="round"/>` +
+          conOjos([112, 208].map((x) => `<circle cx="${x}" cy="170" r="13" fill="#2a2724"/><circle cx="${x - 4}" cy="165" r="4" fill="#fff"/>`).join('')) +
+          `<ellipse cx="160" cy="212" rx="34" ry="28" fill="#7f7a6e" stroke="${osc}" stroke-width="2"/><ellipse cx="150" cy="202" rx="9" ry="5" fill="#fff" opacity=".25"/>` +
+          `<path d="M130 252 Q160 268 190 252" fill="none" stroke="${osc}" stroke-width="4.5" stroke-linecap="round"/>`;
         break;
       }
       default: { // stitch y ángel
