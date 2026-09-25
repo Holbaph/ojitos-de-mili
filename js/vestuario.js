@@ -710,11 +710,33 @@ const Vestuario = (function () {
     return unZapato(142, z, piel) + unZapato(178, z, piel);
   }
 
+  // ================= CABEZA DE RATÓN (Mickey y Minnie) =================
+  // Va sobre el cuerpo normal, así que se pueden vestir como cualquiera.
+  const CARITA_RATON = '#f3cfa6';
+  function ratonOrejas(piel) {
+    return `<circle cx="66" cy="70" r="58" fill="${piel}"/><circle cx="254" cy="70" r="58" fill="${piel}"/>`;
+  }
+  function ratonCara(piel) {
+    return `<circle cx="160" cy="176" r="118" fill="${piel}"/>` +
+      `<g fill="${CARITA_RATON}"><ellipse cx="116" cy="170" rx="46" ry="60"/><ellipse cx="204" cy="170" rx="46" ry="60"/><ellipse cx="160" cy="240" rx="100" ry="62"/></g>` +
+      `<ellipse cx="160" cy="222" rx="22" ry="15" fill="#1f1a1c"/><ellipse cx="153" cy="217" rx="6" ry="3.5" fill="#fff" opacity=".5"/>` +
+      `<path d="M112 246 Q160 300 208 246" fill="#7a2a2a" stroke="#1f1a1c" stroke-width="5" stroke-linecap="round"/>` +
+      `<path d="M140 272 Q160 290 180 272 Q160 262 140 272 Z" fill="#e8605a"/>`;
+  }
+  function ratonOjos() {
+    return [112, 208].map((x) =>
+      `<ellipse cx="${x}" cy="164" rx="20" ry="30" fill="#fff" stroke="#1f1a1c" stroke-width="2"/>` +
+      `<ellipse cx="${x + 3}" cy="174" rx="9" ry="16" fill="#1f1a1c"/><circle cx="${x + 5}" cy="166" r="3" fill="#fff"/>`
+    ).join('');
+  }
+
   // ================= PERSONA COMPLETA =================
   // opts: { piel, relleno (estampado de la prenda principal), sinOjos,
   //         pose (ver POSES), sobreOjos (algo justo encima de los ojos: el parche),
   //         sinBrazo ('izq' | 'der': ese brazo no se dibuja; lo dibuja la cámara
-  //         con realidad aumentada, p. ej. para abrazar) }
+  //         con realidad aumentada, p. ej. para abrazar),
+  //         raton (cabeza de ratón, sin pelo: Mickey y Minnie), manos (color de
+  //         las manos, p. ej. guantes blancos) }
   // Devuelve { figura, delante, brazo }: `delante` va por encima de los ojos
   // (lentes); `brazo` = { piel, contorno, manga } para dibujar un brazo aparte.
   function persona(st, opts) {
@@ -726,7 +748,8 @@ const Vestuario = (function () {
       if (st[k] && !(st.vestido && (k === 'arriba' || k === 'abajo'))) partes[k] = prenda(k, st[k], k === principal ? opts.relleno : null);
     });
 
-    let s = peloAtras(st);
+    const raton = !!opts.raton;
+    let s = raton ? ratonOrejas(piel) : peloAtras(st);
     if (partes.encima && partes.encima.atras) s += partes.encima.atras;
 
     // Piernas y zapatos van bajo la ropa (así la falda tapa la caña de las
@@ -745,8 +768,9 @@ const Vestuario = (function () {
     const blanco = '#f4f1ee';
     if (partes.vestido) s += partes.vestido.svg;
     else {
-      s += partes.abajo ? partes.abajo.svg : `<path d="M110 338 L210 338 L210 362 L166 362 L160 356 L154 362 L110 362 Z" fill="${blanco}"/>`;
-      s += partes.arriba ? partes.arriba.svg
+      // (Mickey y Minnie van sin ropa interior: sin polera se les ve el cuerpo)
+      s += partes.abajo ? partes.abajo.svg : raton ? '' : `<path d="M110 338 L210 338 L210 362 L166 362 L160 356 L154 362 L110 362 Z" fill="${blanco}"/>`;
+      s += partes.arriba ? partes.arriba.svg : raton ? ''
         : `<path d="M126 292 L194 292 L200 342 L120 342 Z" fill="${blanco}"/><path d="M130 294 L126 284 M190 294 L194 284" stroke="${blanco}" stroke-width="5" stroke-linecap="round"/>`;
       if (partes.abajo && partes.abajo.sobre) s += partes.abajo.sobre; // la pechera de la jardinera, sobre la polera
     }
@@ -761,6 +785,7 @@ const Vestuario = (function () {
     const joyasMuneca = muneca(st.muneca, pose);
     s += collar(st.collar);
     const contorno = oscurecer(piel, 0.14);
+    const colorMano = opts.manos || piel, bordeMano = opts.manos ? '#b9b9c0' : contorno;
     ['izq', 'der'].forEach((lado) => {
       if (opts.sinBrazo === lado) return;
       const pts = pose[lado];
@@ -768,7 +793,7 @@ const Vestuario = (function () {
       const d = 'M' + pts.map(([x, y]) => `${x} ${y}`).join(' L');
       let b = `<path d="${d}" fill="none" stroke="${contorno}" stroke-width="17.5" stroke-linecap="round" stroke-linejoin="round"/>` +
         `<path d="${d}" fill="none" stroke="${piel}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>` +
-        `<circle cx="${hx}" cy="${hy}" r="9" fill="${piel}" stroke="${contorno}" stroke-width="1.2"/>`;
+        `<circle cx="${hx}" cy="${hy}" r="${opts.manos ? 11 : 9}" fill="${colorMano}" stroke="${bordeMano}" stroke-width="1.2"/>`;
       if (opts.pose === 'victoria' && lado === 'der') {
         b += `<path d="M${hx - 3} ${hy - 6} l-5 -15 M${hx + 3} ${hy - 6} l5 -15" stroke="${piel}" stroke-width="5.5" stroke-linecap="round"/>`;
       }
@@ -780,18 +805,18 @@ const Vestuario = (function () {
     }
 
     // cabeza
-    s += peloDelante(st) + cara(piel, st.peloColor) + pendientes(st.pendientes);
-    const arribaDeLosOjos = flequillo(st) + cabeza(st.cabeza, st) + sombrero(st.sombrero);
+    s += (raton ? ratonCara(piel) : peloDelante(st) + cara(piel, st.peloColor)) + pendientes(st.pendientes);
+    const arribaDeLosOjos = (raton ? cabeza(st.cabeza, { peloEstilo: 'corto', peloColor: piel }) : flequillo(st) + cabeza(st.cabeza, st)) + sombrero(st.sombrero);
     // para dibujar un brazo aparte (en canvas no sirve un estampado url(#…): va el color base)
     const prendaPrincipal = st.vestido || st.arriba;
     const brazo = {
-      piel, contorno,
+      piel, contorno, mano: opts.manos || null,
       manga: mangaVisible ? { tipo: mangaVisible.tipo, c: String(mangaVisible.c).startsWith('url') ? ((prendaPrincipal && prendaPrincipal.c) || piel) : mangaVisible.c } : null,
       // para dibujar piernas aparte (p. ej. sentada en un hombro)
       pierna: { c: pantalonLargo ? (st.vestido || st.abajo).c : piel, zapato: st.zapatos ? st.zapatos.c : null },
     };
     if (opts.sinOjos) return { figura: s + arribaDeLosOjos, delante: lentes(st.cara), brazo };
-    return { figura: s + ojos(st.ojos) + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '', brazo };
+    return { figura: s + (raton ? ratonOjos() : ojos(st.ojos)) + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '', brazo };
   }
 
   // ================= PERSONAJES QUE NO SON PERSONAS =================

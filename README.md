@@ -48,8 +48,10 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   corazón o nube; estampado liso, lunares, corazones, estrellas, rayas o arcoíris;
   color y un adornito). Toda la familia ve a la misma Mili.
 - **Juego "Jugar a vestir"**: se elige un personaje (Mili; Rumi, Mira y Zoey;
-  Elsa, Anna, Kristoff, Olaf y Sven; Moana; Rapunzel, Ariel, Bella, Cenicienta,
-  Mirabel, Mérida, Tiana y Jasmine; Lilo, Stitch y Ángel — dibujos propios
+  Elsa, Anna, Kristoff, Olaf, Sven y los reyes Agnarr e Iduna; Moana; Rapunzel,
+  Ariel, Bella, Cenicienta, Mérida, Tiana y Jasmine; la familia Madrigal
+  (Mirabel, Abuela Alma, Isabela, Luisa, Pepa, Dolores, Camilo, Antonio y
+  Bruno); Lilo, Stitch y Ángel; Mickey y Minnie; Luli Pampín y Blippi — dibujos propios
   inspirados en esas películas, no imágenes oficiales; Olaf, Sven, Stitch y
   Ángel solo usan accesorios porque la ropa no les calza) y
   se le cambia la ropa arrastrando prendas del armario hasta el personaje (o

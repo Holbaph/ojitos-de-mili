@@ -60,7 +60,7 @@ const JuegosParche = (function () {
   };
   function diferencias(area, nivel, ganar) {
     const n = Math.min(5, 2 + nivel);
-    let lista = Juego.personajes().filter((p) => !p.especie); // las diferencias son de ropa
+    let lista = Juego.personajes().filter((p) => !p.especie && !p.raton); // las diferencias son de ropa y ojos
     if (n > 4) lista = lista.filter((p) => !CON_AMARRE.includes(Juego.original(p.id).peloEstilo));
     const id = pick(lista).id;
 
@@ -146,7 +146,7 @@ const JuegosParche = (function () {
     const cara = (id, st) => { const s = svg('0 0 320 320', 'jp-cara'); s.innerHTML = Juego.figura(id, st); return s; };
 
     function nuevaRonda() {
-      const obj = pick(todos.filter((p) => !p.especie)).id; // los "parecidos" cambian pelo/ojos
+      const obj = pick(todos.filter((p) => !p.especie && !p.raton)).id; // los "parecidos" cambian pelo/ojos
       const cantidad = Math.min(30, 8 + nivel * 4);
       const parecidos = nivel >= 2 ? Math.min(Math.floor(cantidad / 3), (nivel - 1) * 2) : 0;
       const tam = Math.max(40, 78 - nivel * 7);
