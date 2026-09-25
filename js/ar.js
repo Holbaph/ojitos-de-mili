@@ -183,7 +183,7 @@ const RA = (function () {
   function mano(ctx, p, esc, dedos) {
     const b = cfg.brazo;
     ctx.save();
-    ctx.fillStyle = b.piel; ctx.strokeStyle = b.contorno; ctx.lineWidth = 1.4 * esc;
+    ctx.fillStyle = b.mano || b.piel; ctx.strokeStyle = b.mano ? '#b9b9c0' : b.contorno; ctx.lineWidth = 1.4 * esc;
     ctx.beginPath(); ctx.arc(p.x, p.y, 10 * esc, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     if (dedos) {
       for (let i = -1; i <= 1; i++) {
@@ -431,7 +431,7 @@ const RA = (function () {
         const b = cfg.brazo, largo = s.w * (0.58 + 0.06 * Math.sin(t / 180)), grosor = 10 * esc; // las orejitas se mueven
         [-0.2, 0.2].forEach((ang) => {
           cc.save(); cc.translate(a.x, a.y); cc.rotate(ang + Math.sin(t / 250) * 0.05);
-          cc.fillStyle = b.piel; cc.strokeStyle = b.contorno; cc.lineWidth = 1.4 * esc;
+          cc.fillStyle = b.mano || b.piel; cc.strokeStyle = b.mano ? '#b9b9c0' : b.contorno; cc.lineWidth = 1.4 * esc;
           cc.beginPath(); cc.ellipse(0, -largo / 2, grosor, largo / 2, 0, 0, Math.PI * 2); cc.fill(); cc.stroke();
           cc.restore();
         });

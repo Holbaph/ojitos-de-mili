@@ -216,11 +216,74 @@ const Juego = (function () {
     },
     { id: 'stitch', nombre: 'Stitch', grupo: 'Lilo y Stitch', especie: 'stitch', ropa: { collar: { t: 'mostacillas', c: C.rosado } } },
     { id: 'angel', nombre: 'Ángel', grupo: 'Lilo y Stitch', especie: 'angel', ropa: { cabeza: { t: 'flor', c: C.amarillo } } },
+    // los papás de Elsa y Anna
+    {
+      id: 'agnarr', nombre: 'Rey Agnarr', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#4f7fb5', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#8a5a3a',
+      ropa: { arriba: { t: 'camisa', c: '#2f5a4a' }, abajo: { t: 'jeans', c: '#2a2f3a' }, encima: { t: 'capa', c: '#2f4a7a' }, zapatos: { t: 'botas', c: C.negro }, sombrero: { t: 'corona', c: C.dorado } },
+    },
+    {
+      id: 'iduna', nombre: 'Reina Iduna', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#4f7fb5', peloEstilo: 'tomate', peloColor: '#7a3e24',
+      ropa: { vestido: { t: 'vestido-largo', c: '#6b4c9a' }, cabeza: { t: 'tiara', c: C.dorado }, collar: { t: 'cadena', c: C.dorado }, zapatos: { t: 'balerinas', c: C.dorado } },
+    },
+    // la familia Madrigal (Mirabel ya está más arriba)
+    {
+      id: 'alma', nombre: 'Abuela Alma', grupo: 'Encanto', piel: '#c98e64', ojos: '#4a3222', peloEstilo: 'tomate', flequillo: 'sin', peloColor: '#c9c9c9',
+      ropa: { vestido: { t: 'vestido-largo', c: '#3a2a4a' }, collar: { t: 'perlas', c: C.dorado }, pendientes: { t: 'perlas', c: C.dorado }, zapatos: { t: 'balerinas', c: C.negro } },
+    },
+    {
+      id: 'isabela', nombre: 'Isabela', grupo: 'Encanto', piel: '#c98e64', ojos: '#4a3222', peloEstilo: 'ondas', peloColor: '#1f1a2c',
+      ropa: { vestido: { t: 'vestido-largo', c: C.lila }, cabeza: { t: 'flor', c: C.rosado }, zapatos: { t: 'balerinas', c: C.lila } },
+    },
+    {
+      id: 'luisa', nombre: 'Luisa', grupo: 'Encanto', piel: '#b97d52', ojos: '#4a3222', peloEstilo: 'corto', flequillo: 'recto', peloColor: '#1f1a1c',
+      ropa: { arriba: { t: 'musculosa', c: C.celeste }, abajo: { t: 'falda', c: '#4a3a6a' }, zapatos: { t: 'sandalias', c: C.cafe }, pendientes: { t: 'aros', c: C.dorado } },
+    },
+    {
+      id: 'pepa', nombre: 'Pepa', grupo: 'Encanto', piel: '#e9c3a0', ojos: '#4a3222', peloEstilo: 'trenza', peloColor: '#c9432a',
+      ropa: { vestido: { t: 'vestido', c: C.amarillo }, zapatos: { t: 'balerinas', c: C.naranjo }, pendientes: { t: 'aros', c: C.dorado } },
+    },
+    {
+      id: 'dolores', nombre: 'Dolores', grupo: 'Encanto', piel: '#d9a57c', ojos: '#4a3222', peloEstilo: 'ondas', flequillo: 'cortina', peloColor: '#4a3222',
+      ropa: { vestido: { t: 'vestido', c: C.lila }, collar: { t: 'perlas', c: C.dorado }, zapatos: { t: 'balerinas', c: C.lila } },
+    },
+    {
+      id: 'camilo', nombre: 'Camilo', grupo: 'Encanto', piel: '#d9a57c', ojos: '#4a3222', peloEstilo: 'afro', peloColor: '#6b4428',
+      ropa: { arriba: { t: 'sueter', c: C.amarillo }, abajo: { t: 'jeans', c: C.cafe }, zapatos: { t: 'zapatillas', c: C.blanco } },
+    },
+    {
+      id: 'antonio', nombre: 'Antonio', grupo: 'Encanto', piel: '#b97d52', ojos: '#4a3222', peloEstilo: 'afro', peloColor: '#1f1a1c',
+      ropa: { arriba: { t: 'sueter', c: '#4f9a6a' }, abajo: { t: 'short', c: C.cafe }, zapatos: { t: 'sandalias', c: C.cafe } },
+    },
+    {
+      id: 'bruno', nombre: 'Bruno', grupo: 'Encanto', piel: '#c98e64', ojos: '#5f8a4c', peloEstilo: 'crespo', peloColor: '#2b2220',
+      ropa: { arriba: { t: 'manga-larga', c: C.negro }, abajo: { t: 'jeans', c: C.negro }, encima: { t: 'capa', c: '#3f8a5a' }, zapatos: { t: 'botines', c: C.cafe } },
+    },
+    // de la tele y los videos
+    {
+      id: 'luli', nombre: 'Luli Pampín', grupo: 'Canciones', piel: '#fbe3ce', ojos: '#8b5e3c', peloEstilo: 'largo', flequillo: 'recto', peloColor: '#d9b46a',
+      ropa: { vestido: { t: 'vestido-tutu', c: C.rosado }, cabeza: { t: 'moño', c: C.fucsia }, zapatos: { t: 'zapatillas', c: C.rosado }, pendientes: { t: 'corazones', c: C.rosado } },
+    },
+    {
+      id: 'blippi', nombre: 'Blippi', grupo: 'Videos', piel: '#fbe3ce', ojos: '#4f7fb5', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#8a5a3a',
+      // camisa celeste, "suspensores" naranjos (la pechera de la jardinera), lentes y gorro
+      ropa: { arriba: { t: 'camisa', c: '#5aa6e0' }, abajo: { t: 'jardinera', c: C.naranjo }, zapatos: { t: 'zapatillas', c: C.naranjo }, cara: { t: 'lentes-redondos', c: C.naranjo }, sombrero: { t: 'gorro-lana', c: '#4a78c2' } },
+    },
+    // Mickey y Minnie: cabeza de ratón sobre el cuerpo normal (sí se visten)
+    {
+      id: 'mickey', nombre: 'Mickey', grupo: 'Disney', raton: true, piel: '#1f1a1c', ojos: '#1f1a1c', peloEstilo: 'corto', peloColor: '#1f1a1c',
+      ropa: { abajo: { t: 'short', c: C.rojo }, zapatos: { t: 'zapatillas', c: C.amarillo } },
+    },
+    {
+      id: 'minnie', nombre: 'Minnie', grupo: 'Disney', raton: true, piel: '#1f1a1c', ojos: '#1f1a1c', peloEstilo: 'corto', peloColor: '#1f1a1c',
+      ropa: { vestido: { t: 'vestido', c: C.rojo }, cabeza: { t: 'moño', c: C.rojo }, zapatos: { t: 'balerinas', c: C.amarillo } },
+    },
   ];
   // categorías (y lugares de Joyas) que les sirven a los que no son personas
   const CATS_ESPECIE = ['cabeza', 'sombrero', 'cara', 'joyas'];
   const especieDe = (id) => (PERSONAJES.find((p) => p.id === id) || {}).especie || null;
-  const catPermitida = (c) => !especieDe(actual) || CATS_ESPECIE.includes(c);
+  const esRaton = (id) => !!(PERSONAJES.find((p) => p.id === id) || {}).raton;
+  // Mickey y Minnie no tienen pelo (ni ojos que cambiar): el resto, sí
+  const catPermitida = (c) => (especieDe(actual) ? CATS_ESPECIE.includes(c) : !(esRaton(actual) && ['peinado', 'pelo', 'ojos'].includes(c)));
 
   // Mili toma su piel, ojos y pelo de su apariencia personalizada (js/mili.js).
   let aparienciaMili = Mili.DEFAULT;
@@ -274,7 +337,8 @@ const Juego = (function () {
     }
     const esp = especieDe(id);
     if (esp) return Vestuario.especie(esp, st).figura;
-    return defs + Vestuario.persona(st, { piel: personaje(id).piel, relleno, pose: o.pose, sobreOjos, sinBrazo: o.sinBrazo }).figura;
+    const raton = esRaton(id);
+    return defs + Vestuario.persona(st, { piel: personaje(id).piel, relleno, pose: o.pose, sobreOjos, sinBrazo: o.sinBrazo, raton, manos: raton ? '#ffffff' : null }).figura;
   }
 
   function icono(cat, valor, st, id) {
@@ -482,7 +546,8 @@ const Juego = (function () {
       const esp = especieDe(id);
       Camara.abrir({
         dibujar: (o) => figura(id, estados[id], o),
-        brazo: () => (esp ? Vestuario.especie(esp, estados[id]).brazo : Vestuario.persona(estados[id], { piel: personaje(id).piel }).brazo),
+        brazo: () => (esp ? Vestuario.especie(esp, estados[id]).brazo
+          : Vestuario.persona(estados[id], { piel: personaje(id).piel, raton: esRaton(id), manos: esRaton(id) ? '#ffffff' : null }).brazo),
         conParche: id === 'mili', parche: parcheHoy,
         // los que no son personas no tienen poses: solo los efectos que no las usan
         limitado: !!esp, manoGlobos: esp ? { x: 256, y: 300 } : null,
@@ -583,7 +648,7 @@ const Juego = (function () {
 
   // Para los juegos con el parche (js/juegos-parche.js): la lista de
   // personajes y su ropa original, para dibujarlos con figura().
-  function personajes() { return PERSONAJES.map((p) => ({ id: p.id, nombre: p.nombre, especie: p.especie || null })); }
+  function personajes() { return PERSONAJES.map((p) => ({ id: p.id, nombre: p.nombre, especie: p.especie || null, raton: !!p.raton })); }
   function original(id) { return JSON.parse(JSON.stringify(inicial(id))); }
 
   return { abrir, cerrar, restablecerTodos, figura, personajes, original };
