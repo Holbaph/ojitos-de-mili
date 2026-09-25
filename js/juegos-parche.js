@@ -4,9 +4,10 @@
 // (js/tiempo-juego.js). No son un tratamiento ni reemplazan las indicaciones
 // del oftalmólogo; la pantalla lo dice.
 //
-// Cinco juegos, con niveles que se van poniendo más difíciles (cosas más
+// Seis juegos, con niveles que se van poniendo más difíciles (cosas más
 // chicas, más parecidas, caminos más angostos):
-//   🔍 Diferencias  ⭐ Busca a…  ✏️ Une los puntos  〰️ Sigue el caminito  🫧 Burbujas
+//   🍰 Cocinita (js/cocina.js)  🔍 Diferencias  ⭐ Busca a…  ✏️ Une los puntos
+//   〰️ Sigue el caminito  🫧 Burbujas
 // Los personajes salen del juego de vestir (Juego.figura / Juego.original).
 
 const JuegosParche = (function () {
@@ -362,6 +363,7 @@ const JuegosParche = (function () {
   }
 
   const JUEGOS = [
+    { id: 'cocina', e: '🍰', n: 'Cocinita', d: 'Prepara pasteles, pizzas, helados y más, igual al pedido', f: (area, nivel, ganar) => Cocina.jugar(area, nivel, ganar, aviso) },
     { id: 'diferencias', e: '🔍', n: 'Diferencias', d: 'Encuentra lo que cambió', f: diferencias },
     { id: 'busca', e: '⭐', n: 'Busca a…', d: 'Encuentra al personaje', f: busca },
     { id: 'puntos', e: '✏️', n: 'Une los puntos', d: 'Del 1 al último', f: puntos },
