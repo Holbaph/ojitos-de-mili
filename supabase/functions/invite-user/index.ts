@@ -8,7 +8,7 @@
 // Responde siempre HTTP 200 con { ok: true } o { ok: false, error }, para que
 // el front (js/auth.js) no tenga que lidiar con distintos códigos de estado.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.2'
 
 // Debe coincidir con la Site URL / Redirect URL que configuraste en
 // Authentication → URL Configuration.
@@ -65,8 +65,9 @@ Deno.serve(async (req) => {
     }
 
     const email = String(body?.email || '').trim().toLowerCase()
-    const nombre = String(body?.nombre || '').trim()
-    if (!email || !email.includes('@')) {
+    // el nombre se muestra en la app: sin < > y con un largo razonable
+    const nombre = String(body?.nombre || '').replace(/[<>]/g, '').trim().slice(0, 60)
+    if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return json({ ok: false, error: 'Escribe un correo válido' })
     }
 

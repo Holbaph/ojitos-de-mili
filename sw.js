@@ -1,12 +1,13 @@
 // Service worker — cachea el "cascarón" estático de la app (HTML/CSS/JS/íconos) para
 // que cargue rápido. No garantiza uso sin conexión: la app necesita internet para
 // hablar con Supabase (los registros y las cuentas viven ahí, no en este dispositivo).
-const CACHE_NAME = 'ojitos-de-mili-v17';
+const CACHE_NAME = 'ojitos-de-mili-v18';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './css/styles.css',
+  './js/inicio.js',
   './js/supabase-config.js',
   './js/auth.js',
   './js/core.js',
@@ -38,14 +39,19 @@ self.addEventListener('activate', (event) => {
 });
 
 // Red primero (para recibir actualizaciones apenas haya conexión), con la caché como
-// respaldo cuando no hay red.
+// respaldo cuando no hay red. SOLO se guardan los archivos de la propia app: nunca
+// las respuestas de Supabase (registros, nombres, correos) ni nada de otros sitios,
+// para que los datos de la familia no queden guardados en el celular.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  if (new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        if (response.ok && response.type === 'basic') {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
         return response;
       })
       .catch(() => caches.match(event.request))

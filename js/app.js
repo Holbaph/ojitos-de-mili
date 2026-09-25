@@ -82,7 +82,7 @@
       const p2 = document.getElementById('newPassword2').value;
       const err = document.getElementById('setPasswordError');
       err.classList.add('hidden');
-      if (p1.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres.'; err.classList.remove('hidden'); return; }
+      if (p1.length < 8) { err.textContent = 'La contraseña debe tener al menos 8 caracteres.'; err.classList.remove('hidden'); return; }
       if (p1 !== p2) { err.textContent = 'Las contraseñas no coinciden.'; err.classList.remove('hidden'); return; }
       try {
         await Auth.fijarContrasena(p1);
@@ -215,7 +215,7 @@
     if (rec) {
       const autor = personasCache[rec.registradoPor];
       line.innerHTML = '🩹 <span class="pill ' + rec.ojo + '">' + Utils.label(rec.ojo) + '</span> · puesto a las ' + Utils.fmtTime(rec.hora) +
-        (autor ? '<span class="status-by">Registrado por ' + autor.nombre + '</span>' : '');
+        (autor ? '<span class="status-by">Registrado por ' + Utils.esc(autor.nombre) + '</span>' : '');
       hint.innerHTML = '';
       undo.classList.remove('hidden');
     } else {
@@ -318,7 +318,7 @@
         row.innerHTML =
           '<span class="side-dot ' + rec.ojo + '"></span>' +
           '<div class="txt"><div class="d1">' + Utils.fmtShort(Utils.parseId(id)) + ' · ' + Utils.label(rec.ojo) + '</div>' +
-          '<div class="d2">' + Utils.fmtTime(rec.hora) + (autor ? ' · ' + autor.nombre : '') + '</div></div>' +
+          '<div class="d2">' + Utils.fmtTime(rec.hora) + (autor ? ' · ' + Utils.esc(autor.nombre) : '') + '</div></div>' +
           '<button class="del" data-act="del" title="Eliminar">🗑</button>';
       }
       list.appendChild(row);
@@ -446,6 +446,7 @@
       return;
     }
     btn.classList.remove('hidden');
+    try { await Push.renovarSiCambio(perfil.id); } catch (e) { /* queda para activarlos con el botón */ }
     const suscrito = await Push.estaSuscrito();
     btn.classList.toggle('active', suscrito);
     btn.textContent = suscrito ? '🔔 Avisos activados en este dispositivo' : '🔔 Activar avisos en este dispositivo';
@@ -714,15 +715,60 @@
     const personas = await Auth.listarPerfiles();
     personasCache = {};
     personas.forEach(p => { personasCache[p.id] = p; });
+    // Los nombres se ponen como texto (textContent), nunca como HTML.
     const list = document.getElementById('peopleList');
-    list.innerHTML = personas.map(p =>
-      '<div class="person-row"><span class="p-name">' + p.nombre + '</span>' +
-      (p.role === 'admin' ? '<span class="badge-admin">Admin</span>' : '') +
-      '</div>'
-    ).join('');
-    document.getElementById('inviteForm').classList.toggle('hidden', perfil.role !== 'admin');
+    const esAdmin = perfil.role === 'admin';
+    list.innerHTML = '';
+    personas.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'person-row';
+      const nombre = document.createElement('span');
+      nombre.className = 'p-name';
+      nombre.textContent = p.nombre;
+      row.appendChild(nombre);
+      if (p.role === 'admin') {
+        const badge = document.createElement('span');
+        badge.className = 'badge-admin';
+        badge.textContent = 'Admin';
+        row.appendChild(badge);
+      } else if (esAdmin && p.id !== perfil.id) {
+        const quitar = document.createElement('button');
+        quitar.className = 'p-quitar';
+        quitar.dataset.id = p.id;
+        quitar.textContent = 'Quitar acceso';
+        quitar.setAttribute('aria-label', 'Quitar el acceso a ' + p.nombre);
+        row.appendChild(quitar);
+      }
+      list.appendChild(row);
+    });
+    document.getElementById('inviteForm').classList.toggle('hidden', !esAdmin);
     renderToday(); renderList(); // por si ya cargó gente después del historial (nombres de "registrado por")
   }
+
+  // Quitar acceso (solo admin): pide un segundo toque para confirmar.
+  let confirmarQuitar = null;
+  document.getElementById('peopleList').addEventListener('click', async (e) => {
+    const b = e.target.closest('button.p-quitar');
+    if (!b || !perfil || perfil.role !== 'admin') return;
+    const id = b.dataset.id;
+    if (!confirmarQuitar || confirmarQuitar.id !== id) {
+      if (confirmarQuitar) { clearTimeout(confirmarQuitar.t); confirmarQuitar.btn.textContent = 'Quitar acceso'; confirmarQuitar.btn.classList.remove('confirmar'); }
+      b.textContent = '¿Seguro? Toca otra vez';
+      b.classList.add('confirmar');
+      confirmarQuitar = { id, btn: b, t: setTimeout(() => { confirmarQuitar = null; b.textContent = 'Quitar acceso'; b.classList.remove('confirmar'); }, 4000) };
+      return;
+    }
+    clearTimeout(confirmarQuitar.t); confirmarQuitar = null;
+    const nombre = (personasCache[id] && personasCache[id].nombre) || 'Esa persona';
+    b.disabled = true; b.textContent = 'Quitando…';
+    try {
+      await Auth.quitarAcceso(id);
+      showToast(nombre + ' ya no tiene acceso');
+    } catch (err) {
+      showToast(err.message || 'No se pudo quitar el acceso');
+    }
+    await cargarPersonas();
+  });
 
   document.getElementById('inviteSend').addEventListener('click', async () => {
     const email = document.getElementById('inviteEmail').value.trim();

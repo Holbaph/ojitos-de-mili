@@ -26,6 +26,10 @@ const Utils = {
     } catch (e) { return ''; }
   },
   label(side) { return side === 'derecho' ? 'Derecho' : 'Izquierdo'; },
+  // Texto que viene de la base de datos (nombres) -> seguro para meter en HTML.
+  esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  },
   iniciales(nombre) {
     if (!nombre) return '?';
     return nombre.trim().split(/\s+/).slice(0, 2).map(p => p[0].toUpperCase()).join('');
@@ -219,6 +223,21 @@ const Push = {
       { onConflict: 'endpoint' }
     );
     if (error) throw error;
+  },
+  // Si la llave pública cambió (se renueva por seguridad), la suscripción vieja
+  // ya no sirve: se reemplaza sola (el permiso ya estaba dado). Si el celular
+  // no deja hacerlo sin un toque, el botón vuelve a "Activar avisos".
+  async renovarSiCambio(userId) {
+    if (!this.soportado() || Notification.permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    const actual = sub && sub.options && sub.options.applicationServerKey;
+    if (!actual) return;
+    const nueva = urlBase64ToUint8Array(VAPID_PUBLIC_KEY), vieja = new Uint8Array(actual);
+    if (vieja.length === nueva.length && vieja.every((b, i) => b === nueva[i])) return;
+    await supabaseClient.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+    await sub.unsubscribe();
+    await this.activar(userId);
   },
   async desactivar() {
     const reg = await navigator.serviceWorker.ready;
