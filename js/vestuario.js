@@ -787,9 +787,93 @@ const Vestuario = (function () {
     const brazo = {
       piel, contorno,
       manga: mangaVisible ? { tipo: mangaVisible.tipo, c: String(mangaVisible.c).startsWith('url') ? ((prendaPrincipal && prendaPrincipal.c) || piel) : mangaVisible.c } : null,
+      // para dibujar piernas aparte (p. ej. sentada en un hombro)
+      pierna: { c: pantalonLargo ? (st.vestido || st.abajo).c : piel, zapato: st.zapatos ? st.zapatos.c : null },
     };
     if (opts.sinOjos) return { figura: s + arribaDeLosOjos, delante: lentes(st.cara), brazo };
     return { figura: s + ojos(st.ojos) + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '', brazo };
+  }
+
+  // ================= PERSONAJES QUE NO SON PERSONAS =================
+  // Olaf, Sven, Stitch y Ángel tienen su propio cuerpo (la ropa no les calza):
+  // solo usan accesorios. Su cabeza ocupa el mismo lugar que la de una persona
+  // (centro ~160,176), así que coronas, gorros, lentes y collares les quedan.
+  const ESPECIES = ['olaf', 'sven', 'stitch', 'angel'];
+  const SLOTS_ESPECIE = ['cabeza', 'sombrero', 'cara', 'collar'];
+
+  function ojosGrandes(color, brillo) {
+    return [112, 208].map((x) =>
+      `<ellipse cx="${x}" cy="170" rx="30" ry="34" fill="${color}"/>` +
+      `<circle cx="${x - 9}" cy="158" r="8" fill="#fff" opacity="${brillo}"/><circle cx="${x + 8}" cy="182" r="3.5" fill="#fff" opacity="${brillo}"/>`
+    ).join('');
+  }
+
+  function especie(tipo, st, opts) {
+    opts = opts || {};
+    let s = '', color = '#f7fafd', contorno = '#b8cadf';
+    const conOjos = (o) => (opts.sinOjos ? '' : o);
+    switch (tipo) {
+      case 'olaf': {
+        const nieve = '#f7fafd', rama = '#6b4428', carbon = '#2a2527';
+        color = nieve; contorno = '#b8cadf';
+        s = `<path d="M160 64 L160 18 M160 36 L146 16 M160 36 L176 12 M136 70 L120 34 M184 70 L202 36" stroke="${rama}" stroke-width="4.5" stroke-linecap="round"/>` +
+          `<ellipse cx="160" cy="400" rx="84" ry="50" fill="${nieve}" stroke="${contorno}" stroke-width="2"/>` +
+          `<ellipse cx="160" cy="318" rx="66" ry="52" fill="${nieve}" stroke="${contorno}" stroke-width="2"/>` +
+          `<circle cx="160" cy="302" r="6.5" fill="${carbon}"/><circle cx="160" cy="326" r="6.5" fill="${carbon}"/><circle cx="160" cy="400" r="7" fill="${carbon}"/>` +
+          `<path d="M100 310 L38 264 M58 279 L50 256 M52 276 L28 280 M220 310 L282 264 M262 279 L270 256 M268 276 L292 280" stroke="${rama}" stroke-width="5" stroke-linecap="round"/>` +
+          `<path d="M160 62 C232 62 266 112 266 172 C266 238 222 272 160 272 C98 272 54 238 54 172 C54 112 88 62 160 62 Z" fill="${nieve}" stroke="${contorno}" stroke-width="2"/>` +
+          `<path d="M70 210 Q160 290 250 210 Q230 262 160 266 Q90 262 70 210 Z" fill="#dce8f4" opacity=".7"/>` +
+          `<path d="M84 128 q26 -16 50 -4 M186 124 q26 -12 50 4" fill="none" stroke="${carbon}" stroke-width="5" stroke-linecap="round"/>` +
+          `<path d="M110 214 Q160 262 210 214 Q160 230 110 214 Z" fill="#3a2a2a"/><rect x="150" y="219" width="20" height="14" rx="3" fill="#fff"/>` +
+          conOjos([112, 208].map((x) => `<ellipse cx="${x}" cy="168" rx="24" ry="27" fill="#fff" stroke="${contorno}" stroke-width="1.5"/><circle cx="${x}" cy="172" r="10" fill="${carbon}"/><circle cx="${x - 3}" cy="168" r="3" fill="#fff"/>`).join('')) +
+          `<path d="M156 186 L236 196 L156 206 Z" fill="#f08a3c"/><path d="M178 190 l0 12 M198 193 l0 7" stroke="#d06a26" stroke-width="2"/>`;
+        break;
+      }
+      case 'sven': {
+        const cafe = '#a8744a', oscuro = '#6b4428', claro = '#ecd9c0', asta = '#cfae84';
+        color = cafe; contorno = oscuro;
+        s = `<path d="M112 96 Q82 44 92 6 M94 52 Q70 42 60 20 M92 26 Q78 18 74 4 M208 96 Q238 44 228 6 M226 52 Q250 42 260 20 M228 26 Q242 18 246 4" fill="none" stroke="${asta}" stroke-width="11" stroke-linecap="round"/>` +
+          `<ellipse cx="160" cy="352" rx="94" ry="72" fill="${cafe}"/><ellipse cx="160" cy="330" rx="52" ry="42" fill="${claro}"/>` +
+          `<rect x="116" y="378" width="28" height="54" rx="12" fill="${cafe}"/><rect x="176" y="378" width="28" height="54" rx="12" fill="${cafe}"/>` +
+          `<ellipse cx="130" cy="432" rx="17" ry="8" fill="${oscuro}"/><ellipse cx="190" cy="432" rx="17" ry="8" fill="${oscuro}"/>` +
+          `<ellipse cx="62" cy="132" rx="38" ry="16" transform="rotate(-24 62 132)" fill="${cafe}"/><ellipse cx="258" cy="132" rx="38" ry="16" transform="rotate(24 258 132)" fill="${cafe}"/>` +
+          `<path d="M160 70 C224 70 252 120 248 172 C246 212 226 238 216 266 L104 266 C94 238 74 212 72 172 C68 120 96 70 160 70 Z" fill="${cafe}"/>` +
+          `<ellipse cx="160" cy="240" rx="72" ry="44" fill="${claro}"/>` +
+          `<ellipse cx="160" cy="212" rx="32" ry="19" fill="#2a2527"/><ellipse cx="150" cy="206" rx="8" ry="4" fill="#fff" opacity=".45"/>` +
+          `<path d="M128 256 Q160 274 192 256" fill="none" stroke="${oscuro}" stroke-width="4" stroke-linecap="round"/>` +
+          `<ellipse cx="174" cy="270" rx="12" ry="15" fill="#e8578a"/>` +
+          `<path d="M86 132 q24 -14 46 -2 M188 130 q24 -12 46 2" fill="none" stroke="${oscuro}" stroke-width="5" stroke-linecap="round"/>` +
+          conOjos([112, 208].map((x) => `<circle cx="${x}" cy="168" r="23" fill="#fff"/><circle cx="${x}" cy="170" r="12" fill="#4a3222"/><circle cx="${x - 4}" cy="165" r="3.5" fill="#fff"/>`).join(''));
+        break;
+      }
+      default: { // stitch y ángel
+        const esAngel = tipo === 'angel';
+        const piel = esAngel ? '#ec8fbf' : '#4f7fc9', oscuro = esAngel ? '#b85b8d' : '#2f4f8f', panza = esAngel ? '#f8cde2' : '#a9c9f2', oreja = esAngel ? '#b85b8d' : '#e889b5';
+        color = piel; contorno = oscuro;
+        const orejas = esAngel
+          ? `<path d="M62 168 C12 180 0 250 22 302 C52 282 80 232 82 192 Z" fill="${piel}" stroke="${oscuro}" stroke-width="2"/><path d="M258 168 C308 180 320 250 298 302 C268 282 240 232 238 192 Z" fill="${piel}" stroke="${oscuro}" stroke-width="2"/>` +
+            `<path d="M140 88 Q116 22 150 10 Q172 6 162 32 M180 88 Q204 22 170 10 Q148 6 158 32" fill="none" stroke="${oscuro}" stroke-width="5" stroke-linecap="round"/>`
+          : `<path d="M72 152 C20 122 0 60 10 16 C52 38 92 90 104 132 Z" fill="${piel}" stroke="${oscuro}" stroke-width="2"/><path d="M66 138 C36 114 24 76 28 50 C52 66 78 100 88 126 Z" fill="${oreja}"/>` +
+            `<path d="M248 152 C300 122 320 60 310 16 C268 38 228 90 216 132 Z" fill="${piel}" stroke="${oscuro}" stroke-width="2"/><path d="M254 138 C284 114 296 76 292 50 C268 66 242 100 232 126 Z" fill="${oreja}"/>`;
+        s = orejas +
+          `<ellipse cx="160" cy="354" rx="78" ry="62" fill="${piel}"/><ellipse cx="160" cy="364" rx="46" ry="40" fill="${panza}"/>` +
+          `<ellipse cx="86" cy="342" rx="16" ry="32" transform="rotate(24 86 342)" fill="${piel}"/><ellipse cx="234" cy="342" rx="16" ry="32" transform="rotate(-24 234 342)" fill="${piel}"/>` +
+          `<ellipse cx="124" cy="420" rx="28" ry="14" fill="${piel}"/><ellipse cx="196" cy="420" rx="28" ry="14" fill="${piel}"/>` +
+          `<path d="M104 424 l-6 8 M114 428 l-4 8 M216 424 l6 8 M206 428 l4 8" stroke="${oscuro}" stroke-width="3" stroke-linecap="round"/>` +
+          `<ellipse cx="160" cy="178" rx="128" ry="102" fill="${piel}" stroke="${oscuro}" stroke-width="2"/>` +
+          (esAngel ? '' : `<path d="M148 80 L154 56 L160 78 L168 58 L172 82 Z" fill="${piel}" stroke="${oscuro}" stroke-width="1.5"/>`) +
+          `<ellipse cx="160" cy="118" rx="54" ry="22" fill="${panza}" opacity=".55"/>` +
+          `<ellipse cx="160" cy="208" rx="26" ry="16" fill="${esAngel ? '#8f3f6a' : '#26386a'}"/>` +
+          `<path d="M100 228 Q160 268 220 228" fill="none" stroke="${oscuro}" stroke-width="5" stroke-linecap="round"/>` +
+          conOjos(ojosGrandes('#15161d', 0.9) + (esAngel ? `<path d="M84 140 l-10 -12 M96 134 l-6 -14 M236 140 l10 -12 M224 134 l6 -14" stroke="#15161d" stroke-width="3" stroke-linecap="round"/>` : ''));
+      }
+    }
+    // accesorios que sí les calzan
+    const sinPelo = { peloEstilo: 'corto', peloColor: contorno };
+    const brazo = { piel: color, contorno, manga: null, pierna: { c: color, zapato: null } };
+    const figura = s + collar(st.collar) + (opts.sobreOjos || '') + cabeza(st.cabeza, sinPelo) + sombrero(st.sombrero);
+    if (opts.sinOjos) return { figura, delante: lentes(st.cara), brazo };
+    return { figura: figura + lentes(st.cara), delante: '', brazo };
   }
 
   // Ícono de una cosa del guardarropa (la pieza sola, recortada con el viewBox).
@@ -828,6 +912,7 @@ const Vestuario = (function () {
   return {
     TIPOS, SLOTS, PEINADOS, FLEQUILLOS, HEX, POSES: NOMBRES_POSES,
     pieza, esPeinado, esFlequillo, persona, icono, iconoPeinado, flor, sombrero,
+    ESPECIES, SLOTS_ESPECIE, especie,
     color: { oscurecer, aclarar, mezclar, contraste, esClaro },
   };
 })();

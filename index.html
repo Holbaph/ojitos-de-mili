@@ -15,7 +15,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=12">
+<link rel="stylesheet" href="css/styles.css?v=14">
 </head>
 <body>
 
@@ -446,6 +446,7 @@
       <svg id="camPersonajeSvg" viewBox="0 0 320 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
     </div>
     <div class="cam-flash" id="camFlash"></div>
+    <div class="cam-cuenta hidden" id="camCuenta" aria-live="assertive"></div>
   </div>
   <div class="cam-top">
     <button class="cam-btn" id="camCerrar" aria-label="Cerrar la cámara">✕</button>
@@ -456,6 +457,7 @@
     <div class="cam-poses" id="camPoses" aria-label="Poses"></div>
     <div class="cam-poses cam-efectos" id="camEfectos" aria-label="Efectos con IA"></div>
     <div class="cam-extras">
+      <button class="cam-chip" id="camCuentaBtn" aria-label="Esperar 3 segundos antes de sacar la foto">⏱ Al tiro</button>
       <button class="cam-chip hidden" id="camParche" aria-label="Ponerle o sacarle el parche">🩹 Sin parche</button>
     </div>
     <label class="cam-tamano"><span>🔍</span><input type="range" id="camTamano" min="25" max="95" value="45" aria-label="Tamaño del personaje"></label>
@@ -485,17 +487,17 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/supabase-config.js?v=12"></script>
-<script src="js/auth.js?v=12"></script>
-<script src="js/core.js?v=12"></script>
-<script src="js/vestuario.js?v=12"></script>
-<script src="js/mili.js?v=12"></script>
-<script src="js/tiempo-juego.js?v=12"></script>
-<script src="js/juego.js?v=12"></script>
-<script src="js/ar.js?v=12"></script>
-<script src="js/camara.js?v=12"></script>
-<script src="js/juegos-parche.js?v=12"></script>
-<script src="js/app.js?v=12"></script>
+<script src="js/supabase-config.js?v=14"></script>
+<script src="js/auth.js?v=14"></script>
+<script src="js/core.js?v=14"></script>
+<script src="js/vestuario.js?v=14"></script>
+<script src="js/mili.js?v=14"></script>
+<script src="js/tiempo-juego.js?v=14"></script>
+<script src="js/juego.js?v=14"></script>
+<script src="js/ar.js?v=14"></script>
+<script src="js/camara.js?v=14"></script>
+<script src="js/juegos-parche.js?v=14"></script>
+<script src="js/app.js?v=14"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

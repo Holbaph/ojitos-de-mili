@@ -86,6 +86,27 @@ const Camara = (function () {
   // interactúa con la persona (el brazo pasa por detrás, etc.).
   let efecto = null;
   let brazoInfo = null;
+  let limitado = false;      // personaje sin poses (Olaf, Stitch…): menos efectos
+  let manoGlobos = null;
+  const SOLO_SIN_POSES = ['sorpresa', 'escondidas', 'corona', 'besito', 'globos', 'saludo'];
+  let conCuenta = false;   // ⏱ esperar 3 segundos antes de sacar la foto
+  let contando = false;
+
+  // cuenta regresiva 3, 2, 1 (para alcanzar a posar) y después la foto
+  async function dispararConCuenta() {
+    if (contando) return;
+    if (!conCuenta) { await disparar(); return; }
+    contando = true;
+    const el = $('camCuenta');
+    for (const n of [3, 2, 1]) {
+      el.textContent = n;
+      el.classList.remove('hidden', 'late'); void el.offsetWidth; el.classList.add('late');
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    el.classList.add('hidden');
+    contando = false;
+    await disparar();
+  }
 
   function ayuda(texto) { $('camAyuda').textContent = texto; }
 
@@ -117,6 +138,7 @@ const Camara = (function () {
       await RA.iniciar({
         fuente: $('camVideo'), canvas: $('camRA'), espejo: frontal, efecto: e,
         dibujar: dibujante, parche, brazo: brazoInfo, alEstado: ayuda,
+        acciones: limitado ? SOLO_SIN_POSES.filter((v) => v !== 'sorpresa') : null, manoGlobos,
       });
     } catch (err) {
       salirEfecto();
@@ -171,6 +193,7 @@ const Camara = (function () {
       const cx = c.getContext('2d');
       cx.drawImage(ra, 0, 0);
       firma(cx, c.width, c.height);
+      RA.celebrar(); // chispitas en la vista (la foto ya salió)
       return guardarYMostrar(c);
     }
     const vista = $('camVista').getBoundingClientRect();
@@ -396,7 +419,12 @@ const Camara = (function () {
       redibujar();
       if (efecto) RA.cambiar({ parche });
     });
-    $('camDisparo').addEventListener('click', disparar);
+    $('camDisparo').addEventListener('click', dispararConCuenta);
+    $('camCuentaBtn').addEventListener('click', () => {
+      conCuenta = !conCuenta;
+      $('camCuentaBtn').classList.toggle('activo', conCuenta);
+      $('camCuentaBtn').textContent = conCuenta ? '⏱ Espera 3 s' : '⏱ Al tiro';
+    });
     $('camOtra').addEventListener('click', cerrarFoto);
     $('camCompartir').addEventListener('click', compartir);
     $('camBorrar').addEventListener('click', borrar);
@@ -413,6 +441,10 @@ const Camara = (function () {
     if (!cableado) { cablear(); cableado = true; }
     dibujante = cfg.dibujar;
     brazoInfo = cfg.brazo ? cfg.brazo() : null;
+    limitado = !!cfg.limitado;
+    manoGlobos = cfg.manoGlobos || null;
+    $('camPoses').classList.toggle('hidden', limitado);
+    $('camEfectos').querySelectorAll('button[data-efecto]').forEach((b) => b.classList.toggle('hidden', limitado && !SOLO_SIN_POSES.includes(b.dataset.efecto)));
     conParche = !!cfg.conParche;
     parche = conParche && cfg.parche ? cfg.parche : 'ninguno';
     pose = 'normal';
