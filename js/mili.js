@@ -46,16 +46,16 @@ const Mili = (function () {
 
   // ---------- opciones de cada lugar (para el editor) ----------
   const EMOJI = {
-    vestido: '👗', 'vestido-tutu': '🩰', 'vestido-largo': '✨', 'vestido-princesa': '👑', enterito: '🧷',
+    vestido: '👗', 'vestido-lunares': '🔴', 'vestido-tutu': '🩰', 'vestido-largo': '✨', 'vestido-princesa': '👑', enterito: '🧷',
     polera: '👕', 'manga-larga': '👚', musculosa: '🎽', top: '🩱', camisa: '👔', sueter: '🧶', poleron: '🧥', blusa: '🌺', 'top-concha': '🐚',
-    jeans: '👖', calzas: '🦵', falda: '💃', tutu: '🩰', short: '🩳', jardinera: '👩‍🌾', 'falda-larga': '🌸', bombacho: '🧞', 'cola-sirena': '🧜',
-    chaqueta: '🧥', chaleco: '🦺', abrigo: '🧣', capa: '🦸',
+    jeans: '👖', calzas: '🦵', falda: '💃', tutu: '🩰', short: '🩳', 'short-botones': '🔘', jardinera: '👩‍🌾', 'falda-larga': '🌸', bombacho: '🧞', 'cola-sirena': '🧜',
+    chaqueta: '🧥', chaleco: '🦺', abrigo: '🧣', ruana: '🪶', capa: '🦸',
     zapatillas: '👟', botas: '👢', 'botas-lluvia': '☔', botines: '🥾', balerinas: '🩰', guillerminas: '👞', sandalias: '🩴', pantuflas: '🐰', patines: '🛼',
-    moño: '🎀', collet: '🍩', pinches: '📎', flor: '🌸', cintillo: '〰️', tiara: '👸',
+    moño: '🎀', 'moño-lunares': '🎀', collet: '🍩', pinches: '📎', flor: '🌸', cintillo: '〰️', tiara: '👸',
     corona: '👑', 'corona-flores': '💐', 'corona-estrellas': '⭐', 'gorro-lana': '🧶', jockey: '🧢', sombrero: '👒', orejitas: '🐱', unicornio: '🦄',
     lentes: '🕶️', 'lentes-corazon': '💗', 'lentes-estrella': '🌟', 'lentes-redondos': '👓',
     aros: '⭕', perlas: '🤍', corazones: '💕', estrellas: '✨', largos: '💧',
-    cadena: '⛓️', corazon: '💖', estrella: '⭐', mostacillas: '🌈',
+    cadena: '⛓️', corazon: '💖', estrella: '⭐', mostacillas: '🌈', concha: '🐚', humita: '🎀',
     reloj: '⌚', 'reloj-digital': '📱', pulsera: '📿', brazaletes: '💫',
     anillo: '💍', 'anillo-gema': '💎', 'anillo-corazon': '💗', 'anillo-flor': '🌼',
   };
