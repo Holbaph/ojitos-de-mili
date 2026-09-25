@@ -59,19 +59,24 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   capas, zapatillas, botas, peinados, color de pelo, ojos, moños, tiaras,
   lentes, cola de sirena… Todo se guarda solo. **Original** le devuelve su ropa
   de siempre y **En blanco** lo deja sin ropa ni accesorios.
-  Con **📸 Foto** se abre la cámara con el personaje encima (se mueve con el
-  dedo y se cambia de tamaño) para sacarse una foto con él; las fotos quedan en
-  **Mis fotos**, guardadas **solo en ese celular** (no se suben a ningún lado),
-  y se pueden guardar en la galería o compartir. En la cámara se elige una
-  **pose animada** (saludo, abrazo, la V, corazón, ¡hurra!) y, con Mili, si
-  sale con el parche y en qué ojo. Con los efectos **✨ Con IA** el avatar
-  juega con quien sale en la foto: 🎲 Sorpresa (va cambiando de acción solo,
-  sin orden fijo), 🙈 Escondidas (se asoma por detrás: "¡Buu!"), 🧚 sentada en
-  tu hombro, 🤗 abrazo por detrás, 🐰 orejas de conejo, 🎈 volando con globos,
-  👑 corona para ti, 😘 besito, 🤝 mano en el hombro y 👋 hola — con globos de
-  diálogo, chispitas, brillo según la luz del lugar y ⏱ foto con 3 segundos
-  de espera. Usa MediaPipe (detecta el cuerpo y recorta la
-  silueta) y corre en el mismo celular: la imagen no se envía a ningún lado.
+  Con **📸 Foto** se abre una cámara estilo Snapchat: **tocar** el botón saca
+  la foto (a la resolución completa de la cámara) y **mantenerlo apretado**
+  graba un video de hasta 15 s. Abajo hay un carrusel con tres pestañas:
+  **🧸 Personaje** (quieto con una pose animada; se mueve con el dedo y se
+  agranda pellizcando o con ➕/➖), **✨ Con IA** (el personaje juega con quien
+  sale en la foto: 🎲 Sorpresa, 🪞 Copión — imita tus brazos —, ✋ Choca 5 —
+  levanta la mano y te la choca —, 💃 Baile, 🙈 Escondidas, 🧚 en tu hombro,
+  🤗 abrazo por detrás, 🐰 orejas de conejo, 🫧 burbujas, 🦋 mariposas,
+  🎈 globos, 👑 corona, 😘 besito, 🤝 mano en el hombro y 👋 hola) y **🎭
+  Filtros** de cara (🐶 perrito — saca la lengua si abres la boca —, 🐰
+  conejita, 🐱 gatito, 👑 princesa, 😍 ojos de corazón, 🦄 unicornio — arcoíris
+  al abrir la boca —, 🏴‍☠️ pirata, ✨ brillitos), que se combinan con el
+  personaje. Al costado: ⏱ foto con 3 segundos de espera, 🎨 color de la
+  imagen (vívido, cálido, frío, soñado, blanco y negro), 🩹 parche (con Mili)
+  y ↔️ voltear. Las fotos y videos quedan en **Mis fotos**, guardados **solo
+  en ese celular** (no se suben a ningún lado), y se pueden guardar en la
+  galería o compartir. La IA es MediaPipe (detecta el cuerpo, la silueta y la
+  cara) y corre en el mismo celular: la imagen no se envía a ningún lado.
 - **📸 Foto con mi avatar**: bajo el avatar, en la pantalla principal; abre la
   misma cámara con Mili tal cual está en su avatar (no gasta tiempo de juego).
   La Mili del juego de vestir también queda igual al avatar cada vez que este
