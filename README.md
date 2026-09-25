@@ -168,12 +168,12 @@ si la app está agregada a la pantalla de inicio (iOS 16.4 o más nuevo).
 2. Guarda las llaves VAPID como secretos de tus Edge Functions (con la CLI, misma
    terminal del paso 2 de arriba):
    ```
-   supabase secrets set VAPID_PUBLIC_KEY=BLtaYdh73__SEg262LZe_4rmEKRQJISAWU0VzEhh8GMJTqoWPX5QNFgRjldF0BWE0b3XJ3Og2tvIHrlvEhlxqts
-   supabase secrets set VAPID_PRIVATE_KEY=Eoja4JftEG0K9NQispI2E8hHCsisWx4frqWlNzyfBzg
+   supabase secrets set VAPID_PUBLIC_KEY=<la llave pública de js/supabase-config.js>
+   supabase secrets set VAPID_PRIVATE_KEY=<la llave privada>
    ```
-   *(Estas llaves ya vienen generadas y puestas en `js/supabase-config.js` —la
-   pública— y aquí —la privada. Si algún día quieres generar unas nuevas:
-   `npx web-push generate-vapid-keys`.)*
+   *(Para generar un par nuevo: `npx web-push generate-vapid-keys`. La
+   **pública** va en `js/supabase-config.js`; la **privada** va SOLO como
+   secreto de Supabase — nunca en este repositorio, que es público.)*
 3. Despliega la función que manda los avisos:
    ```
    supabase functions deploy send-patch-reminders
@@ -214,6 +214,23 @@ Corre [`supabase/schema_juego.sql`](supabase/schema_juego.sql) en **SQL Editor**
 minutos de juego por día). Sin esto el juego igual funciona, pero la ropa se
 guarda solo en ese dispositivo.
 
+### 3e. Refuerzo de seguridad (obligatorio)
+
+1. Corre [`supabase/schema_seguridad.sql`](supabase/schema_seguridad.sql) en
+   **SQL Editor**. Hace que cada persona solo pueda cambiar su **nombre** (no
+   su rol), limpia los nombres, exige tener perfil para ver o cambiar datos y
+   que cada registro quede firmado por quien lo hizo.
+2. Despliega la función para **quitar acceso** (el admin la usa desde
+   Historial → Personas con acceso):
+   ```
+   supabase functions deploy remove-user
+   ```
+3. En el panel de Supabase, **Authentication → Sign In / Providers**:
+   - Desactiva **"Allow new users to sign up"**: así nadie puede crearse una
+     cuenta sola; solo entran las personas que invita el admin (las
+     invitaciones siguen funcionando).
+   - En **Email**, sube **"Minimum password length"** a **8**.
+
 ## 4. Publicar en GitHub Pages
 
 Si clonaste este repo tal cual, en **Settings → Pages** del repositorio elige
@@ -231,11 +248,34 @@ Si clonaste este repo tal cual, en **Settings → Pages** del repositorio elige
 4. Abre la app siempre desde ese ícono — se ve a pantalla completa, como una app
    nativa. Necesitas internet cada vez que la uses.
 
+## Seguridad
+
+- **Quién entra:** solo las personas invitadas por el admin (el registro
+  público debe estar desactivado, ver 3e). Las contraseñas nuevas piden al
+  menos 8 caracteres.
+- **Qué puede hacer cada perfil:** todas las cuentas ven y registran el parche
+  y cambian la configuración (es compartida en familia). Solo el **admin**
+  invita y **quita el acceso** a otras personas; nadie puede cambiarse el rol a
+  sí mismo. Al quitar el acceso, la persona queda fuera al instante en todos
+  sus dispositivos.
+- **Datos en el celular:** las fotos y videos de la cámara quedan **solo** en
+  ese dispositivo (no se suben a ningún lado); la IA de la cámara corre en el
+  celular. El service worker guarda únicamente los archivos de la app, nunca
+  registros, nombres ni correos.
+- **En la página:** política de seguridad (CSP) que solo permite scripts de la
+  app y de jsDelivr, la librería de Supabase con versión fija y huella
+  (`integrity`), nombres mostrados siempre como texto, y la app no se deja
+  abrir dentro de otra página.
+- **Claves:** la URL y la anon key de Supabase y la llave VAPID **pública**
+  son públicas por diseño. La service role key y la llave VAPID **privada**
+  viven solo como secretos de Supabase.
+
 ## Estructura del proyecto
 
 ```
 index.html              pantallas de acceso + la app
 css/styles.css           estilos (claro/oscuro automático)
+js/inicio.js             registra el service worker y bloquea abrir la app dentro de otra página
 js/supabase-config.js    credenciales de tu proyecto Supabase (paso 1.6)
 js/auth.js                sesión, perfiles, invitación/recuperación de contraseña
 js/core.js                fechas/horas y acceso a la tabla "registros"
@@ -252,8 +292,10 @@ supabase/schema_temporizador.sql  duración, suscripciones push y el cron (paso 
 supabase/schema_recordatorio.sql  hora del recordatorio diario (paso 3b)
 supabase/schema_apariencia.sql    apariencia personalizable de Mili (paso 3c)
 supabase/schema_juego.sql         ropa de los personajes y minutos de juego (paso 3d)
+supabase/schema_seguridad.sql     refuerzo de seguridad: roles, nombres, acceso solo con perfil (paso 3e)
 supabase/functions/invite-user           Edge Function que envía invitaciones (paso 2)
 supabase/functions/send-patch-reminders  Edge Function que manda los avisos y el recordatorio (pasos 3 y 3b)
+supabase/functions/remove-user           Edge Function para que el admin quite el acceso (paso 3e)
 manifest.json, sw.js      configuración PWA (instalable, caché del cascarón, avisos push)
 icons/                    íconos de la app
 ```

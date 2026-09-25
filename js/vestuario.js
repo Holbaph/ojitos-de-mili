@@ -70,7 +70,8 @@ const Vestuario = (function () {
   // ---------- validación (lo guardado se mete dentro del SVG) ----------
   const HEX = /^#[0-9a-f]{6}$/i;
   function pieza(slot, v) {
-    return v && typeof v === 'object' && TIPOS[slot][v.t] && HEX.test(v.c || '') ? { t: v.t, c: v.c.toLowerCase() } : null;
+    return v && typeof v === 'object' && typeof v.t === 'string' && Object.prototype.hasOwnProperty.call(TIPOS[slot], v.t) &&
+      HEX.test(v.c || '') ? { t: v.t, c: v.c.toLowerCase() } : null;
   }
   function esPeinado(v) { return PEINADOS.some((p) => p.v === v); }
   function esFlequillo(v) { return FLEQUILLOS.some((p) => p.v === v); }

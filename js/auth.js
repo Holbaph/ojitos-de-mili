@@ -81,4 +81,15 @@ const Auth = {
     if (!data || data.ok !== true) throw new Error((data && data.error) || 'No se pudo invitar');
     return data;
   },
+
+  // Llama a la Edge Function remove-user: borra la cuenta de esa persona (y su
+  // perfil). Igual que al invitar, la función revisa en el servidor que quien
+  // llama sea admin; la persona queda fuera al instante (ver schema_seguridad.sql).
+  async quitarAcceso(userId) {
+    if (!supabaseClient) throw new Error('Supabase no está configurado');
+    const { data, error } = await supabaseClient.functions.invoke('remove-user', { body: { userId } });
+    if (error) throw new Error('No se pudo contactar la función para quitar acceso. ¿Ya la desplegaste? Revisa el README.');
+    if (!data || data.ok !== true) throw new Error((data && data.error) || 'No se pudo quitar el acceso');
+    return data;
+  },
 };

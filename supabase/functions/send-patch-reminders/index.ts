@@ -6,8 +6,8 @@
 //      registró el parche de hoy (ver supabase/schema_recordatorio.sql).
 //   2. Temporizador: si el registro de hoy ya cumplió su tiempo de parche.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import webpush from 'npm:web-push'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.2'
+import webpush from 'npm:web-push@3.6.7'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
