@@ -81,6 +81,23 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   misma cámara con Mili tal cual está en su avatar (no gasta tiempo de juego).
   La Mili del juego de vestir también queda igual al avatar cada vez que este
   cambia.
+- **Control del tratamiento (para los padres)**, en Historial:
+  - **Indicación del oftalmólogo**: qué ojo se tapa (siempre el mismo o
+    alternando), cuánto tiempo al día y qué días. La app sugiere el ojo que
+    toca, marca los días libres y calcula la constancia y la racha solo con
+    los días indicados (un día libre no corta la racha).
+  - **Tiempo real de uso**: botón "Ya se sacó el parche" en la pantalla
+    principal (y hora de sacado al corregir un registro). El historial muestra
+    las horas de cada día y el gráfico de **Esta semana**.
+  - **Informe para el doctor**: días, horas, constancia y detalle día a día de
+    las últimas 2 semanas a 3 meses, para imprimir o guardar en PDF, o
+    compartir por WhatsApp.
+  - **Próximo control**: fecha, doctor/a y preguntas; aviso el día antes a las
+    7 de la tarde y un recordatorio en la pantalla principal.
+  - **Premio por constancia**: una meta semanal y un premio; Mili ve su avance
+    con estrellitas en la pantalla principal.
+  - **Resumen semanal**: los domingos a las 7 de la tarde llega un aviso con
+    los días y horas de la semana (se puede desactivar).
 - **Juegos con el parche**: seis juegos de visión fina para entretenerse
   *mientras* se usa el parche (así trabaja el ojito destapado): 🍰 Cocinita,
   🔍 Diferencias, ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y
@@ -220,6 +237,12 @@ Corre [`supabase/schema_juego.sql`](supabase/schema_juego.sql) en **SQL Editor**
 minutos de juego por día). Sin esto el juego igual funciona, pero la ropa se
 guarda solo en ese dispositivo.
 
+### 3f. Control del tratamiento
+
+Corre [`supabase/schema_tratamiento.sql`](supabase/schema_tratamiento.sql) en
+**SQL Editor** (después de `schema_seguridad.sql`) y vuelve a desplegar la
+función de avisos: `supabase functions deploy send-patch-reminders`.
+
 ### 3e. Refuerzo de seguridad (obligatorio)
 
 1. Corre [`supabase/schema_seguridad.sql`](supabase/schema_seguridad.sql) en
@@ -285,6 +308,7 @@ js/inicio.js             registra el service worker y bloquea abrir la app dentr
 js/supabase-config.js    credenciales de tu proyecto Supabase (paso 1.6)
 js/auth.js                sesión, perfiles, invitación/recuperación de contraseña
 js/core.js                fechas/horas y acceso a la tabla "registros"
+js/tratamiento.js         cuentas del tratamiento: indicación, uso real, constancia, premio, informe
 js/vestuario.js           dibuja a una persona completa: pelo, ropa, zapatos, coronas, joyas, lentes
 js/mili.js                el avatar de Mili (apariencia, parche) usando vestuario.js
 js/tiempo-juego.js        el reloj de juego compartido (vestir + juegos con el parche)
@@ -300,6 +324,7 @@ supabase/schema_recordatorio.sql  hora del recordatorio diario (paso 3b)
 supabase/schema_apariencia.sql    apariencia personalizable de Mili (paso 3c)
 supabase/schema_juego.sql         ropa de los personajes y minutos de juego (paso 3d)
 supabase/schema_seguridad.sql     refuerzo de seguridad: roles, nombres, acceso solo con perfil (paso 3e)
+supabase/schema_tratamiento.sql   indicación, hora de sacado, premio, control y resumen (paso 3f)
 supabase/functions/invite-user           Edge Function que envía invitaciones (paso 2)
 supabase/functions/send-patch-reminders  Edge Function que manda los avisos y el recordatorio (pasos 3 y 3b)
 supabase/functions/remove-user           Edge Function para que el admin quite el acceso (paso 3e)
