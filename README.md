@@ -30,11 +30,11 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   un reloj de arena animado mostrando cuánto falta — pensado para que la propia Mili
   pueda mirarlo y entender cuánto queda, sin tener que preguntar. La duración
   (cuántos minutos va el parche puesto) se configura y se puede cambiar cuando
-  quieras, en Historial → Temporizador y avisos.
+  quieras, en Configuración → Tratamiento indicado.
 - **Avisos aunque la app esté cerrada**: al activarlos en un dispositivo (mismo
   bloque de Ajustes), llega una notificación exactamente cuando se cumple el
   tiempo — no hace falta tener la app abierta ni el celular desbloqueado.
-- **Recordatorio diario**: en Historial → Temporizador y avisos se elige una hora
+- **Recordatorio diario**: en Configuración → Avisos y recordatorios se elige una hora
   (por ejemplo, 9:00 a.m.) y cada día, a esa hora, llega un aviso para ponerle el
   parche a Mili — solo si todavía nadie lo registró ese día. Llega a los mismos
   dispositivos que tienen los avisos activados.
@@ -47,13 +47,18 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   unicornio); joyas (aros, collares, reloj, pulseras, anillos); lentes; y **el parche** (forma ovalada, redonda, de
   corazón o nube; estampado liso, lunares, corazones, estrellas, rayas o arcoíris;
   color y un adornito). Toda la familia ve a la misma Mili.
-- **Juego "Jugar a vestir"**: se elige un personaje (Mili; Rumi, Mira y Zoey;
-  Elsa, Anna, Kristoff, Olaf, Sven y los reyes Agnarr e Iduna; Moana; Rapunzel,
-  Ariel, Bella, Cenicienta, Mérida, Tiana y Jasmine; la familia Madrigal
+- **Juego "Jugar a vestir"**: se elige un personaje, ordenados por película
+  con un título entre cada grupo: Mili; **Frozen** (Elsa, Anna, Kristoff, Olaf,
+  Sven, los reyes Agnarr e Iduna, Honeymaren, Ryder, Oaken, el príncipe Hans,
+  el Gran Pabbie, Malvavisco, Bruni, el espíritu del viento, el gigante de
+  tierra y el Nokk); **Huntrix** (Rumi, Mira y Zoey); **Moana**; **Encanto**
   (Mirabel, Abuela Alma, Isabela, Luisa, Pepa, Dolores, Camilo, Antonio y
-  Bruno); Lilo, Stitch y Ángel; Mickey y Minnie; Luli Pampín y Blippi — dibujos propios
-  inspirados en esas películas, no imágenes oficiales; Olaf, Sven, Stitch y
-  Ángel solo usan accesorios porque la ropa no les calza) y
+  Bruno); **Lilo y Stitch** (Lilo, Stitch y Ángel); **Princesas** (Rapunzel,
+  Ariel, Bella, Cenicienta, Mérida, Tiana y Jasmine); **Mickey y Minnie**; y
+  **Luli Pampín y Blippi**. Son dibujos propios inspirados en esas películas, no
+  imágenes oficiales; los que no son personas (Olaf, Sven, Stitch, Ángel y
+  los espíritus y criaturas de Frozen) solo usan accesorios porque la ropa no
+  les calza. Al personaje
   se le cambia la ropa arrastrando prendas del armario hasta el personaje (o
   tocándolas): poleras, tops, polerones, jeans, faldas, vestidos, chaquetas,
   capas, zapatillas, botas, peinados, color de pelo, ojos, moños, tiaras,
@@ -81,7 +86,15 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   misma cámara con Mili tal cual está en su avatar (no gasta tiempo de juego).
   La Mili del juego de vestir también queda igual al avatar cada vez que este
   cambia.
-- **Control del tratamiento (para los padres)**, en Historial:
+- **Historial y Configuración, por separado**: en la pantalla principal hay tres
+  botones. **📋 Historial** muestra lo que ya pasó (esta semana, los últimos 28
+  días, el balance de lados, los registros y el informe para el doctor).
+  **⚙️ Configuración** reúne todos los ajustes en grupos que se abren y cierran,
+  cada uno con un resumen de cómo está: Tratamiento indicado, Avisos y
+  recordatorios, Próximo control, Premio por constancia, Juegos y Personas con
+  acceso. **🎨 Personalizar** es para el avatar de Mili.
+- **Control del tratamiento (para los padres)**, en Configuración (y el
+  informe y el gráfico de la semana, en Historial):
   - **Indicación del oftalmólogo**: qué ojo se tapa (siempre el mismo o
     alternando), cuánto tiempo al día y qué días. La app sugiere el ojo que
     toca, marca los días libres y calcula la constancia y la racha solo con
@@ -110,7 +123,7 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   niveles que se van poniendo más difíciles y dan estrellitas ⭐. Son para
   acompañar el tratamiento, **no lo reemplazan** ni son ejercicios indicados
   por un oftalmólogo.
-- **Un solo tiempo de juego**: en Historial → **Tiempo de juego** se fijan los
+- **Un solo tiempo de juego**: en Configuración → **Juegos** se fijan los
   minutos por día, que valen para "Jugar a vestir" y "Juegos con el parche"
   sumados. Al acabarse, los juegos se cierran solos hasta el día siguiente (o
   hasta tocar **Dar más tiempo hoy**).
@@ -145,7 +158,7 @@ script SQL — sin haber iniciado sesión, esas claves no permiten leer ni escri
 
 ## 2. Activar el botón "Invitar" dentro de la app (Edge Function)
 
-Solo la administradora/or ve y puede usar el botón **Invitar** (en Historial →
+Solo la administradora/or ve y puede usar el botón **Invitar** (en Configuración →
 Personas con acceso). Para que funcione, hay que desplegar una función de
 Supabase que hace la invitación por ti — es la única forma segura de hacerlo,
 porque invitar gente requiere una clave que nunca debe llegar al navegador
@@ -201,7 +214,7 @@ si la app está agregada a la pantalla de inicio (iOS 16.4 o más nuevo).
    ```
    supabase functions deploy send-patch-reminders
    ```
-4. En la app, ve a Historial → **Temporizador y avisos** → **Activar avisos en
+4. En la app, ve a Configuración → **Avisos y recordatorios** → **Activar avisos en
    este dispositivo**, en cada celular donde quieras recibirlos (recuerda: tiene
    que estar agregada a la pantalla de inicio primero, no una pestaña suelta de
    Safari/Chrome).
@@ -219,7 +232,7 @@ solo hay que agregar dos cosas:
    supabase functions deploy send-patch-reminders
    ```
 
-Después, en la app: Historial → **Temporizador y avisos** → elige la hora del
+Después, en la app: Configuración → **Avisos y recordatorios** → elige la hora del
 recordatorio → **Guardar**. El aviso sale dentro de la hora siguiente a la
 elegida (si se guarda una hora que ya pasó hoy, parte mañana) y una sola vez al
 día.
@@ -250,7 +263,7 @@ función de avisos: `supabase functions deploy send-patch-reminders`.
    su rol), limpia los nombres, exige tener perfil para ver o cambiar datos y
    que cada registro quede firmado por quien lo hizo.
 2. Despliega la función para **quitar acceso** (el admin la usa desde
-   Historial → Personas con acceso):
+   Configuración → Personas con acceso):
    ```
    supabase functions deploy remove-user
    ```
