@@ -202,7 +202,25 @@ const Juego = (function () {
       id: 'jasmine', nombre: 'Jasmine', grupo: 'Aladdín', piel: '#c98e64', ojos: '#4a3222', peloEstilo: 'cola-baja', peloColor: '#1f1a1c',
       ropa: { arriba: { t: 'top', c: C.turquesa }, abajo: { t: 'bombacho', c: C.turquesa }, cabeza: { t: 'cintillo', c: C.dorado }, zapatos: { t: 'balerinas', c: C.turquesa } },
     },
+    {
+      id: 'kristoff', nombre: 'Kristoff', grupo: 'Frozen', piel: '#f6d7bd', ojos: '#7d5a3c', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#e8c66a',
+      ropa: { arriba: { t: 'manga-larga', c: C.azulOscuro }, abajo: { t: 'jeans', c: '#5a4636' }, encima: { t: 'chaleco', c: C.cafe }, zapatos: { t: 'botas', c: C.cafe }, sombrero: { t: 'gorro-lana', c: C.azulOscuro } },
+    },
+    // Olaf, Sven, Stitch y Ángel no son personas: tienen su propio dibujo y solo
+    // usan accesorios (coronas y gorros, lentes, collares, moños).
+    { id: 'olaf', nombre: 'Olaf', grupo: 'Frozen', especie: 'olaf', ropa: {} },
+    { id: 'sven', nombre: 'Sven', grupo: 'Frozen', especie: 'sven', ropa: {} },
+    {
+      id: 'lilo', nombre: 'Lilo', grupo: 'Lilo y Stitch', piel: '#b97d52', ojos: '#3a2a22', peloEstilo: 'largo', flequillo: 'recto', peloColor: '#1f1a1c',
+      ropa: { vestido: { t: 'vestido', c: C.rojo }, cabeza: { t: 'flor', c: C.blanco } },
+    },
+    { id: 'stitch', nombre: 'Stitch', grupo: 'Lilo y Stitch', especie: 'stitch', ropa: { collar: { t: 'mostacillas', c: C.rosado } } },
+    { id: 'angel', nombre: 'Ángel', grupo: 'Lilo y Stitch', especie: 'angel', ropa: { cabeza: { t: 'flor', c: C.amarillo } } },
   ];
+  // categorías (y lugares de Joyas) que les sirven a los que no son personas
+  const CATS_ESPECIE = ['cabeza', 'sombrero', 'cara', 'joyas'];
+  const especieDe = (id) => (PERSONAJES.find((p) => p.id === id) || {}).especie || null;
+  const catPermitida = (c) => !especieDe(actual) || CATS_ESPECIE.includes(c);
 
   // Mili toma su piel, ojos y pelo de su apariencia personalizada (js/mili.js).
   let aparienciaMili = Mili.DEFAULT;
@@ -254,6 +272,8 @@ const Juego = (function () {
       relleno = e.relleno;
       sobreOjos = Mili.parcheFoto(aparienciaMili, 'jmili', o.parche);
     }
+    const esp = especieDe(id);
+    if (esp) return Vestuario.especie(esp, st).figura;
     return defs + Vestuario.persona(st, { piel: personaje(id).piel, relleno, pose: o.pose, sobreOjos, sinBrazo: o.sinBrazo }).figura;
   }
 
@@ -350,7 +370,8 @@ const Juego = (function () {
   }
 
   function renderCats() {
-    $('juegoCats').innerHTML = CATEGORIAS.map((c) =>
+    if (!catPermitida(cat)) cat = 'sombrero';
+    $('juegoCats').innerHTML = CATEGORIAS.filter((c) => catPermitida(c.id)).map((c) =>
       `<button data-cat="${c.id}"${c.id === cat ? ' class="activo"' : ''}><span>${c.e}</span>${c.n}</button>`
     ).join('');
   }
@@ -362,7 +383,8 @@ const Juego = (function () {
     if (cat === 'pelo') return COLORES_PELO.map((p) => ({ key: 'pelo|' + p.c, valor: p.c, nombre: 'Pelo ' + p.n.toLowerCase(), puesto: st.peloColor === p.c }));
     if (cat === 'ojos') return COLORES_OJOS.map((p) => ({ key: 'ojos|' + p.c, valor: p.c, nombre: 'Ojos ' + p.n.toLowerCase(), puesto: st.ojos === p.c }));
     const out = [];
-    const slots = (CATEGORIAS.find((x) => x.id === cat) || {}).slots || [cat];
+    const slots = ((CATEGORIAS.find((x) => x.id === cat) || {}).slots || [cat])
+      .filter((sl) => !especieDe(actual) || Vestuario.SLOTS_ESPECIE.includes(sl));
     slots.forEach((slot) => (ARMARIO[slot] || []).forEach(([t, colores]) => colores.forEach((c) => {
       const puesto = !!st[slot] && st[slot].t === t && st[slot].c === c;
       out.push({ key: slot + '|' + t + '|' + c, slot, valor: { t, c }, nombre: TIPOS[slot][t] + ' ' + (NOMBRE_COLOR[c] || ''), puesto });
@@ -421,7 +443,7 @@ const Juego = (function () {
       const b = e.target.closest('.jpersonaje');
       if (!b) return;
       actual = b.dataset.id;
-      renderPersonajes(); renderEscenario(true); renderItems();
+      renderPersonajes(); renderEscenario(true); renderCats(); renderItems();
       guardar();
     });
 
@@ -457,10 +479,13 @@ const Juego = (function () {
 
     $('juegoFoto').addEventListener('click', () => {
       const id = actual;
+      const esp = especieDe(id);
       Camara.abrir({
         dibujar: (o) => figura(id, estados[id], o),
-        brazo: () => Vestuario.persona(estados[id], { piel: personaje(id).piel }).brazo,
+        brazo: () => (esp ? Vestuario.especie(esp, estados[id]).brazo : Vestuario.persona(estados[id], { piel: personaje(id).piel }).brazo),
         conParche: id === 'mili', parche: parcheHoy,
+        // los que no son personas no tienen poses: solo los efectos que no las usan
+        limitado: !!esp, manoGlobos: esp ? { x: 256, y: 300 } : null,
       });
     });
 
@@ -558,7 +583,7 @@ const Juego = (function () {
 
   // Para los juegos con el parche (js/juegos-parche.js): la lista de
   // personajes y su ropa original, para dibujarlos con figura().
-  function personajes() { return PERSONAJES.map((p) => ({ id: p.id, nombre: p.nombre })); }
+  function personajes() { return PERSONAJES.map((p) => ({ id: p.id, nombre: p.nombre, especie: p.especie || null })); }
   function original(id) { return JSON.parse(JSON.stringify(inicial(id))); }
 
   return { abrir, cerrar, restablecerTodos, figura, personajes, original };

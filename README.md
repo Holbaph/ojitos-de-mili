@@ -48,8 +48,10 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   corazón o nube; estampado liso, lunares, corazones, estrellas, rayas o arcoíris;
   color y un adornito). Toda la familia ve a la misma Mili.
 - **Juego "Jugar a vestir"**: se elige un personaje (Mili; Rumi, Mira y Zoey;
-  Elsa y Anna; Moana; Rapunzel, Ariel, Bella, Cenicienta, Mirabel, Mérida, Tiana
-  y Jasmine — dibujos propios inspirados en esas películas, no imágenes oficiales) y
+  Elsa, Anna, Kristoff, Olaf y Sven; Moana; Rapunzel, Ariel, Bella, Cenicienta,
+  Mirabel, Mérida, Tiana y Jasmine; Lilo, Stitch y Ángel — dibujos propios
+  inspirados en esas películas, no imágenes oficiales; Olaf, Sven, Stitch y
+  Ángel solo usan accesorios porque la ropa no les calza) y
   se le cambia la ropa arrastrando prendas del armario hasta el personaje (o
   tocándolas): poleras, tops, polerones, jeans, faldas, vestidos, chaquetas,
   capas, zapatillas, botas, peinados, color de pelo, ojos, moños, tiaras,
@@ -61,10 +63,12 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   y se pueden guardar en la galería o compartir. En la cámara se elige una
   **pose animada** (saludo, abrazo, la V, corazón, ¡hurra!) y, con Mili, si
   sale con el parche y en qué ojo. Con los efectos **✨ Con IA** el avatar
-  interactúa con quien sale en la foto: 🤗 la abraza (su brazo pasa por detrás
-  de la espalda y la mano aparece en el otro hombro), 🐰 le hace orejas de
-  conejo detrás de la cabeza, 🤝 le pone la mano en el hombro, 👑 le pone una
-  corona o 😘 le da un besito. Usa MediaPipe (detecta el cuerpo y recorta la
+  juega con quien sale en la foto: 🎲 Sorpresa (va cambiando de acción solo,
+  sin orden fijo), 🙈 Escondidas (se asoma por detrás: "¡Buu!"), 🧚 sentada en
+  tu hombro, 🤗 abrazo por detrás, 🐰 orejas de conejo, 🎈 volando con globos,
+  👑 corona para ti, 😘 besito, 🤝 mano en el hombro y 👋 hola — con globos de
+  diálogo, chispitas, brillo según la luz del lugar y ⏱ foto con 3 segundos
+  de espera. Usa MediaPipe (detecta el cuerpo y recorta la
   silueta) y corre en el mismo celular: la imagen no se envía a ningún lado.
 - **📸 Foto con mi avatar**: bajo el avatar, en la pantalla principal; abre la
   misma cámara con Mili tal cual está en su avatar (no gasta tiempo de juego).
