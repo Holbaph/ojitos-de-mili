@@ -782,7 +782,7 @@ const Vestuario = (function () {
   // ================= PERSONA COMPLETA =================
   // opts: { piel, relleno (estampado de la prenda principal), sinOjos,
   //         pose (ver POSES), sobreOjos (algo justo encima de los ojos: el parche),
-  //         sinBrazo ('izq' | 'der': ese brazo no se dibuja; lo dibuja la cámara
+  //         sinBrazo ('izq' | 'der' | 'ambos': ese brazo no se dibuja; lo dibuja la cámara
   //         con realidad aumentada, p. ej. para abrazar),
   //         raton (cabeza de ratón, sin pelo: Mickey y Minnie), manos (color de
   //         las manos, p. ej. guantes blancos) }
@@ -836,7 +836,7 @@ const Vestuario = (function () {
     const contorno = oscurecer(piel, 0.14);
     const colorMano = opts.manos || piel, bordeMano = opts.manos ? '#b9b9c0' : contorno;
     ['izq', 'der'].forEach((lado) => {
-      if (opts.sinBrazo === lado) return;
+      if (opts.sinBrazo === lado || opts.sinBrazo === 'ambos') return;
       const pts = pose[lado];
       const [hx, hy] = pts[pts.length - 1];
       const d = 'M' + pts.map(([x, y]) => `${x} ${y}`).join(' L');
