@@ -51,7 +51,7 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   con un título entre cada grupo: Mili; **Frozen** (Elsa, Anna, Kristoff, Olaf,
   Sven, los reyes Agnarr e Iduna, Honeymaren, Ryder, Oaken, el príncipe Hans,
   el Gran Pabbie, Malvavisco, Bruni, el espíritu del viento, el gigante de
-  tierra y el Nokk); **Huntrix** (Rumi, Mira y Zoey); **Moana**; **Encanto**
+  tierra y el Nokk); **Huntrix** (Rumi, Mira y Zoey, y los Saja Boys: Jinu, Abby, Mystery, Romance y Baby); **Moana** (Moana, Maui, Heihei, Pua, Tamatoa, Te Fiti y Te Kā); **Encanto**
   (Mirabel, Abuela Alma, Isabela, Luisa, Pepa, Dolores, Camilo, Antonio y
   Bruno); **Lilo y Stitch** (Lilo, Stitch y Ángel); **Princesas** (Rapunzel,
   Ariel, Bella, Cenicienta, Mérida, Tiana y Jasmine); **Mickey y Minnie**; y
@@ -111,15 +111,17 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
     con estrellitas en la pantalla principal.
   - **Resumen semanal**: los domingos a las 7 de la tarde llega un aviso con
     los días y horas de la semana (se puede desactivar).
-- **Juegos con el parche**: seis juegos de visión fina para entretenerse
+- **Juegos con el parche**: siete juegos de visión fina para entretenerse
   *mientras* se usa el parche (así trabaja el ojito destapado): 🍰 Cocinita,
-  🔍 Diferencias, ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y
+  🎹 Piano mágico (teclas grandes y lentas que tocan una canción; no se pierde
+  nunca), 🔍 Diferencias, ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y
   🫧 Burbujas. En **Cocinita** un personaje pide un plato (pizza, pastel,
   helado, hamburguesa, cupcake, brocheta de frutas, panqueques, dona o
   ensalada) y hay que prepararlo igual al dibujo: elegir salsa o cobertura,
   apilar capas en orden y poner la cantidad justa de cada ingrediente
-  (arrastrando o tocando). Los niveles no se acaban: más ingredientes,
-  cosas parecidas, series de frutas y, desde el nivel 10, sin lista. Tienen
+  (arrastrando o tocando). Los niveles no se acaban, pero la dificultad sube
+  de a poco y tiene tope (pensada para una niña de 4 años); la lista del
+  pedido siempre se ve. Tienen
   niveles que se van poniendo más difíciles y dan estrellitas ⭐. Son para
   acompañar el tratamiento, **no lo reemplazan** ni son ejercicios indicados
   por un oftalmólogo.

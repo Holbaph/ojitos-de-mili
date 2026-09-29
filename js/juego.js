@@ -208,11 +208,42 @@ const Juego = (function () {
       id: 'zoey', rasgos: { pestanas: true }, nombre: 'Zoey', grupo: 'Huntrix', piel: '#f3d2b5', ojos: '#3a2a22', peloEstilo: 'cola-alta', peloColor: '#1f1a1c',
       ropa: { arriba: { t: 'poleron', c: C.lila }, abajo: { t: 'short', c: C.negro }, zapatos: { t: 'zapatillas', c: C.blanco }, cara: { t: 'lentes-corazon', c: C.rosado } },
     },
+    // los Saja Boys, la banda de chicos ("Soda Pop")
+    {
+      id: 'jinu', rasgos: { cejas: 'marcadas' }, nombre: 'Jinu', grupo: 'Huntrix', piel: '#f3dcc6', ojos: '#3a2a22', peloEstilo: 'corto', flequillo: 'cortina', peloColor: '#1f1a1c',
+      ropa: { arriba: { t: 'camisa', c: C.negro }, abajo: { t: 'jeans', c: C.negro }, encima: { t: 'chaqueta', c: C.burdeo }, zapatos: { t: 'botines', c: C.negro }, collar: { t: 'cadena', c: C.plateado } },
+    },
+    {
+      id: 'abby', rasgos: { cejas: 'marcadas' }, nombre: 'Abby', grupo: 'Huntrix', piel: '#f3dcc6', ojos: '#3a2a22', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#6b3a2a',
+      ropa: { arriba: { t: 'musculosa', c: C.negro }, abajo: { t: 'jeans', c: C.negro }, encima: { t: 'chaleco', c: C.burdeo }, zapatos: { t: 'botines', c: C.negro }, muneca: { t: 'brazaletes', c: C.plateado } },
+    },
+    {
+      id: 'mystery', rasgos: { cejas: 'marcadas' }, nombre: 'Mystery', grupo: 'Huntrix', piel: '#f3dcc6', ojos: '#3a2a22', peloEstilo: 'melena', flequillo: 'recto', peloColor: '#1f1a1c',
+      ropa: { arriba: { t: 'camisa', c: C.burdeo }, abajo: { t: 'jeans', c: C.negro }, encima: { t: 'abrigo', c: C.negro }, zapatos: { t: 'botas', c: C.negro }, cara: { t: 'lentes', c: C.negro } },
+    },
+    {
+      id: 'romance', rasgos: { cejas: 'marcadas' }, nombre: 'Romance', grupo: 'Huntrix', piel: '#f3dcc6', ojos: '#3a2a22', peloEstilo: 'corto', flequillo: 'lado', peloColor: '#3a2a4a',
+      ropa: { arriba: { t: 'camisa', c: C.blanco }, abajo: { t: 'jeans', c: C.negro }, encima: { t: 'chaqueta', c: C.negro }, zapatos: { t: 'botines', c: C.negro }, collar: { t: 'corazon', c: C.rojo } },
+    },
+    {
+      id: 'baby', rasgos: { cejas: 'marcadas' }, nombre: 'Baby', grupo: 'Huntrix', piel: '#f3dcc6', ojos: '#3a2a22', peloEstilo: 'corto', flequillo: 'recto', peloColor: '#e8c66a',
+      ropa: { arriba: { t: 'poleron', c: C.burdeo }, abajo: { t: 'jeans', c: C.negro }, zapatos: { t: 'zapatillas', c: C.negro }, pendientes: { t: 'aros', c: C.plateado } },
+    },
     // ---- Moana ----
     {
       id: 'moana', rasgos: { pestanas: true }, nombre: 'Moana', grupo: 'Moana', piel: '#a86b45', ojos: '#3a2a22', peloEstilo: 'crespo', peloColor: '#1f1a1c',
       ropa: { arriba: { t: 'top', c: C.crema }, abajo: { t: 'falda-larga', c: C.rojo }, cabeza: { t: 'flor', c: C.rojo }, collar: { t: 'concha', c: C.turquesa } },
     },
+    {
+      id: 'maui', rasgos: { cejas: 'marcadas' }, nombre: 'Maui', grupo: 'Moana', piel: '#9a5f3c', ojos: '#3a2a22', peloEstilo: 'afro', flequillo: 'sin', peloColor: '#1f1a1c',
+      ropa: { arriba: { t: 'musculosa', c: '#5a3a28' }, abajo: { t: 'falda', c: '#6f9a4a' }, collar: { t: 'concha', c: C.blanco }, muneca: { t: 'brazaletes', c: C.cafe } },
+    },
+    // Heihei, Pua, Tamatoa, Te Fiti y Te Kā no son personas: solo usan accesorios
+    { id: 'heihei', nombre: 'Heihei', grupo: 'Moana', especie: 'heihei', ropa: {} },
+    { id: 'pua', nombre: 'Pua', grupo: 'Moana', especie: 'pua', ropa: { cabeza: { t: 'flor', c: C.rosado } } },
+    { id: 'tamatoa', nombre: 'Tamatoa', grupo: 'Moana', especie: 'tamatoa', ropa: { collar: { t: 'cadena', c: C.dorado } } },
+    { id: 'tefiti', nombre: 'Te Fiti', grupo: 'Moana', especie: 'tefiti', ropa: {} },
+    { id: 'teka', nombre: 'Te Kā', grupo: 'Moana', especie: 'teka', ropa: {} },
     // ---- Encanto: la familia Madrigal ----
     {
       id: 'mirabel', rasgos: { pestanas: true }, nombre: 'Mirabel', grupo: 'Encanto', piel: '#b97d52', ojos: '#4a3222', peloEstilo: 'crespo', peloColor: '#1f1a1c',

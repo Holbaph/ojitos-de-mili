@@ -8,10 +8,10 @@
 // ingrediente ya puesto, se saca.
 //
 // Nueve platos se van turnando (pizza, pastel, helado, hamburguesa, cupcake,
-// brocheta, panqueques, dona, ensalada) y los niveles no tienen fin: cada vez
-// más ingredientes y más cantidad, capas más largas, series de frutas, cosas
-// parecidas para confundir, piezas más chicas y, desde el nivel 10, sin lista
-// (hay que contar mirando el dibujo). Todo hace trabajar la vista fina.
+// brocheta, panqueques, dona, ensalada) y los niveles no tienen fin, pero la
+// dificultad está pensada para una niña de 4 años: sube de a poco y tiene tope
+// (hasta 3 tipos de ingrediente, 4 de cada uno, 4 capas y pocas cosas para
+// confundir). La lista del pedido se ve siempre. Todo hace trabajar la vista fina.
 //
 // Todo lo que se dibuja sale de listas fijas de este archivo (nada viene de la
 // base de datos), así que se puede armar el SVG como texto sin riesgo.
@@ -368,16 +368,17 @@ const Cocina = (function () {
     const r = { plato: pid, capas: {}, pila: [], piezas: {} };
     P.capas.forEach((cat) => { r.capas[cat] = pick(capasDe(cat)); });
     if (P.pila) {
-      const largo = entre(P.pilaMin + Math.floor((nivel - 1) / 5), P.pilaMin, P.pilaMax);
+      // pensado para una niña de 4 años: pocas capas, que crecen de a poco
+      const largo = entre(P.pilaMin + Math.floor((nivel - 1) / 9), P.pilaMin, Math.min(P.pilaMax, 4));
       if (pid === 'brocheta' && nivel >= 12 && Math.random() < 0.6) {
         // una serie que se repite (frutilla, plátano, frutilla, plátano…)
         const patron = mezclar(P.pila).slice(0, nivel >= 30 ? 3 : 2);
         for (let i = 0; i < largo; i++) r.pila.push(patron[i % patron.length]);
       } else if (pid === 'pastel') {
         const biz = P.pila.filter((id) => !I[id].relleno), rel = P.pila.filter((id) => I[id].relleno);
-        const pisos = entre(2 + Math.floor((nivel - 1) / 12), 2, 4);
+        const pisos = entre(2 + Math.floor((nivel - 1) / 18), 2, 3);
         for (let i = 0; i < pisos; i++) {
-          if (i && nivel >= 10) r.pila.push(pick(rel));
+          if (i && nivel >= 20) r.pila.push(pick(rel));
           r.pila.push(pick(biz));
         }
       } else if (pid === 'hamburguesa') {
@@ -390,8 +391,8 @@ const Cocina = (function () {
       }
     }
     if (P.piezas.length) {
-      const tipos = entre(1 + Math.floor((nivel - 1) / 6), 1, Math.min(4, P.piezas.length));
-      const maxC = Math.min(P.maxCada, 2 + Math.floor((nivel - 1) / 4));
+      const tipos = entre(1 + Math.floor((nivel - 1) / 9), 1, Math.min(3, P.piezas.length));
+      const maxC = Math.min(P.maxCada, 4, 2 + Math.floor((nivel - 1) / 9));
       let total = 0;
       mezclar(P.piezas).slice(0, tipos).forEach((id) => {
         const n = Math.min(1 + rnd(maxC), P.maxTotal - total);
@@ -407,8 +408,8 @@ const Cocina = (function () {
   function jugar(area, nivel, ganar, aviso) {
     const r = receta(nivel);
     const pid = r.plato, P = PLATOS[pid];
-    const escala = Math.max(0.7, 1 - (nivel - 1) * 0.012);
-    const sinLista = nivel >= 10;
+    const escala = Math.max(0.92, 1 - (nivel - 1) * 0.004);
+    const sinLista = false; // la lista del pedido siempre a la vista
     let st = { capas: {}, pila: [], piezas: [] };
     let historial = [], nuevo = -1, fin = false;
 
@@ -418,11 +419,11 @@ const Cocina = (function () {
     Object.keys(r.piezas).forEach((id) => { for (let k = 0; k < r.piezas[id]; k++) meta.piezas.push(nuevaPieza(id, meta.piezas, null, azarMeta)); });
 
     // bandeja: lo que pide la receta + cosas parecidas para confundir
-    const trampas = Math.min(6, 1 + Math.floor((nivel - 1) / 3));
+    const trampas = Math.min(3, 1 + Math.floor((nivel - 1) / 6));
     const secciones = [];
     P.capas.forEach((cat) => {
       const todas = capasDe(cat);
-      const ops = nivel < 4 ? mezclar([r.capas[cat], ...mezclar(todas.filter((x) => x !== r.capas[cat])).slice(0, 1)]) : mezclar(todas);
+      const ops = mezclar([r.capas[cat], ...mezclar(todas.filter((x) => x !== r.capas[cat])).slice(0, nivel < 6 ? 1 : 2)]);
       secciones.push({ titulo: CATS[cat].n, ids: ops });
     });
     if (P.pila) {
@@ -616,7 +617,6 @@ const Cocina = (function () {
 
     pintar();
     if (nivel === 1) aviso('Arrastra (o toca) los ingredientes para preparar el pedido 👩‍🍳');
-    else if (sinLista && nivel <= 11) aviso('Desde ahora: ¡mira bien el dibujo del pedido y cuenta! 👀');
     return () => { fin = true; clearTimeout(verLista); soltarFantasma(); };
   }
 
