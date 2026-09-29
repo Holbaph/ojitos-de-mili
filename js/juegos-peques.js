@@ -47,19 +47,41 @@ const JuegosPeques = (function () {
   const bajo = (x, y, sel) => { const el = document.elementFromPoint(x, y); return el && el.closest(sel); };
   const limpiarFantasmas = () => document.querySelectorAll('.pq-fantasma').forEach((f) => f.remove());
 
+  // Lo que elige el papá/mamá (cuántas cartas, cuántas piezas) queda guardado
+  // en este dispositivo. Sin elección, se usa lo del nivel.
+  const OPCIONES = 'ojitos-jp-opciones';
+  function opcion(clave) { try { return (JSON.parse(localStorage.getItem(OPCIONES)) || {})[clave] || null; } catch (e) { return null; } }
+  function guardarOpcion(clave, v) {
+    try { const o = JSON.parse(localStorage.getItem(OPCIONES)) || {}; o[clave] = v; localStorage.setItem(OPCIONES, JSON.stringify(o)); } catch (e) { /* sin guardar */ }
+  }
+  const selector = (titulo, valores, actual) => `<div class="pq-elegir" role="group" aria-label="${titulo}"><span>${titulo}:</span>` +
+    valores.map((v) => `<button data-v="${v}"${v === actual ? ' class="activo"' : ''}>${v}</button>`).join('') + '</div>';
+  // al tocar un número, se guarda y el juego vuelve a empezar con esa cantidad
+  function alElegir(area, clave, reiniciar) {
+    area.querySelector('.pq-elegir').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-v]');
+      if (!b) return;
+      guardarOpcion(clave, Number(b.dataset.v));
+      reiniciar();
+    });
+  }
+
   // ================= 🧩 ROMPECABEZAS =================
+  const PIEZAS = { 4: [2, 2], 6: [2, 3], 9: [3, 3], 12: [3, 4], 16: [4, 4] };
   function rompecabezas(area, nivel, ganar, aviso) {
-    const [cols, filas] = nivel <= 2 ? [2, 2] : nivel <= 5 ? [2, 3] : [3, 3];
+    const elegido = PIEZAS[opcion('rompecabezas')] ? opcion('rompecabezas') : (nivel <= 2 ? 4 : nivel <= 5 ? 6 : 9);
+    const [cols, filas] = PIEZAS[elegido];
     const p = pick(Juego.personajes());
     const fig = figura(p.id), W = 320, H = 440, cw = W / cols, ch = H / filas;
     const n = cols * filas;
-    area.innerHTML = `<p class="jp-consigna">Arma a <strong>${p.nombre}</strong>: lleva cada pieza a su lugar</p>` +
+    area.innerHTML = selector('Piezas', Object.keys(PIEZAS).map(Number), elegido) +
+      `<p class="jp-consigna">Arma a <strong>${p.nombre}</strong>: lleva cada pieza a su lugar</p>` +
       '<div class="pz">' +
       `<div class="pz-tablero" id="pzT" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${filas},1fr)">` +
       `<svg class="pz-guia" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${fig}</svg>` +
       Array.from({ length: n }, (_, i) => `<div class="pz-hueco" data-i="${i}"></div>`).join('') + '</div>' +
       '<div class="pz-bandeja" id="pzB">' + mezclar([...Array(n).keys()]).map((i) =>
-        `<button class="pz-pieza" data-i="${i}" style="aspect-ratio:${cw}/${ch}" aria-label="Pieza"><svg viewBox="${(i % cols) * cw} ${Math.floor(i / cols) * ch} ${cw} ${ch}" preserveAspectRatio="none">${fig}</svg></button>`).join('') +
+        `<button class="pz-pieza" data-i="${i}" style="aspect-ratio:${cw}/${ch};width:${n >= 12 ? 58 : 78}px" aria-label="Pieza"><svg viewBox="${(i % cols) * cw} ${Math.floor(i / cols) * ch} ${cw} ${ch}" preserveAspectRatio="none">${fig}</svg></button>`).join('') +
       '</div></div>';
     let puestas = 0, elegida = null, fin = false;
     function poner(pieza, hueco) {
@@ -79,17 +101,21 @@ const JuegosPeques = (function () {
       const hueco = e.target.closest('.pz-hueco');
       if (hueco && elegida) poner(elegida, hueco);
     });
+    alElegir(area, 'rompecabezas', () => { fin = true; limpiarFantasmas(); rompecabezas(area, nivel, ganar, aviso); });
     if (nivel === 1) aviso('Arrastra las piezas (o toca una pieza y después su lugar) 🧩');
     return () => { fin = true; limpiarFantasmas(); };
   }
 
   // ================= 🃏 MEMORIA =================
+  const CARTAS = [4, 6, 8, 10, 12, 16];
   function memoria(area, nivel, ganar, aviso) {
-    const pares = nivel <= 2 ? 3 : nivel <= 4 ? 4 : nivel <= 7 ? 5 : 6;
+    const elegido = CARTAS.includes(opcion('memoria')) ? opcion('memoria') : 2 * (nivel <= 2 ? 3 : nivel <= 4 ? 4 : nivel <= 7 ? 5 : 6);
+    const pares = elegido / 2;
     const ids = mezclar(Juego.personajes().map((p) => p.id)).slice(0, pares);
     const cartas = mezclar(ids.concat(ids));
-    area.innerHTML = '<p class="jp-consigna">Da vuelta dos cartas y encuentra las <strong>parejas</strong></p>' +
-      `<div class="mem" style="grid-template-columns:repeat(${pares <= 3 ? 3 : 4},1fr)">` + cartas.map((id) =>
+    area.innerHTML = selector('Cartas', CARTAS, elegido) +
+      '<p class="jp-consigna">Da vuelta dos cartas y encuentra las <strong>parejas</strong></p>' +
+      `<div class="mem" style="grid-template-columns:repeat(${elegido <= 4 ? 2 : elegido <= 6 ? 3 : 4},1fr)">` + cartas.map((id) =>
         `<button class="mem-carta" data-id="${id}" aria-label="Carta"><span class="mem-dorso">⭐</span><svg class="mem-cara" viewBox="22 18 276 276">${figura(id)}</svg></button>`).join('') + '</div>';
     let abiertas = [], hechas = 0, espera = null, fin = false;
     area.querySelector('.mem').addEventListener('click', (e) => {
@@ -106,6 +132,7 @@ const JuegosPeques = (function () {
         espera = setTimeout(() => { a.classList.remove('abierta'); b.classList.remove('abierta'); espera = null; }, 1000);
       }
     });
+    alElegir(area, 'memoria', () => { fin = true; clearTimeout(espera); memoria(area, nivel, ganar, aviso); });
     if (nivel === 1) aviso('Toca dos cartas: si son iguales, ¡se quedan! 🃏');
     return () => { fin = true; clearTimeout(espera); };
   }
@@ -129,7 +156,11 @@ const JuegosPeques = (function () {
     { n: 'el helado', z: ['<path d="M100 150 L200 150 L150 290 Z"/>', '<circle cx="150" cy="120" r="54"/>', '<circle cx="110" cy="90" r="40"/>', '<circle cx="190" cy="90" r="40"/>', '<circle cx="150" cy="44" r="22"/>'],
       d: '<path d="M116 180 L178 180 M126 214 L170 214 M136 246 L162 246" stroke="#3a3540" stroke-width="3"/>' },
   ];
-  const PALETA = ['#e5412f', '#f28a2e', '#f2cf5b', '#56b04a', '#4aa3df', '#4a5fc2', '#9b6fd6', '#f28bb0', '#8a5a3a', '#ffffff'];
+  const PALETA = [
+    '#e5412f', '#f28a2e', '#f2cf5b', '#56b04a', '#4aa3df', '#4a5fc2', '#9b6fd6', '#f28bb0', '#a8263a',
+    '#f7a3a3', '#fbc58a', '#fff3a0', '#a8e0a0', '#a8d8f5', '#a3b1ec', '#d2b8f0', '#ffd1e3', '#c9961a',
+    '#2f7d4a', '#3fb8b0', '#8a5a3a', '#d9a57c', '#9aa0a6', '#3a3540', '#ffffff',
+  ];
   function pintar(area, nivel, ganar, aviso) {
     const dib = DIBUJOS[(nivel - 1) % DIBUJOS.length];
     let color = PALETA[rnd(8)], pintadas = 0, fin = false;
