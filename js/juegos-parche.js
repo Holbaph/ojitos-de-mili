@@ -4,7 +4,7 @@
 // (js/tiempo-juego.js). No son un tratamiento ni reemplazan las indicaciones
 // del oftalmólogo; la pantalla lo dice.
 //
-// Siete juegos, con niveles que se van poniendo más difíciles (cosas más
+// Trece juegos (seis de ellos en js/juegos-peques.js), con niveles que se van poniendo más difíciles (cosas más
 // chicas, más parecidas, caminos más angostos):
 //   🍰 Cocinita (js/cocina.js)  🎹 Piano mágico  🔍 Diferencias  ⭐ Busca a…  ✏️ Une los puntos
 //   〰️ Sigue el caminito  🫧 Burbujas
@@ -379,24 +379,35 @@ const JuegosParche = (function () {
       el.style.left = (carril * 25 + 2) + '%';
       el.setAttribute('aria-label', 'Tecla');
       el.textContent = CARRILES[carril].e;
-      const t = { el, nace: performance.now() };
-      el.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        if (el.classList.contains('pop') || fin) return;
-        el.classList.add('pop');
-        sonar(notas[tocadas % notas.length]);
-        tocadas++;
-        $('jpCuenta').textContent = Math.min(tocadas, notas.length) + '/' + notas.length;
-        setTimeout(() => el.remove(), 260);
-        if (tocadas >= notas.length && !fin) { fin = true; setTimeout(() => ganar('¡Tocaste "' + cancion.n + '"! 🎶'), 700); }
-      });
+      const t = { el, nace: performance.now(), nota, carril };
+      el.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); tocar(t); });
       zona.appendChild(el);
       teclas.push(t);
     }
+    // Tocar la tecla (o cualquier parte de su carril) suena SU nota y hace que
+    // la tecla que sigue salga altiro.
+    function tocar(t) {
+      if (!t || fin || t.el.classList.contains('pop')) return;
+      t.el.classList.add('pop');
+      sonar(t.nota);
+      tocadas++;
+      $('jpCuenta').textContent = Math.min(tocadas, notas.length) + '/' + notas.length;
+      setTimeout(() => t.el.remove(), 260);
+      ultimo = -Infinity;
+      if (tocadas >= notas.length && !fin) { fin = true; setTimeout(() => ganar('¡Tocaste "' + cancion.n + '"! 🎶'), 700); }
+    }
+    zona.querySelectorAll('.jp-carril').forEach((c, i) => c.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      // la tecla de ese carril que va más abajo
+      const enCarril = teclas.filter((t) => t.carril === i && !t.el.classList.contains('pop'));
+      tocar(enCarril.sort((x, y) => x.nace - y.nace)[0]);
+    }));
     function paso(ahora) {
       if (fin) return;
       raf = requestAnimationFrame(paso);
-      if (ahora - ultimo > cada) { ultimo = ahora; soltar(); }
+      // si no queda ninguna tecla cayendo, la siguiente sale altiro
+      const quedan = teclas.some((t) => !t.el.classList.contains('pop'));
+      if (ahora - ultimo > cada || (!quedan && siguiente > 0 && ahora - ultimo > 250)) { ultimo = ahora; soltar(); }
       const alto = zona.clientHeight;
       for (let i = teclas.length - 1; i >= 0; i--) {
         const t = teclas[i], f = (ahora - t.nace) / caida;
@@ -447,6 +458,13 @@ const JuegosParche = (function () {
   const JUEGOS = [
     { id: 'cocina', e: '🍰', n: 'Cocinita', d: 'Prepara pasteles, pizzas, helados y más, igual al pedido', f: (area, nivel, ganar) => Cocina.jugar(area, nivel, ganar, aviso) },
     { id: 'piano', e: '🎹', n: 'Piano mágico', d: 'Toca las teclas y suena una canción', f: piano },
+    // los de js/juegos-peques.js
+    { id: 'rompecabezas', e: '🧩', n: 'Rompecabezas', d: 'Arma a tu personaje', f: (a, n, g) => JuegosPeques.rompecabezas(a, n, g, aviso) },
+    { id: 'memoria', e: '🃏', n: 'Memoria', d: 'Encuentra las parejas', f: (a, n, g) => JuegosPeques.memoria(a, n, g, aviso) },
+    { id: 'pintar', e: '🎨', n: 'Pintar', d: 'Colorea dibujos', f: (a, n, g) => JuegosPeques.pintar(a, n, g, aviso) },
+    { id: 'formas', e: '🔷', n: 'Encaja la forma', d: 'Cada forma a su hueco', f: (a, n, g) => JuegosPeques.formas(a, n, g, aviso) },
+    { id: 'colores', e: '🌈', n: 'Encuentra el color', d: 'Toca todo lo de un color', f: (a, n, g) => JuegosPeques.colores(a, n, g, aviso) },
+    { id: 'sombras', e: '👤', n: '¿De quién es la sombra?', d: 'Adivina el personaje', f: (a, n, g) => JuegosPeques.sombras(a, n, g, aviso) },
     { id: 'diferencias', e: '🔍', n: 'Diferencias', d: 'Encuentra lo que cambió', f: diferencias },
     { id: 'busca', e: '⭐', n: 'Busca a…', d: 'Encuentra al personaje', f: busca },
     { id: 'puntos', e: '✏️', n: 'Une los puntos', d: 'Del 1 al último', f: puntos },

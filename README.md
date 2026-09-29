@@ -111,10 +111,12 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
     con estrellitas en la pantalla principal.
   - **Resumen semanal**: los domingos a las 7 de la tarde llega un aviso con
     los días y horas de la semana (se puede desactivar).
-- **Juegos con el parche**: siete juegos de visión fina para entretenerse
+- **Juegos con el parche**: trece juegos de visión fina para entretenerse
   *mientras* se usa el parche (así trabaja el ojito destapado): 🍰 Cocinita,
-  🎹 Piano mágico (teclas grandes y lentas que tocan una canción; no se pierde
-  nunca), 🔍 Diferencias, ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y
+  🎹 Piano mágico (teclas grandes y lentas que tocan una canción; tocar el
+  carril también vale; no se pierde nunca), 🧩 Rompecabezas, 🃏 Memoria,
+  🎨 Pintar, 🔷 Encaja la forma, 🌈 Encuentra el color, 👤 ¿De quién es la
+  sombra?, 🔍 Diferencias, ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y
   🫧 Burbujas. En **Cocinita** un personaje pide un plato (pizza, pastel,
   helado, hamburguesa, cupcake, brocheta de frutas, panqueques, dona o
   ensalada) y hay que prepararlo igual al dibujo: elegir salsa o cobertura,
@@ -331,6 +333,7 @@ js/juego.js               juego de vestir personajes (armario, arrastrar, tiempo
 js/camara.js              foto con el personaje + "Mis fotos" (solo en el dispositivo)
 js/ar.js                  realidad aumentada: el avatar abraza, hace orejitas, etc.
 js/juegos-parche.js       juegos de visión fina para el rato con el parche puesto
+js/juegos-peques.js       rompecabezas, memoria, pintar, formas, colores y sombras
 js/cocina.js              🍰 Cocinita: platos, ingredientes y niveles del juego de cocina
 js/app.js                 toda la interacción de la app
 supabase/schema.sql            tablas, RLS y el disparador que crea tu perfil
