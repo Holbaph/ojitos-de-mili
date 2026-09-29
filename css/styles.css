@@ -632,7 +632,7 @@ body.jugando, body.con-camara{ overflow:hidden; }
 
 /* busca a… */
 .jp-busca-obj{ display:flex; align-items:center; justify-content:center; gap:10px; font-weight:800; color:var(--ink-soft); margin-bottom:8px; }
-.jp-busca-obj #jpObjetivo{ width:64px; height:64px; background:var(--surface); border:2px solid var(--eye-derecho); border-radius:16px; padding:3px; }
+.jp-busca-obj #jpObjetivo{ width:90px; height:90px; background:var(--surface); border:2px solid var(--eye-derecho); border-radius:16px; padding:3px; }
 .jp-busca-obj svg{ width:100%; height:100%; }
 .jp-busca{ position:relative; flex:1; min-height:0; background:var(--surface); border:1px solid var(--line); border-radius:18px; overflow:hidden; }
 .jp-busca-item{ position:absolute; padding:0; border:none; background:none; cursor:pointer; border-radius:50%; }
@@ -965,8 +965,8 @@ details.cfg[open] .cfg-ico{ background:var(--surface); }
 .pin-hoja svg{ width:100%; height:100%; touch-action:manipulation; }
 .pin-zona{ cursor:pointer; transition:fill .15s ease; }
 .pin-pop{ animation:jp-aparece .25s ease; }
-.pin-paleta{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:10px; }
-.pin-color{ aspect-ratio:1; border-radius:50%; border:3px solid rgba(0,0,0,.12); background:var(--c); cursor:pointer; }
+.pin-paleta{ display:grid; grid-template-columns:repeat(9,1fr); gap:6px; margin-top:10px; }
+.pin-color{ aspect-ratio:1; border-radius:50%; border:2px solid rgba(0,0,0,.15); background:var(--c); cursor:pointer; padding:0; }
 .pin-color.activo{ border-color:var(--ink); transform:scale(1.12); box-shadow:0 0 0 3px var(--surface); }
 /* encaja la forma */
 .fo-huecos{ flex:1; min-height:0; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; align-content:center; background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:12px; }
@@ -990,3 +990,9 @@ details.cfg[open] .cfg-ico{ background:var(--surface); }
 .so-op svg{ width:70px; height:96px; pointer-events:none; }
 .so-op span{ font-size:11.5px; font-weight:800; color:var(--ink-soft); }
 .so-op.bien{ border-color:var(--success); background:var(--success-soft); }
+
+/* elegir cuántas cartas / piezas */
+.pq-elegir{ display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; margin:0 0 8px; }
+.pq-elegir span{ font-size:12.5px; font-weight:800; color:var(--ink-soft); }
+.pq-elegir button{ min-width:40px; padding:6px 10px; border-radius:99px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); font-weight:800; font-size:13px; cursor:pointer; }
+.pq-elegir button.activo{ background:var(--eye-derecho); border-color:var(--eye-derecho); color:#fff; }

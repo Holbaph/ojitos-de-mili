@@ -144,13 +144,16 @@ const JuegosParche = (function () {
       else st.cara = st.cara ? null : { t: 'lentes-redondos', c: pick(['#6fbf73', '#3a3540', '#e88fae']) };
       return st;
     }
-    const cara = (id, st) => { const s = svg('0 0 320 320', 'jp-cara'); s.innerHTML = Juego.figura(id, st); return s; };
+    // recortada a la cara (se ve más grande)
+    const cara = (id, st) => { const s = svg('22 18 276 276', 'jp-cara'); s.innerHTML = Juego.figura(id, st); return s; };
 
     function nuevaRonda() {
       const obj = pick(todos.filter((p) => !p.especie && !p.raton)).id; // los "parecidos" cambian pelo/ojos
-      const cantidad = Math.min(30, 8 + nivel * 4);
-      const parecidos = nivel >= 2 ? Math.min(Math.floor(cantidad / 3), (nivel - 1) * 2) : 0;
-      const tam = Math.max(40, 78 - nivel * 7);
+      // pensado para una niña de 4 años: caras grandes, pocas a la vez y
+      // pocos "parecidos" (el mismo personaje con un detalle cambiado)
+      const cantidad = Math.min(14, 5 + nivel * 2);
+      const parecidos = nivel >= 3 ? Math.min(2, Math.floor((nivel - 1) / 2)) : 0;
+      const tam = Math.max(70, 96 - nivel * 4);
 
       area.innerHTML =
         '<div class="jp-busca-obj"><span>Busca a:</span><div id="jpObjetivo"></div><span class="jp-cuenta">' + (ronda + 1) + '/' + RONDAS + '</span></div>' +
@@ -242,8 +245,9 @@ const JuegosParche = (function () {
   // ================= 〰️ SIGUE EL CAMINITO =================
   // Llevar al personaje por un camino con el dedo, sin salirse.
   function caminito(area, nivel, ganar) {
-    const ancho = Math.max(26, 68 - (nivel - 1) * 8);
-    area.innerHTML = '<p class="jp-consigna">Lleva a tu personaje por el camino hasta la ⭐ <strong>sin salirte</strong></p>' +
+    // camino ancho y con harto margen (para una niña de 4 años)
+    const ancho = Math.max(72, 100 - (nivel - 1) * 3);
+    area.innerHTML = '<p class="jp-consigna">Lleva a tu personaje por el camino hasta la ⭐</p>' +
       '<div class="jp-camino"><canvas id="jpCanvas"></canvas><svg id="jpViajero" viewBox="0 0 320 320" class="jp-viajero"></svg></div>';
     const cont = area.querySelector('.jp-camino');
     const canvas = $('jpCanvas'), ctx = canvas.getContext('2d');
@@ -260,7 +264,7 @@ const JuegosParche = (function () {
 
     // puntos de paso de abajo-izquierda a arriba-derecha, suavizados (Catmull-Rom)
     const m = ancho / 2 + 20;
-    const k = Math.min(6, 2 + nivel);
+    const k = Math.min(4, 1 + Math.ceil(nivel / 2)); // pocas curvas
     const paso = [[m, H - m]];
     for (let i = 1; i <= k; i++) {
       const t = i / (k + 1);
@@ -279,7 +283,8 @@ const JuegosParche = (function () {
     pts.push(paso[paso.length - 1]);
 
     let prog = 0, trazando = false, listo = false;
-    const tol = ancho / 2 + 10;
+    const tol = ancho / 2 + 30;
+    let fuera = false;
     function trazo(desde, hasta, color, grosor, guiones) {
       ctx.beginPath();
       ctx.moveTo(pts[desde][0], pts[desde][1]);
@@ -316,11 +321,13 @@ const JuegosParche = (function () {
         const d = dist(q, pts[i]);
         if (d < dMejor) { dMejor = d; mejor = i; }
       }
-      if (dMejor > tol) { trazando = false; aviso('¡Ups! Te saliste. Sigue desde donde quedaste'); return; }
+      // si se sale, no se corta: espera a que el dedo vuelva al camino
+      if (dMejor > tol) { if (!fuera) { fuera = true; aviso('Vuelve al camino 😊'); } return; }
+      fuera = false;
       if (mejor > prog) { prog = mejor; dibujar(); }
       if (prog >= pts.length - 2) { listo = true; trazando = false; setTimeout(() => ganar('¡Llegaste a la estrella!'), 400); }
     });
-    const soltar = () => { trazando = false; };
+    const soltar = () => { trazando = false; fuera = false; };
     cont.addEventListener('pointerup', soltar);
     cont.addEventListener('pointercancel', soltar);
     return () => {};
