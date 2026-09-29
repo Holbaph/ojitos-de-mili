@@ -114,8 +114,8 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
 - **Juegos con el parche**: trece juegos de visión fina para entretenerse
   *mientras* se usa el parche (así trabaja el ojito destapado): 🍰 Cocinita,
   🎹 Piano mágico (teclas grandes y lentas que tocan una canción; tocar el
-  carril también vale; no se pierde nunca), 🧩 Rompecabezas, 🃏 Memoria,
-  🎨 Pintar, 🔷 Encaja la forma, 🌈 Encuentra el color, 👤 ¿De quién es la
+  carril también vale; no se pierde nunca), 🧩 Rompecabezas y 🃏 Memoria (se
+  elige cuántas piezas o cartas), 🎨 Pintar (25 colores), 🔷 Encaja la forma, 🌈 Encuentra el color, 👤 ¿De quién es la
   sombra?, 🔍 Diferencias, ⭐ Busca a…, ✏️ Une los puntos, 〰️ Sigue el caminito y
   🫧 Burbujas. En **Cocinita** un personaje pide un plato (pizza, pastel,
   helado, hamburguesa, cupcake, brocheta de frutas, panqueques, dona o
