@@ -724,5 +724,13 @@ const Juego = (function () {
   function personajes() { return PERSONAJES.map((p) => ({ id: p.id, nombre: p.nombre, especie: p.especie || null, raton: !!p.raton })); }
   function original(id) { return JSON.parse(JSON.stringify(inicial(id))); }
 
-  return { abrir, cerrar, restablecerTodos, figura, personajes, original };
+  // la ropa con que quedó cada personaje (para la Fiesta de baile), aunque el
+  // juego de vestir no se haya abierto todavía en esta sesión
+  function vestido(id) {
+    if (estados[id]) return JSON.parse(JSON.stringify(estados[id]));
+    const j = leerLocal();
+    return normalizar(id, j && j.personajes && j.personajes[id]);
+  }
+
+  return { abrir, cerrar, restablecerTodos, figura, personajes, original, vestido };
 })();

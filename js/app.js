@@ -672,6 +672,11 @@
     JuegosParche.abrir({ minutosDia: juegoMinutos });
   });
 
+  // ================= FIESTA DE BAILE (js/fiesta.js) =================
+  document.getElementById('openFiesta').addEventListener('click', () => {
+    Fiesta.abrir({ minutosDia: juegoMinutos });
+  });
+
   // ================= JUEGO DE VESTIR (js/juego.js) =================
   document.getElementById('openJuego').addEventListener('click', () => {
     Juego.abrir({ apariencia, minutosDia: juegoMinutos, toast: showToast, parcheHoy: parcheDeHoy() });
