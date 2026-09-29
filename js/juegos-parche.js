@@ -4,9 +4,9 @@
 // (js/tiempo-juego.js). No son un tratamiento ni reemplazan las indicaciones
 // del oftalmólogo; la pantalla lo dice.
 //
-// Seis juegos, con niveles que se van poniendo más difíciles (cosas más
+// Siete juegos, con niveles que se van poniendo más difíciles (cosas más
 // chicas, más parecidas, caminos más angostos):
-//   🍰 Cocinita (js/cocina.js)  🔍 Diferencias  ⭐ Busca a…  ✏️ Une los puntos
+//   🍰 Cocinita (js/cocina.js)  🎹 Piano mágico  🔍 Diferencias  ⭐ Busca a…  ✏️ Une los puntos
 //   〰️ Sigue el caminito  🫧 Burbujas
 // Los personajes salen del juego de vestir (Juego.figura / Juego.original).
 
@@ -326,6 +326,88 @@ const JuegosParche = (function () {
     return () => {};
   }
 
+  // ================= 🎹 PIANO MÁGICO =================
+  // Muy fácil (para una niña de 4 años): caen teclas grandes y lentas en 4
+  // carriles de colores; cada tecla que se toca hace sonar la siguiente nota
+  // de una canción conocida. Si una tecla se pasa, no importa: no se pierde
+  // nunca. Al completar la canción, se gana. Con los niveles cae un poquito
+  // más rápido (con tope) y cambia la canción.
+  const CANCIONES = [
+    { n: 'Estrellita', notas: 'C C G G A A G F F E E D D C' },
+    { n: 'Martinillo', notas: 'C D E C C D E C E F G E F G' },
+    { n: 'La escala', notas: 'C D E F G A B C2 C2 B A G F E D C' },
+    { n: 'Cumpleaños feliz', notas: 'G G A G C2 B G G A G D2 C2' },
+  ];
+  const FREC = { C: 261.63, D: 293.66, E: 329.63, F: 349.23, G: 392.0, A: 440.0, B: 493.88, C2: 523.25, D2: 587.33 };
+  const ORDEN_NOTAS = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C2', 'D2'];
+  const CARRILES = [
+    { c: '#f28bb0', e: '🐱' }, { c: '#7cc4ea', e: '🐶' }, { c: '#f2cf5b', e: '🐰' }, { c: '#8fd48f', e: '🐸' },
+  ];
+  let audio = null;
+  function sonar(nota) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === 'suspended') audio.resume();
+      const t = audio.currentTime, o = audio.createOscillator(), o2 = audio.createOscillator(), g = audio.createGain();
+      o.type = 'triangle'; o.frequency.value = FREC[nota];
+      o2.type = 'sine'; o2.frequency.value = FREC[nota] * 2;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+      o.connect(g); o2.connect(g); g.connect(audio.destination);
+      o.start(t); o2.start(t); o.stop(t + 1); o2.stop(t + 1);
+    } catch (e) { /* sin sonido, igual se juega */ }
+  }
+  function piano(area, nivel, ganar) {
+    const cancion = CANCIONES[(nivel - 1) % CANCIONES.length];
+    const notas = cancion.notas.split(' ');
+    const caida = Math.max(3.2, 5.5 - (nivel - 1) * 0.25) * 1000; // ms en cruzar la pantalla
+    const cada = Math.max(1100, 1900 - (nivel - 1) * 80);          // ms entre teclas
+    let tocadas = 0, fin = false, raf = null, ultimo = 0, siguiente = 0;
+    const teclas = [];
+    area.innerHTML = `<p class="jp-consigna">🎵 <strong>${cancion.n}</strong>: ¡toca las teclas que caen! <span class="jp-cuenta" id="jpCuenta">0/${notas.length}</span></p>` +
+      '<div class="jp-piano" id="jpPiano">' + CARRILES.map((c) => `<div class="jp-carril" style="--c:${c.c}"><span>${c.e}</span></div>`).join('') + '</div>';
+    const zona = $('jpPiano');
+    function soltar() {
+      // la tecla va en el carril de su nota (más aguda, más a la derecha)
+      const nota = notas[siguiente % notas.length];
+      const carril = ORDEN_NOTAS.indexOf(nota) % CARRILES.length;
+      siguiente++;
+      const el = document.createElement('button');
+      el.className = 'jp-tecla';
+      el.style.setProperty('--c', CARRILES[carril].c);
+      el.style.left = (carril * 25 + 2) + '%';
+      el.setAttribute('aria-label', 'Tecla');
+      el.textContent = CARRILES[carril].e;
+      const t = { el, nace: performance.now() };
+      el.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        if (el.classList.contains('pop') || fin) return;
+        el.classList.add('pop');
+        sonar(notas[tocadas % notas.length]);
+        tocadas++;
+        $('jpCuenta').textContent = Math.min(tocadas, notas.length) + '/' + notas.length;
+        setTimeout(() => el.remove(), 260);
+        if (tocadas >= notas.length && !fin) { fin = true; setTimeout(() => ganar('¡Tocaste "' + cancion.n + '"! 🎶'), 700); }
+      });
+      zona.appendChild(el);
+      teclas.push(t);
+    }
+    function paso(ahora) {
+      if (fin) return;
+      raf = requestAnimationFrame(paso);
+      if (ahora - ultimo > cada) { ultimo = ahora; soltar(); }
+      const alto = zona.clientHeight;
+      for (let i = teclas.length - 1; i >= 0; i--) {
+        const t = teclas[i], f = (ahora - t.nace) / caida;
+        if (f >= 1.05 || !t.el.isConnected) { if (t.el.isConnected && !t.el.classList.contains('pop')) t.el.remove(); teclas.splice(i, 1); continue; }
+        t.el.style.transform = `translateY(${(f * (alto + 110) - 110).toFixed(1)}px)`;
+      }
+    }
+    raf = requestAnimationFrame(paso);
+    return () => { fin = true; cancelAnimationFrame(raf); };
+  }
+
   // ================= 🫧 BURBUJAS =================
   function burbujas(area, nivel, ganar) {
     const meta = 10 + nivel * 3;
@@ -364,6 +446,7 @@ const JuegosParche = (function () {
 
   const JUEGOS = [
     { id: 'cocina', e: '🍰', n: 'Cocinita', d: 'Prepara pasteles, pizzas, helados y más, igual al pedido', f: (area, nivel, ganar) => Cocina.jugar(area, nivel, ganar, aviso) },
+    { id: 'piano', e: '🎹', n: 'Piano mágico', d: 'Toca las teclas y suena una canción', f: piano },
     { id: 'diferencias', e: '🔍', n: 'Diferencias', d: 'Encuentra lo que cambió', f: diferencias },
     { id: 'busca', e: '⭐', n: 'Busca a…', d: 'Encuentra al personaje', f: busca },
     { id: 'puntos', e: '✏️', n: 'Une los puntos', d: 'Del 1 al último', f: puntos },
