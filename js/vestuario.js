@@ -36,20 +36,23 @@ const Vestuario = (function () {
     vestido: {
       vestido: 'Vestido', 'vestido-lunares': 'Vestido de lunares', 'vestido-tutu': 'Vestido de ballet', 'vestido-largo': 'Vestido largo',
       'vestido-princesa': 'Vestido de princesa', enterito: 'Enterito',
+      // premios de los huevitos sorpresa (js/premios.js)
+      'vestido-arcoiris': 'Vestido arcoíris', 'vestido-estrellas': 'Vestido de estrellas',
     },
-    encima: { chaqueta: 'Chaqueta', chaleco: 'Chaleco', abrigo: 'Abrigo', ruana: 'Ruana', capa: 'Capa' },
+    encima: { chaqueta: 'Chaqueta', chaleco: 'Chaleco', abrigo: 'Abrigo', ruana: 'Ruana', capa: 'Capa', 'alas-hada': 'Alas de hada', 'capa-estrellas': 'Capa de estrellas' },
     zapatos: {
       zapatillas: 'Zapatillas', botas: 'Botas', 'botas-lluvia': 'Botas de lluvia', botines: 'Botines',
       balerinas: 'Balerinas', guillerminas: 'Guillerminas', sandalias: 'Sandalias', pantuflas: 'Pantuflas', patines: 'Patines',
     },
-    cabeza: { moño: 'Moño', 'moño-lunares': 'Moño de lunares', collet: 'Collet', pinches: 'Pinches', flor: 'Flor', cintillo: 'Cintillo', tiara: 'Tiara' },
+    cabeza: { moño: 'Moño', 'moño-lunares': 'Moño de lunares', collet: 'Collet', pinches: 'Pinches', flor: 'Flor', cintillo: 'Cintillo', tiara: 'Tiara', 'moño-gigante': 'Moño gigante' },
     sombrero: {
       corona: 'Corona', 'corona-flores': 'Corona de flores', 'corona-estrellas': 'Corona de estrellas',
       'gorro-lana': 'Gorro de lana', jockey: 'Jockey', sombrero: 'Sombrero', orejitas: 'Orejitas de gato', unicornio: 'Cuerno de unicornio',
+      'corona-arcoiris': 'Corona arcoíris', 'orejas-conejo': 'Orejas de conejo', 'gorro-fiesta': 'Gorro de fiesta',
     },
     cara: { lentes: 'Lentes de sol', 'lentes-corazon': 'Lentes de corazón', 'lentes-estrella': 'Lentes de estrella', 'lentes-redondos': 'Lentes redondos' },
     pendientes: { aros: 'Aros', perlas: 'Perlitas', corazones: 'Aros de corazón', estrellas: 'Aros de estrella', largos: 'Aros largos' },
-    collar: { cadena: 'Cadena', perlas: 'Collar de perlas', corazon: 'Collar de corazón', estrella: 'Collar de estrella', mostacillas: 'Collar de mostacillas', concha: 'Collar de conchita', humita: 'Humita' },
+    collar: { cadena: 'Cadena', perlas: 'Collar de perlas', corazon: 'Collar de corazón', estrella: 'Collar de estrella', mostacillas: 'Collar de mostacillas', concha: 'Collar de conchita', humita: 'Humita', medalla: 'Medalla de valiente' },
     muneca: { reloj: 'Reloj', 'reloj-digital': 'Reloj inteligente', pulsera: 'Pulsera', brazaletes: 'Brazaletes' },
     anillo: { anillo: 'Anillo', 'anillo-gema': 'Anillo con piedra', 'anillo-corazon': 'Anillo de corazón', 'anillo-flor': 'Anillo de flor' },
   };
@@ -285,6 +288,7 @@ const Vestuario = (function () {
           estrella(244, 104, 7, '#fff');
       }
       case 'cintillo': return `<path d="M42 140 A124 124 0 0 1 278 140" fill="none" stroke="${c}" stroke-width="12" stroke-linecap="round"/>`;
+      case 'moño-gigante': return moño(160, 38, 2, c) + `<circle cx="146" cy="30" r="5" fill="#fff" opacity=".5"/>`;
       case 'tiara':
         return `<path d="M118 76 L126 46 L142 64 L160 34 L178 64 L194 46 L202 76 Q160 66 118 76 Z" fill="${c}" stroke="${oscurecer(c, 0.25)}" stroke-width="1.5"/>` +
           `<circle cx="160" cy="54" r="4.5" fill="#e8578a"/><circle cx="127" cy="60" r="3" fill="#7cc4ea"/><circle cx="193" cy="60" r="3" fill="#7cc4ea"/>`;
@@ -335,6 +339,21 @@ const Vestuario = (function () {
         return `<path d="M44 132 A124 124 0 0 1 276 132" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round"/>` +
           `<path d="M70 86 L78 18 L128 60 Z" fill="${c}"/><path d="M84 70 L88 38 L114 60 Z" fill="#f4a9c0"/>` +
           `<path d="M250 86 L242 18 L192 60 Z" fill="${c}"/><path d="M236 70 L232 38 L206 60 Z" fill="#f4a9c0"/>`;
+      case 'corona-arcoiris': {
+        const cols = ['#e5412f', '#f28a2e', '#f2cf5b', '#56b04a', '#4a78c2', '#9b6fd6'];
+        return cols.map((k, i) => { const r = 112 - i * 9; return `<path d="M${160 - r} 112 A${r} ${r} 0 0 1 ${160 + r} 112" fill="none" stroke="${k}" stroke-width="9.5"/>`; }).join('') +
+          [[48, 112], [272, 112]].map(([x, y]) => `<circle cx="${x - 12}" cy="${y + 4}" r="14" fill="#fff"/><circle cx="${x + 10}" cy="${y + 4}" r="15" fill="#fff"/><circle cx="${x}" cy="${y - 8}" r="15" fill="#fff"/>`).join('') +
+          estrella(160, -6, 13, c, oscurecer(c, 0.3));
+      }
+      case 'orejas-conejo':
+        return `<path d="M44 132 A124 124 0 0 1 276 132" fill="none" stroke="${o}" stroke-width="8" stroke-linecap="round"/>` +
+          `<ellipse cx="118" cy="10" rx="24" ry="64" transform="rotate(-14 118 10)" fill="${c}" stroke="${o}" stroke-width="2"/><ellipse cx="118" cy="14" rx="11" ry="46" transform="rotate(-14 118 14)" fill="#f4a9c0"/>` +
+          `<ellipse cx="202" cy="10" rx="24" ry="64" transform="rotate(14 202 10)" fill="${c}" stroke="${o}" stroke-width="2"/><ellipse cx="202" cy="14" rx="11" ry="46" transform="rotate(14 202 14)" fill="#f4a9c0"/>`;
+      case 'gorro-fiesta':
+        return `<path d="M120 70 L170 -44 L214 74 Q168 60 120 70 Z" fill="${c}" stroke="${o}" stroke-width="2" stroke-linejoin="round"/>` +
+          `<path d="M137 34 L196 30 M152 0 L184 -6 M128 54 L206 52" stroke="${l}" stroke-width="7" stroke-linecap="round"/>` +
+          `<circle cx="170" cy="-46" r="14" fill="#f2cf5b"/><circle cx="165" cy="-50" r="4" fill="#fff" opacity=".6"/>` +
+          `<path d="M118 70 Q168 56 216 74" fill="none" stroke="#f2cf5b" stroke-width="6" stroke-linecap="round"/>`;
       case 'unicornio':
         return `<path d="M44 132 A124 124 0 0 1 276 132" fill="none" stroke="${l}" stroke-width="9" stroke-linecap="round"/>` +
           `<path d="M144 62 L160 -8 L176 62 Z" fill="#f6d26b" stroke="#d9a93a" stroke-width="1.5"/>` +
@@ -405,6 +424,9 @@ const Vestuario = (function () {
       case 'humita':
         return `<path d="M160 306 L136 294 L136 318 Z M160 306 L184 294 L184 318 Z" fill="${c}" stroke="${o}" stroke-width="1.5" stroke-linejoin="round"/>` +
           `<rect x="153" y="299" width="14" height="14" rx="4" fill="${o}"/>`;
+      case 'medalla':
+        return `<path d="M134 288 L156 324 M186 288 L164 324" stroke="${c}" stroke-width="10" stroke-linecap="round"/>` +
+          `<circle cx="160" cy="334" r="16" fill="#e2b64a" stroke="#b8902e" stroke-width="2.5"/>` + estrella(160, 335, 9, '#fff6c8');
       case 'mostacillas': {
         const cols = ['#e8605a', '#f2cf5b', '#6fbf73', '#7cc4ea', '#b392d6', c];
         return cuentas(14, 3.6, (i) => cols[i % cols.length]);
@@ -634,6 +656,29 @@ const Vestuario = (function () {
             `<ellipse cx="160" cy="338" rx="60" ry="10" fill="${c}"/>`,
           manga: '',
         };
+      case 'vestido:vestido-arcoiris': {
+        const cols = ['#e5412f', '#f28a2e', '#f2cf5b', '#56b04a', '#4a78c2', '#9b6fd6'];
+        const xl = (y) => 110 - (y - 318) * 26 / 70, xr = (y) => 210 + (y - 318) * 26 / 70;
+        let franjas = '';
+        cols.forEach((k, i) => {
+          const y0 = 318 + i * 12, y1 = i === cols.length - 1 ? 392 : y0 + 12.5;
+          franjas += `<path d="M${n1(xl(y0))} ${y0} L${n1(xr(y0))} ${y0} L${n1(xr(Math.min(y1, 388)))} ${y1} ${i === cols.length - 1 ? 'Q160 404' : 'L'} ${n1(xl(Math.min(y1, 388)))} ${y1} Z" fill="${k}"/>`;
+        });
+        return {
+          svg: `<path d="M122 284 L198 284 Q206 300 210 318 L110 318 Q114 300 122 284 Z" fill="#f7f5f2"/>` + franjas +
+            `<path d="M110 320 Q160 330 210 320" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>` +
+            estrella(160, 300, 8, '#f2cf5b'),
+          manga: mangas('globo', '#f7f5f2'),
+        };
+      }
+      case 'vestido:vestido-estrellas': {
+        const est = [[132, 340, 6], [186, 356, 7], [150, 392, 6], [206, 404, 5], [114, 404, 5], [170, 414, 4], [196, 326, 4], [126, 372, 4], [214, 380, 4], [160, 316, 5]]
+          .map(([x, y, r]) => estrella(x, y, r, '#f6d26b')).join('');
+        return {
+          svg: `<path d="M122 284 L198 284 Q206 300 208 318 L240 418 Q160 430 80 418 L112 318 Q114 300 122 284 Z" fill="${c}"/>` + est,
+          manga: mangas('velo', aclarar(c, 0.35)),
+        };
+      }
       case 'vestido:vestido-largo': {
         const brillos = [[132, 350], [184, 364], [150, 394], [206, 402], [114, 408], [170, 414], [196, 336]]
           .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.4" fill="#fff" opacity=".85"/>`).join('');
@@ -695,6 +740,20 @@ const Vestuario = (function () {
       }
       case 'encima:capa':
         return { atras: `<path d="M118 288 L202 288 L252 432 Q160 444 68 432 Z" fill="${c}" opacity=".88"/>`, svg: '' };
+      case 'encima:capa-estrellas':
+        return {
+          atras: `<path d="M118 288 L202 288 L252 432 Q160 444 68 432 Z" fill="${c}"/>` +
+            [[86, 380, 8], [76, 418, 6], [100, 344, 5], [234, 380, 8], [244, 418, 6], [220, 344, 5], [160, 428, 6]].map(([x, y, r]) => estrella(x, y, r, '#f6d26b')).join(''),
+          svg: '',
+        };
+      case 'encima:alas-hada': {
+        const l = aclarar(c, 0.5), a = (x, y, rx, ry, g) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${g} ${x} ${y})" fill="${c}" opacity=".72" stroke="${l}" stroke-width="3"/>`;
+        return {
+          atras: a(70, 262, 64, 36, -28) + a(250, 262, 64, 36, 28) + a(88, 330, 40, 24, 28) + a(232, 330, 40, 24, -28) +
+            [[46, 240], [272, 240], [80, 326], [240, 326], [96, 250], [224, 250]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#fff" opacity=".9"/>`).join(''),
+          svg: '',
+        };
+      }
       default:
         return { svg: '' };
     }
@@ -1311,9 +1370,11 @@ const Vestuario = (function () {
       case 'zapatos': dentro = zapatos(valor, '#f1c9a5'); if (BOTAS.includes(valor.t)) caja = '120 362 80 80'; break;
       case 'cabeza':
         dentro = cabeza(valor, { peloEstilo: 'melena', peloColor: '#b9a597' });
-        caja = { moño: '122 14 76 64', 'moño-lunares': '112 6 96 72', collet: '124 2 72 70', tiara: '110 28 100 54', flor: '194 44 56 56', cintillo: '30 40 260 110', pinches: '56 76 208 50' }[valor.t] || caja;
+        caja = { moño: '122 14 76 64', 'moño-gigante': '92 -12 136 104', 'moño-lunares': '112 6 96 72', collet: '124 2 72 70', tiara: '110 28 100 54', flor: '194 44 56 56', cintillo: '30 40 260 110', pinches: '56 76 208 50' }[valor.t] || caja;
         break;
-      case 'sombrero': dentro = `<circle cx="160" cy="176" r="118" fill="#f1c9a5" opacity=".35"/>` + sombrero(valor); break;
+      case 'sombrero': dentro = `<circle cx="160" cy="176" r="118" fill="#f1c9a5" opacity=".35"/>` + sombrero(valor);
+        if (valor.t === 'orejas-conejo' || valor.t === 'gorro-fiesta') caja = '0 -64 320 220';
+        break;
       case 'cara': dentro = lentes(valor); break;
       case 'pendientes': dentro = pendientes(valor); break;
       case 'collar': dentro = collar(valor); break;
@@ -1321,7 +1382,7 @@ const Vestuario = (function () {
         if (valor.t === 'pulsera' || valor.t === 'brazaletes') caja = '196 332 40 36';
         break;
       case 'anillo': dentro = `<circle cx="219" cy="366" r="9" fill="#f1c9a5"/>` + anillo(valor, POSES.normal); break;
-      default: { const pr = prenda(slot, valor); dentro = (pr.atras || '') + pr.svg + (pr.sobre || '') + manga(pr.manga, 'izq', POSES.normal) + manga(pr.manga, 'der', POSES.normal); }
+      default: { if (valor.t === 'alas-hada') caja = '0 216 320 150'; const pr = prenda(slot, valor); dentro = (pr.atras || '') + pr.svg + (pr.sobre || '') + manga(pr.manga, 'izq', POSES.normal) + manga(pr.manga, 'der', POSES.normal); }
     }
     return `<svg viewBox="${caja}" preserveAspectRatio="xMidYMid meet">${dentro}</svg>`;
   }

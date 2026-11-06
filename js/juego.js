@@ -147,6 +147,25 @@ const Juego = (function () {
   ];
   const PRENDAS = Vestuario.SLOTS;
 
+  // ---------- premios de los huevitos sorpresa (js/premios.js) ----------
+  // El huevito N (uno por cada día con parche) trae el premio N: aparece en el
+  // armario, con una estrellita. Cuando se acaban, los huevitos traen estrellas.
+  const PREMIOS = [
+    { slot: 'collar', t: 'medalla', c: C.azul, e: '🏅' }, { slot: 'sombrero', t: 'corona-arcoiris', c: C.dorado, e: '🌈' },
+    { slot: 'encima', t: 'alas-hada', c: C.rosado, e: '🧚' }, { slot: 'vestido', t: 'vestido-arcoiris', c: C.blanco, e: '🌈' },
+    { slot: 'sombrero', t: 'orejas-conejo', c: C.blanco, e: '🐰' }, { slot: 'cabeza', t: 'moño-gigante', c: C.fucsia, e: '🎀' },
+    { slot: 'sombrero', t: 'gorro-fiesta', c: C.celeste, e: '🥳' }, { slot: 'encima', t: 'capa-estrellas', c: C.azulOscuro, e: '⭐' },
+    { slot: 'vestido', t: 'vestido-estrellas', c: C.morado, e: '✨' }, { slot: 'encima', t: 'alas-hada', c: C.celeste, e: '🦋' },
+    { slot: 'cabeza', t: 'moño-gigante', c: C.celeste, e: '🎀' }, { slot: 'sombrero', t: 'orejas-conejo', c: C.rosado, e: '🐰' },
+    { slot: 'collar', t: 'medalla', c: C.rojo, e: '🏅' }, { slot: 'vestido', t: 'vestido-estrellas', c: C.azulOscuro, e: '🌙' },
+    { slot: 'sombrero', t: 'gorro-fiesta', c: C.rosado, e: '🎉' }, { slot: 'encima', t: 'alas-hada', c: C.dorado, e: '✨' },
+    { slot: 'encima', t: 'capa-estrellas', c: C.morado, e: '🌟' }, { slot: 'cabeza', t: 'moño-gigante', c: C.dorado, e: '🎀' },
+    { slot: 'sombrero', t: 'corona-arcoiris', c: C.plateado, e: '👑' }, { slot: 'encima', t: 'alas-hada', c: C.menta, e: '🧚' },
+    { slot: 'sombrero', t: 'orejas-conejo', c: C.lila, e: '🐰' }, { slot: 'collar', t: 'medalla', c: C.verde, e: '🏅' },
+    { slot: 'vestido', t: 'vestido-estrellas', c: C.rosado, e: '💖' }, { slot: 'sombrero', t: 'gorro-fiesta', c: C.amarillo, e: '🎈' },
+  ].map((p) => ({ ...p, nombre: TIPOS[p.slot][p.t] + (p.c === C.blanco ? '' : ' ' + (NOMBRE_COLOR[p.c] || '')) }));
+  const premiosGanados = () => PREMIOS.slice(0, Math.max(0, Math.min(PREMIOS.length, Math.floor(Number((extras.huevos || {}).abiertos) || 0))));
+
   // ---------- personajes (dibujos propios, inspirados en…) ----------
   const PERSONAJES = [
     { id: 'mili', nombre: 'Mili', grupo: 'Mili' },
@@ -473,14 +492,19 @@ const Juego = (function () {
     } catch (e) {}
     return null;
   }
+  // "extras": lo de la mascota, los huevitos y otras cosas de Mili que se
+  // comparten entre los celulares (van en el mismo paquete que la ropa)
+  let extras = {}, cargado = false;
   function aplicarGuardado(j) {
+    cargado = true;
+    extras = j && j.extras && typeof j.extras === 'object' && !Array.isArray(j.extras) ? j.extras : {};
     ponerCreados(j && j.creados);
     estados = {};
     PERSONAJES.forEach((p) => { estados[p.id] = normalizar(p.id, j && j.personajes && j.personajes[p.id]); });
     if (j && PERSONAJES.some((p) => p.id === j.actual)) actual = j.actual;
     miliFirma = (j && typeof j.miliFirma === 'string') ? j.miliFirma : null;
   }
-  function paquete() { return { personajes: estados, actual, miliFirma, creados: creadosRaw }; }
+  function paquete() { return { personajes: estados, actual, miliFirma, creados: creadosRaw, extras }; }
 
   // Si el avatar cambió desde la última vez, la Mili del juego se pone igual a él.
   function sincronizarMili() {
@@ -606,6 +630,14 @@ const Juego = (function () {
     const out = [];
     const slots = ((CATEGORIAS.find((x) => x.id === cat) || {}).slots || [cat])
       .filter((sl) => !especieDe(actual) || Vestuario.SLOTS_ESPECIE.includes(sl));
+    // primero los premios de los huevitos (con estrellita)
+    const ganados = premiosGanados();
+    slots.forEach((slot) => ganados.filter((p) => p.slot === slot).forEach((p) => {
+      const key = slot + '|' + p.t + '|' + p.c;
+      if (out.some((x) => x.key === key)) return;
+      const puesto = !!st[slot] && st[slot].t === p.t && st[slot].c === p.c;
+      out.push({ key, slot, valor: { t: p.t, c: p.c }, nombre: p.nombre, puesto, premio: true });
+    }));
     slots.forEach((slot) => (ARMARIO[slot] || []).forEach(([t, colores]) => colores.forEach((c) => {
       const puesto = !!st[slot] && st[slot].t === t && st[slot].c === c;
       out.push({ key: slot + '|' + t + '|' + c, slot, valor: { t, c }, nombre: TIPOS[slot][t] + ' ' + (NOMBRE_COLOR[c] || ''), puesto });
@@ -616,7 +648,7 @@ const Juego = (function () {
   function renderItems() {
     const st = estados[actual];
     $('juegoItems').innerHTML = itemsDeCategoria().map((it) =>
-      `<button class="jitem${it.puesto ? ' puesto' : ''}" data-key="${it.key}" title="${it.nombre}" aria-label="${it.nombre}">` +
+      `<button class="jitem${it.puesto ? ' puesto' : ''}${it.premio ? ' premio' : ''}" data-key="${it.key}" title="${it.nombre}" aria-label="${it.nombre}">` +
       icono(it.slot || cat, it.valor, st, actual) + '</button>'
     ).join('');
   }
@@ -852,8 +884,24 @@ const Juego = (function () {
     renderPersonajes(); renderEscenario(true); renderCats(); renderItems();
     guardar();
   }
+  // ---------- extras (js/premios.js, js/mascota.js) ----------
+  function asegurar() { if (!cargado) aplicarGuardado(leerLocal()); }
+  function extra(clave) { asegurar(); const v = extras[clave]; return v === undefined ? undefined : JSON.parse(JSON.stringify(v)); }
+  function guardarExtra(clave, valor) { asegurar(); extras[clave] = valor; guardar(); }
+  // al entrar a la app: trae lo de Supabase (otro celular pudo cambiar algo),
+  // o sube lo de este celular si quedó algo sin subir
+  async function sincronizar() {
+    const local = leerLocal();
+    if (local && local.pendiente) { aplicarGuardado(local); guardarRemoto(); return; }
+    try {
+      const remoto = await Config.obtenerJuego();
+      if (remoto && $('juego').classList.contains('hidden') && !guardarTimer) { aplicarGuardado(remoto); guardarLocal(false); }
+    } catch (e) { /* sin internet: queda lo local */ }
+  }
+
   // al cargar la app, los creados ya están (para la fiesta, los cuentos y los juegos)
   ponerCreados((leerLocal() || {}).creados);
 
-  return { abrir, cerrar, restablecerTodos, figura, personajes, original, vestido, creados, vistaPrevia, guardarCreado, borrarCreado, MAX_CREADOS, animar };
+  return { abrir, cerrar, restablecerTodos, figura, personajes, original, vestido, creados, vistaPrevia, guardarCreado, borrarCreado, MAX_CREADOS, animar,
+    PREMIOS, premiosGanados, extra, guardarExtra, sincronizar };
 })();

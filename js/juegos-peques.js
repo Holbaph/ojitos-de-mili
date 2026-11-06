@@ -168,7 +168,19 @@ const JuegosPeques = (function () {
       '<div class="pin-hoja"><svg viewBox="0 0 300 300" id="pinSvg">' +
       dib.z.map((z, i) => z.replace(/^<(\w+)/, `<$1 class="pin-zona" data-i="${i}" fill="#fff" stroke="#3a3540" stroke-width="4" stroke-linejoin="round"`)).join('') +
       `<g pointer-events="none">${dib.d}</g></svg></div>` +
-      '<div class="pin-paleta">' + PALETA.map((c) => `<button class="pin-color${c === color ? ' activo' : ''}" data-c="${c}" style="--c:${c}" aria-label="Color"></button>`).join('') + '</div>';
+      '<div class="pin-paleta">' + PALETA.map((c) => `<button class="pin-color${c === color ? ' activo' : ''}" data-c="${c}" style="--c:${c}" aria-label="Color"></button>`).join('') + '</div>' +
+      (typeof Galeria !== 'undefined' ? '<button class="history-btn ghost pin-guardar" id="pinGuardar">🖼️ Guardar en mi galería</button>' : '');
+    // guarda el dibujo en la galería (js/galeria.js), una vez por dibujo
+    let guardado = false;
+    const guardarEnGaleria = () => {
+      if (guardado || typeof Galeria === 'undefined') return;
+      guardado = true;
+      const b = area.querySelector('#pinGuardar');
+      Galeria.guardarSvg(area.querySelector('#pinSvg')).then(() => { if (b) { b.textContent = '✅ ¡Está en tu galería!'; b.disabled = true; } })
+        .catch(() => { guardado = false; });
+    };
+    const bg = area.querySelector('#pinGuardar');
+    if (bg) bg.addEventListener('click', () => { guardarEnGaleria(); if (typeof Voz !== 'undefined') Voz.decir('¡Guardado en tu galería!'); });
     area.querySelector('.pin-paleta').addEventListener('click', (e) => {
       const b = e.target.closest('.pin-color');
       if (!b) return;
@@ -181,7 +193,7 @@ const JuegosPeques = (function () {
       if (!z.dataset.pintada) { z.dataset.pintada = '1'; pintadas++; }
       z.setAttribute('fill', color);
       z.classList.remove('pin-pop'); void z.getBoundingClientRect(); z.classList.add('pin-pop');
-      if (pintadas === dib.z.length) { fin = true; setTimeout(() => ganar(`¡Qué lindo te quedó ${dib.n}! 🎨`), 900); }
+      if (pintadas === dib.z.length) { fin = true; guardarEnGaleria(); setTimeout(() => ganar(`¡Qué lindo te quedó ${dib.n}! 🎨 Quedó en tu galería`), 900); }
     });
     if (nivel === 1) aviso('Elige un color abajo y toca una parte del dibujo 🎨');
     return () => { fin = true; };

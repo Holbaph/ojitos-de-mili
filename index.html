@@ -7,7 +7,7 @@
      en un dato (por ejemplo un nombre), el navegador no lo ejecuta ni lo deja mandar nada afuera. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.open-meteo.com https://gbkrwzihzmbskpivagpn.supabase.co wss://gbkrwzihzmbskpivagpn.supabase.co https://cdn.jsdelivr.net https://storage.googleapis.com; worker-src 'self' blob:; frame-src https://www.youtube-nocookie.com https://www.youtube.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<script src="js/inicio.js?v=32"></script>
+<script src="js/inicio.js?v=33"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Ojitos de Mili</title>
 <meta name="theme-color" content="#eef3f6">
@@ -21,7 +21,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=32">
+<link rel="stylesheet" href="css/styles.css?v=33">
 </head>
 <body>
 
@@ -231,6 +231,16 @@
     <button class="history-btn" id="openHistory"><span aria-hidden="true">📋</span>Historial</button>
     <button class="history-btn ghost" id="openConfig"><span aria-hidden="true">⚙️</span>Configuración</button>
     <button class="history-btn ghost" id="openMili"><span aria-hidden="true">🎨</span>Personalizar</button>
+  </div>
+
+  <!-- el mundo de Mili: huevitos, jardín, mascota, aprender, noche y galería -->
+  <div class="mundo" aria-label="El mundo de Mili">
+    <button class="mu-tile mu-huevo" id="openHuevito"><span class="mu-e">🥚</span><strong>Huevito sorpresa</strong><small id="muHuevoTxt">Uno por día con parche</small><b class="mu-badge hidden" id="muHuevoBadge">1</b></button>
+    <button class="mu-tile mu-jardin" id="openJardin"><span class="mu-e">🌳</span><strong>Mi jardín</strong><small id="muJardinTxt">Crece con tu parche</small></button>
+    <button class="mu-tile mu-mascota" id="openMascota"><span class="mu-e">🐶</span><strong id="muMascotaTxt">Mi perrito</strong><small>Dale cariño</small></button>
+    <button class="mu-tile mu-aprender" id="openAprender"><span class="mu-e">✍️</span><strong>Aprender</strong><small>Mi nombre, letras y números</small></button>
+    <button class="mu-tile mu-noche" id="openNoche"><span class="mu-e">🌙</span><strong>Hora de dormir</strong><small>Mi rutina de noche</small></button>
+    <button class="mu-tile mu-galeria" id="openGaleria"><span class="mu-e">🖼️</span><strong>Mi galería</strong><small>Mis dibujos</small></button>
   </div>
 
   <button class="juego-entrar" id="openJuego">
@@ -618,6 +628,152 @@
   </div>
 </div>
 
+<!-- ============ Huevito sorpresa (js/premios.js) ============ -->
+<div class="pantalla hu hidden" id="huevito" role="dialog" aria-label="Huevito sorpresa">
+  <div class="jp-top">
+    <button class="icon-btn" id="huCerrar" aria-label="Volver">←</button>
+    <div class="jp-titulo"><strong>🥚 Huevito sorpresa</strong><small id="huSub"></small></div>
+  </div>
+  <div class="pa-cuerpo hu-cuerpo">
+    <p class="cu-texto" id="huTexto"></p>
+    <button class="hu-huevo" id="huHuevo" aria-label="Abrir el huevito"></button>
+    <div class="hu-premio hidden" id="huPremio">
+      <svg id="huSvg" class="pj-vivo" viewBox="0 -60 320 500" aria-hidden="true"></svg>
+      <strong id="huNombre"></strong>
+    </div>
+    <div class="cu-botones">
+      <button class="history-btn hidden" id="huOtro">🥚 Abrir otro</button>
+      <button class="history-btn ghost hidden" id="huVestir">👗 Ir a vestir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Mi jardín (js/premios.js) ============ -->
+<div class="pantalla hidden" id="jardin" role="dialog" aria-label="Mi jardín mágico">
+  <div class="jp-top">
+    <button class="icon-btn" id="jaCerrar" aria-label="Volver">←</button>
+    <div class="jp-titulo"><strong>🌳 Mi jardín mágico</strong><small>Cada día con parche crece una plantita</small></div>
+  </div>
+  <div class="pa-cuerpo">
+    <div class="ja-escena" id="jaEscena"></div>
+    <p class="cu-texto" id="jaTexto"></p>
+  </div>
+</div>
+
+<!-- ============ Mi mascota (js/mascota.js) ============ -->
+<div class="pantalla hidden" id="mascota" role="dialog" aria-label="Mi mascota">
+  <div class="jp-top">
+    <button class="icon-btn" id="maCerrar" aria-label="Volver">←</button>
+    <div class="jp-titulo"><strong id="maTitulo">🐶 Mi perrito</strong><small id="maSub"></small></div>
+    <button class="icon-btn" id="maAjustes" aria-label="Cambiar raza o nombre">✏️</button>
+  </div>
+  <div class="pa-cuerpo">
+    <div class="ma-elegir hidden" id="maElegir">
+      <h4>¿Cómo es tu perrito?</h4>
+      <div class="ma-razas" id="maRazas"></div>
+      <input class="ta-nombre" id="maNombre" maxlength="14" placeholder="✏️ ¿Cómo se llama?" autocomplete="off">
+      <h4>Color del collar</h4>
+      <div class="ta-colores" id="maCollares"></div>
+      <button class="btn-save ta-guardar" id="maListo">🐾 ¡Listo!</button>
+    </div>
+    <div class="ma-jugar" id="maJugar">
+      <div class="ma-escena" id="maEscena">
+        <svg id="maSvg" class="pj-vivo" viewBox="0 0 320 320" aria-label="Tu perrito"></svg>
+        <div class="ma-efectos" id="maEfectos"></div>
+      </div>
+      <div class="ma-barras" id="maBarras"></div>
+      <div class="ma-acciones">
+        <button data-acc="comer">🍖<span>Comida</span></button>
+        <button data-acc="banar">🛁<span>Bañar</span></button>
+        <button data-acc="jugar">⚽<span>Jugar</span></button>
+        <button data-acc="truco">🐾<span>Truco</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Hora de dormir (js/noche.js) ============ -->
+<div class="pantalla no hidden" id="noche" role="dialog" aria-label="Rutina de la noche">
+  <div class="jp-top">
+    <button class="icon-btn" id="noCerrar" aria-label="Volver">←</button>
+    <div class="jp-titulo"><strong>🌙 Hora de dormir</strong><small id="noSub"></small></div>
+    <button class="icon-btn" id="noReiniciar" aria-label="Empezar de nuevo">↺</button>
+  </div>
+  <div class="pa-cuerpo">
+    <div class="no-luna" id="noLuna" aria-hidden="true"></div>
+    <div class="no-pasos" id="noPasos"></div>
+  </div>
+  <div class="no-dientes hidden" id="noDientes">
+    <div class="no-di-caja">
+      <div class="no-di-e">🪥🦷</div>
+      <div class="no-di-reloj" id="noDiReloj">2:00</div>
+      <div class="no-di-barra"><i id="noDiBarra"></i></div>
+      <button class="history-btn ghost" id="noDiParar">Parar</button>
+    </div>
+  </div>
+  <div class="no-luz hidden" id="noLuz" aria-label="Lucecita de noche: toca para salir">
+    <div class="no-estrellas" id="noEstrellas"></div>
+    <div class="no-luz-luna">🌙</div>
+    <p>Buenas noches, Mili 💤</p>
+    <small>Toca la pantalla para salir</small>
+  </div>
+</div>
+
+<!-- ============ Aprender (js/aprender.js) ============ -->
+<div class="pantalla hidden" id="aprender" role="dialog" aria-label="Aprender jugando">
+  <div class="jp-top">
+    <button class="icon-btn" id="apCerrar" aria-label="Volver">←</button>
+    <div class="jp-titulo"><strong>✍️ Aprender</strong><small id="apEstrellas">⭐ 0</small></div>
+    <button class="icon-btn" id="apOir" aria-label="Escuchar otra vez">🔊</button>
+  </div>
+  <div class="ap-modos" id="apModos">
+    <button data-modo="nombre">✍️ Mi nombre</button><button data-modo="letras">🔤 Letras</button>
+    <button data-modo="numeros">🔢 Números</button><button data-modo="contar">🍎 Contar</button>
+  </div>
+  <div class="pa-cuerpo ap-cuerpo">
+    <div class="ap-arriba" id="apArriba"></div>
+    <p class="ap-msg" id="apMsg" aria-live="polite"></p>
+    <div class="ap-trazar" id="apTrazar">
+      <div class="ap-hoja"><canvas id="apLienzo"></canvas><span class="ap-fx" id="apFx"></span></div>
+      <div class="ap-herr"><div class="ta-colores" id="apColores"></div><button class="ta-chip" id="apBorrar">🧽 Borrar</button></div>
+    </div>
+    <div class="ap-contar hidden" id="apContar"></div>
+    <div class="ta-opciones ap-opc" id="apOpciones"></div>
+  </div>
+</div>
+
+<!-- ============ Mi galería (js/galeria.js) ============ -->
+<div class="pantalla hidden" id="galeria" role="dialog" aria-label="Mi galería de dibujos">
+  <div class="jp-top">
+    <button class="icon-btn" id="gaCerrar" aria-label="Volver">←</button>
+    <div class="jp-titulo"><strong>🖼️ Mi galería</strong><small id="gaSub"></small></div>
+  </div>
+  <div class="pa-cuerpo">
+    <button class="btn-save ta-guardar" id="gaNuevo">✏️ Dibujar en una hoja nueva</button>
+    <p class="ta-vacio hidden" id="gaVacio">Todavía no hay dibujos. ¡Dibuja en una hoja nueva o pinta en "Pintar" (juegos con el parche)! 🎨</p>
+    <div class="ga-grid" id="gaGrid"></div>
+  </div>
+  <div class="ga-grande hidden" id="gaGrande">
+    <img id="gaGrandeImg" alt="Dibujo de Mili">
+    <small id="gaFecha"></small>
+    <div class="cu-botones">
+      <button class="history-btn ghost" id="gaVolver">← Volver</button>
+      <button class="history-btn" id="gaCompartir">📤 Compartir</button>
+      <button class="history-btn ghost" id="gaBorrar">🗑️ Borrar</button>
+    </div>
+  </div>
+  <div class="ga-hoja hidden" id="gaHoja">
+    <div class="jp-top">
+      <button class="icon-btn" id="gaHojaCerrar" aria-label="Volver">←</button>
+      <div class="jp-titulo"><strong>✏️ Hoja nueva</strong></div>
+      <button class="icon-btn" id="gaHojaBorrar" aria-label="Borrar todo">🧽</button>
+    </div>
+    <div class="ga-lienzo-caja"><canvas id="gaLienzo"></canvas></div>
+    <div class="ga-paleta" id="gaPaleta"></div>
+    <button class="btn-save ta-guardar" id="gaHojaGuardar">🖼️ Guardar en mi galería</button>
+  </div>
+</div>
+
 <!-- ============ Taller de personajes (js/taller.js) ============ -->
 <div class="taller hidden" id="taller" role="dialog" aria-label="Taller de personajes">
   <div class="jp-top">
@@ -796,27 +952,32 @@
 
 <!-- versión fija + huella (integrity): si el archivo del CDN cambiara, el navegador no lo carga -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
-<script src="js/supabase-config.js?v=32"></script>
-<script src="js/auth.js?v=32"></script>
-<script src="js/core.js?v=32"></script>
-<script src="js/tratamiento.js?v=32"></script>
-<script src="js/vestuario.js?v=32"></script>
-<script src="js/mili.js?v=32"></script>
-<script src="js/tiempo-juego.js?v=32"></script>
-<script src="js/juego.js?v=32"></script>
-<script src="js/ar.js?v=32"></script>
-<script src="js/camara.js?v=32"></script>
-<script src="js/cocina.js?v=32"></script>
-<script src="js/juegos-peques.js?v=32"></script>
-<script src="js/juegos-parche.js?v=32"></script>
-<script src="js/fiesta.js?v=32"></script>
-<script src="js/candado.js?v=32"></script>
-<script src="js/album.js?v=32"></script>
-<script src="js/voz.js?v=32"></script>
-<script src="js/clima.js?v=32"></script>
-<script src="js/cuentos.js?v=32"></script>
-<script src="js/taller.js?v=32"></script>
-<script src="js/vida.js?v=32"></script>
-<script src="js/app.js?v=32"></script>
+<script src="js/supabase-config.js?v=33"></script>
+<script src="js/auth.js?v=33"></script>
+<script src="js/core.js?v=33"></script>
+<script src="js/tratamiento.js?v=33"></script>
+<script src="js/vestuario.js?v=33"></script>
+<script src="js/mili.js?v=33"></script>
+<script src="js/tiempo-juego.js?v=33"></script>
+<script src="js/juego.js?v=33"></script>
+<script src="js/ar.js?v=33"></script>
+<script src="js/camara.js?v=33"></script>
+<script src="js/cocina.js?v=33"></script>
+<script src="js/juegos-peques.js?v=33"></script>
+<script src="js/juegos-parche.js?v=33"></script>
+<script src="js/fiesta.js?v=33"></script>
+<script src="js/candado.js?v=33"></script>
+<script src="js/album.js?v=33"></script>
+<script src="js/voz.js?v=33"></script>
+<script src="js/clima.js?v=33"></script>
+<script src="js/cuentos.js?v=33"></script>
+<script src="js/taller.js?v=33"></script>
+<script src="js/premios.js?v=33"></script>
+<script src="js/mascota.js?v=33"></script>
+<script src="js/noche.js?v=33"></script>
+<script src="js/aprender.js?v=33"></script>
+<script src="js/galeria.js?v=33"></script>
+<script src="js/vida.js?v=33"></script>
+<script src="js/app.js?v=33"></script>
 </body>
 </html>

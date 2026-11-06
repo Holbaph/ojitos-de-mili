@@ -125,6 +125,17 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   y la inteligencia artificial elige cómo dibujarlo con las piezas de la app (no se
   bajan imágenes de internet). La magia pide el PIN de padres. Los creados aparecen en
   el juego de vestir, los cuentos, la fiesta y los juegos con el parche.
+- **🌈 El mundo de Mili** (botones en la pantalla principal):
+  - **🥚 Huevito sorpresa**: uno por cada día con parche; trae un premio nuevo para el juego
+    de vestir (medalla de valiente, corona arcoíris, alas de hada…), que aparece con ⭐ en el armario.
+  - **🌳 Mi jardín mágico**: cada día con parche crece una plantita; con días seguidos llegan
+    mariposas, abejitas, un conejito, un pajarito…
+  - **🐶 Mi perrito**: pug (u otra raza) con nombre; se le da comida, se baña frotándolo y se
+    juega con él. Los días con parche, ¡él también usa parche!
+  - **✍️ Aprender**: repasar con el dedo su nombre (MILI o EMILIA), las letras y los números, y contar.
+  - **🌙 Hora de dormir**: rutina con pasos, reloj de 2 minutos para los dientes, cuento y
+    lucecita de noche con canción de cuna.
+  - **🖼️ Mi galería**: los dibujos de "Pintar" y de la hoja en blanco; quedan solo en ese celular.
 - Los personajes de las películas tienen su "firma": el tupé y la trenza de Elsa, la
   melena de rizos de Moana, Mérida y Mirabel, el remolino de Ariel, la trenza con flores
   de Rapunzel, el anzuelo y los tatuajes de Maui, y ojos de película.
@@ -387,6 +398,11 @@ js/fiesta.js              💃 Fiesta de baile: bailarines, ritmo por micrófono
 js/candado.js             🔒 PIN de padres para Historial y Configuración
 js/album.js               📒 álbum de stickers (uno por día con parche)
 js/taller.js              taller para crear personajes (a mano o con magia)
+js/premios.js             huevitos sorpresa y jardín mágico
+js/mascota.js             el perrito de Mili
+js/noche.js               rutina de la noche y canción de cuna
+js/aprender.js            repasar letras, números y su nombre; contar
+js/galeria.js             galería de dibujos (solo en el celular)
 js/vida.js                el avatar vive: respira, pestañea, mira, habla y reacciona
 js/voz.js                 la voz de Mili (speechSynthesis del celular)
 js/clima.js               ropa según el clima (ubicación aproximada + Open-Meteo)

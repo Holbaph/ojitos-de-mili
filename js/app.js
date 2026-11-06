@@ -132,6 +132,8 @@
 
     renderCuenta();
     showApp();
+    // la mascota, los huevitos y los creados pueden venir de otro celular
+    Juego.sincronizar().then(renderMundo);
     actualizarClima(false);
     if (!climaTick) climaTick = setInterval(() => actualizarClima(false), 30 * 60 * 1000);
     // el avatar "vive": respira, pestañea, mira, habla y reacciona al tocarlo
@@ -213,7 +215,7 @@
       entries[id] = { fecha: id, ojo: side, hora: horaISO, horaFin: null, registradoPor: perfil.id };
       renderAll();
       showToast((current ? '' : '📒 ¡Ganaste un sticker nuevo! · ') + 'Registrado: ojo ' + Utils.label(side).toLowerCase() + ' a las ' + Utils.fmtTime(horaISO));
-      Vida.celebrar(current ? '¡Listo, cambiamos de ojo! 👀' : '¡Bien! Ya tengo mi parche 🩹');
+      Vida.celebrar(current ? '¡Listo, cambiamos de ojo! 👀' : '¡Bien! Ya tengo mi parche 🩹 ¡Y hay un huevito sorpresa! 🥚');
       if (!current) { const b = document.getElementById('albumBtn'); b.classList.remove('brilla'); void b.offsetWidth; b.classList.add('brilla'); }
     } catch (e) {
       showToast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
@@ -344,7 +346,19 @@
     });
   }
 
-  function renderAll() { renderToday(); renderStats(); renderCalendar(); renderList(); renderTimer(); renderSemana(); renderPremio(); renderControl(); renderAlbumBtn(); }
+  function renderAll() { renderToday(); renderStats(); renderCalendar(); renderList(); renderTimer(); renderSemana(); renderPremio(); renderControl(); renderAlbumBtn(); renderMundo(); }
+  // ---- el mundo de Mili (js/premios.js, js/mascota.js) ----
+  function renderMundo() {
+    Premios.datos(entries, computeStats().streak);
+    const n = Premios.pendientes(), b = document.getElementById('muHuevoBadge');
+    b.textContent = n; b.classList.toggle('hidden', !n);
+    document.getElementById('openHuevito').classList.toggle('brilla', n > 0);
+    document.getElementById('muHuevoTxt').textContent = n ? (n === 1 ? '¡Tienes 1 para abrir!' : `¡Tienes ${n} para abrir!`) : 'Uno por día con parche';
+    const dias = Object.keys(entries).length;
+    document.getElementById('muJardinTxt').textContent = dias ? `${dias} plantita${dias === 1 ? '' : 's'} 🌱` : 'Crece con tu parche';
+    const perro = Mascota.resumen();
+    document.getElementById('muMascotaTxt').textContent = perro ? perro : 'Mi perrito';
+  }
   function renderAlbumBtn() { document.getElementById('albumBtnTxt').textContent = Album.texto(entries) + ' · cada día con parche ganas uno'; }
 
   // ================= TEMPORIZADOR (reloj de arena) =================
@@ -760,6 +774,17 @@
   document.getElementById('openFiesta').addEventListener('click', () => {
     Fiesta.abrir({ minutosDia: juegoMinutos });
   });
+
+  // ================= EL MUNDO DE MILI =================
+  window.confetiPantallaGlobal = () => confetiPantalla();
+  Premios.iniciar({ alCambiar: renderMundo, alVestir: () => document.getElementById('openJuego').click() });
+  document.getElementById('openHuevito').addEventListener('click', () => Premios.abrirHuevo());
+  document.getElementById('openJardin').addEventListener('click', () => Premios.abrirJardin());
+  document.getElementById('openMascota').addEventListener('click', () => Mascota.abrir(!!entries[Utils.todayId()]));
+  document.getElementById('maCerrar').addEventListener('click', renderMundo);
+  document.getElementById('openAprender').addEventListener('click', () => Aprender.abrir());
+  document.getElementById('openNoche').addEventListener('click', () => Noche.abrir());
+  document.getElementById('openGaleria').addEventListener('click', () => Galeria.abrir());
 
   // ================= JUEGO DE VESTIR (js/juego.js) =================
   document.getElementById('openJuego').addEventListener('click', () => {
