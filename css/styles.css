@@ -1094,3 +1094,6 @@ details.cfg[open] .cfg-ico{ background:var(--surface); }
 .al-sticker.dorado{ background:linear-gradient(135deg,#fff3c4,#f2c14e); border-color:#d9a92a; }
 .al-sticker.nuevo{ animation:premio-brillo 1.4s ease-in-out infinite; }
 .al-sticker b{ position:absolute; top:-8px; right:-4px; background:#e8578a; color:#fff; font-size:10px; padding:2px 7px; border-radius:99px; }
+.fi-fin{ display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; padding:10px; }
+.fi-fin p{ margin:0; font-weight:800; font-size:15px; }
+.fi-fin small{ opacity:.8; }
