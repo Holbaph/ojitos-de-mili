@@ -49,7 +49,7 @@ const Aprender = (function () {
     c.drawImage(tinta, 0, 0, tam, tam);
   }
   function nuevoTrazo(g, fin) {
-    glifo = g; listo = false; alTerminar = fin;
+    glifo = g; listo = false; alTerminar = fin; trazos = 0;
     preparar();
     const m = mascara.getContext('2d');
     m.clearRect(0, 0, tam, tam);
@@ -59,15 +59,17 @@ const Aprender = (function () {
     const d = m.getImageData(0, 0, tam, tam).data, paso = Math.max(4, Math.round(tam / 60));
     puntos = [];
     for (let y = 0; y < tam; y += paso) for (let x = 0; x < tam; x += paso) if (d[(y * tam + x) * 4 + 3] > 128) puntos.push([x, y]);
+    // para "salirse" se cuenta un margen ancho alrededor de la letra (es una niña chica)
+    m.lineWidth = tam * 0.16; m.lineJoin = 'round'; m.strokeStyle = '#000'; m.strokeText(g, tam / 2, tam * 0.54);
     pintar();
   }
-  function borrar() { tinta.getContext('2d').clearRect(0, 0, tam, tam); listo = false; pintar(); }
+  function borrar() { tinta.getContext('2d').clearRect(0, 0, tam, tam); listo = false; trazos = 0; pintar(); }
   function pos(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * tam / r.width, (e.clientY - r.top) * tam / r.height]; }
-  let ultimo = null;
+  let ultimo = null, trazos = 0;
   function trazar(e) {
     if (!dibujando || listo) return;
     const [x, y] = pos(e), t = tinta.getContext('2d');
-    t.strokeStyle = color; t.lineWidth = tam * 0.085; t.lineCap = 'round'; t.lineJoin = 'round';
+    t.strokeStyle = color; t.lineWidth = tam * 0.13; t.lineCap = 'round'; t.lineJoin = 'round';
     t.beginPath(); t.moveTo(...(ultimo || [x, y])); t.lineTo(x, y); t.stroke();
     ultimo = [x, y];
     pintar();
@@ -85,8 +87,12 @@ const Aprender = (function () {
       if (td[i + 3] > 0) { tintaTotal++; if (md[i + 3] < 128) tintaFuera++; }
     }
     const fuera = tintaTotal ? tintaFuera / tintaTotal : 0;
-    if (dentro >= 0.62 && fuera < 0.62) { listo = true; ganarEstrella(); if (alTerminar) setTimeout(alTerminar, 900); }
-    else if (fuera >= 0.62 && tintaTotal > 40) aviso(dentro >= 0.62 ? '¡Uy, te saliste mucho! Toca 🧽 Borrar y sigue la letra clarita' : 'Intenta seguir la letra clarita 😊');
+    trazos++;
+    // fácil: con cubrir menos de la mitad basta; y si ya lo intentó varias veces, también vale
+    const basta = dentro >= 0.4 || (trazos >= 3 && dentro >= 0.2) || (trazos >= 5 && dentro >= 0.1);
+    if (basta && fuera < 0.9) { listo = true; ganarEstrella(); if (alTerminar) setTimeout(alTerminar, 900); }
+    else if (tintaTotal > 40 && fuera >= 0.9) aviso('¡Casi! Pasa el dedito por la letra clarita 😊');
+    else if (trazos === 1) aviso('¡Muy bien! Sigue un poquito más ✍️');
   }
   function aviso(t) { $('apMsg').textContent = t; decir(t); }
   function ganarEstrella() {
