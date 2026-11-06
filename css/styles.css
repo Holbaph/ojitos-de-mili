@@ -1145,3 +1145,38 @@ svg.face.vi-sonrisa .vi-boca{ opacity:1; transform:scale(1.35,.32); }
 .cu-botones .history-btn{ flex:1; }
 .cu-botones .history-btn:disabled{ opacity:.4; }
 @media (prefers-reduced-motion: reduce){ .cu-deco, .cu-premio, .cu-escena.fiesta .cu-pj, .confeti-pantalla i{ animation:none; } }
+
+/* ===== Taller de personajes (js/taller.js) ===== */
+.ja-crear{ background:linear-gradient(120deg,#f6c1d9,#c9b3f0) !important; }
+.taller{ position:fixed; inset:0; z-index:76; background:var(--bg); display:flex; flex-direction:column; max-width:560px; margin:0 auto; }
+.ta-cuerpo{ flex:1; min-height:0; overflow-y:auto; padding:6px 14px 28px; display:flex; flex-direction:column; gap:12px; }
+.ta-magia{ background:linear-gradient(120deg,#fde7f1,#ece4fb); border-radius:18px; padding:10px 12px; display:flex; flex-direction:column; gap:6px; color:#2a2740; }
+.ta-fila{ display:flex; gap:6px; align-items:center; }
+.ta-fila input{ flex:1; min-width:0; }
+.ta-magia input, .ta-nombre{ font:inherit; font-size:17px; padding:10px 12px; border-radius:14px; border:2px solid var(--line); background:var(--surface); color:var(--ink); }
+.ta-nombre{ text-align:center; font-family:'Baloo 2'; font-weight:800; font-size:20px; }
+.ta-nombre.falta{ border-color:var(--danger); animation:ta-temblor .4s; }
+@keyframes ta-temblor{ 25%{ transform:translateX(-6px); } 75%{ transform:translateX(6px); } }
+.ta-magia small{ color:#615f80; font-weight:700; min-height:1em; }
+#taMicro.escuchando{ background:#e8375e; color:#fff; animation:fi-pulso 1s infinite; }
+.taller.magia .ta-vista{ animation:fi-pulso 1s ease-in-out infinite; }
+.ta-vista{ height:34vh; min-height:200px; border-radius:22px; background:radial-gradient(circle at 50% 40%,#fff,#f3eefb); display:flex; justify-content:center; align-items:flex-end; padding:8px; }
+.ta-vista svg{ height:100%; width:auto; filter:drop-shadow(0 6px 8px rgba(0,0,0,.18)); }
+.ta-grupo h4{ margin:0 0 6px; font-size:14px; color:var(--ink-soft); }
+.ta-opciones{ display:flex; flex-wrap:wrap; gap:6px; }
+.ta-chip{ border:2px solid var(--line); background:var(--surface); color:var(--ink); border-radius:99px; padding:7px 12px; font:inherit; font-weight:700; font-size:14px; display:flex; align-items:center; gap:5px; cursor:pointer; }
+.ta-chip span{ font-size:18px; }
+.ta-chip.activo{ border-color:#c96f8f; background:#fde7f1; color:#2a2740; }
+.ta-colores{ display:flex; flex-wrap:wrap; gap:8px; }
+.ta-color{ width:40px; height:40px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 0 1px var(--line); cursor:pointer; }
+.ta-color.activo{ box-shadow:0 0 0 3px #c96f8f; transform:scale(1.1); }
+.ta-guardar{ font-size:19px; padding:14px; }
+.ta-lista{ display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px; }
+.ta-item{ position:relative; }
+.ta-editar{ width:100%; border:2px solid var(--line); background:var(--surface); border-radius:16px; padding:4px; display:flex; flex-direction:column; align-items:center; font:inherit; font-weight:700; font-size:13px; color:var(--ink); cursor:pointer; }
+.ta-editar svg{ width:80px; height:80px; }
+.ta-borrar{ position:absolute; top:-6px; right:-6px; border:none; border-radius:99px; background:var(--surface); box-shadow:var(--shadow-sm); padding:4px 7px; font-size:13px; cursor:pointer; }
+.ta-borrar.confirmar{ background:var(--danger); color:#fff; font-weight:800; }
+.ta-vacio{ color:var(--ink-faint); margin:0; }
+.ja-crear, .ja-crear .ja-txt{ color:#2a2740 !important; }
+.ta-fila .history-btn{ width:auto; flex:0 0 auto; margin:0; padding:10px 14px; }

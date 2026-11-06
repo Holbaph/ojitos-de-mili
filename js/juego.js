@@ -232,11 +232,11 @@ const Juego = (function () {
     // ---- Moana ----
     {
       id: 'moana', rasgos: { pestanas: true }, nombre: 'Moana', grupo: 'Moana', piel: '#a86b45', ojos: '#3a2a22', peloEstilo: 'crespo', peloColor: '#1f1a1c',
-      ropa: { arriba: { t: 'top', c: C.crema }, abajo: { t: 'falda-larga', c: C.rojo }, cabeza: { t: 'flor', c: C.rojo }, collar: { t: 'concha', c: C.turquesa } },
+      ropa: { arriba: { t: 'top', c: '#c9503a' }, abajo: { t: 'falda-larga', c: '#e9d3a8' }, cabeza: { t: 'flor', c: C.rojo }, collar: { t: 'concha', c: C.turquesa } },
     },
     {
       id: 'maui', rasgos: { cejas: 'marcadas' }, nombre: 'Maui', grupo: 'Moana', piel: '#9a5f3c', ojos: '#3a2a22', peloEstilo: 'afro', flequillo: 'sin', peloColor: '#1f1a1c',
-      ropa: { arriba: { t: 'musculosa', c: '#5a3a28' }, abajo: { t: 'falda', c: '#6f9a4a' }, collar: { t: 'concha', c: C.blanco }, muneca: { t: 'brazaletes', c: C.cafe } },
+      ropa: { abajo: { t: 'falda', c: '#6f9a4a' }, collar: { t: 'concha', c: C.blanco }, muneca: { t: 'brazaletes', c: C.cafe } },
     },
     // Heihei, Pua, Tamatoa, Te Fiti y Te Kā no son personas: solo usan accesorios
     { id: 'heihei', nombre: 'Heihei', grupo: 'Moana', especie: 'heihei', ropa: {} },
@@ -337,6 +337,47 @@ const Juego = (function () {
       ropa: { arriba: { t: 'camisa', c: '#5aa6e0' }, abajo: { t: 'jardinera', c: C.naranjo }, zapatos: { t: 'zapatillas', c: C.naranjo }, cara: { t: 'lentes-redondos', c: C.naranjo }, sombrero: { t: 'gorro-lana', c: '#4a78c2' }, collar: { t: 'humita', c: C.naranjo } },
     },
   ];
+  // ---------- personajes creados por Mili (Taller de personajes, js/taller.js) ----------
+  // Se guardan junto con la ropa (en la base de datos compartida) y van en la
+  // lista justo después de Mili. Todo se valida: lo guardado se mete en el SVG.
+  const TIPOS_CREADO = ['persona', 'raton', 'olaf', 'sven', 'stitch', 'angel', 'pua', 'heihei', 'bruni'];
+  const MAX_CREADOS = 40;
+  let creadosRaw = [];
+  function normalizarCreado(c) {
+    if (!c || typeof c !== 'object' || !/^c_[a-z0-9]{4,16}$/.test(c.id || '')) return null;
+    const hex = (v, d) => (HEX.test(v || '') ? v.toLowerCase() : d);
+    const tipo = TIPOS_CREADO.includes(c.tipo) ? c.tipo : 'persona';
+    const especie = tipo !== 'persona' && tipo !== 'raton' ? tipo : null;
+    const ropa = {};
+    PRENDAS.forEach((k) => {
+      if (especie && !Vestuario.SLOTS_ESPECIE.includes(k)) return;
+      const v = c.ropa && Vestuario.pieza(k, c.ropa[k]);
+      if (v) ropa[k] = v;
+    });
+    if (ropa.vestido) { delete ropa.arriba; delete ropa.abajo; }
+    const limpio = {
+      id: c.id, tipo,
+      nombre: String(c.nombre || '').replace(/[<>&"'`]/g, '').trim().slice(0, 18) || 'Amigo',
+      piel: hex(c.piel, '#f6d7bd'), ojos: hex(c.ojos, '#4a3222'), peloColor: hex(c.peloColor, '#4a3222'),
+      peloEstilo: Vestuario.esPeinado(c.peloEstilo) ? c.peloEstilo : 'melena',
+      flequillo: Vestuario.esFlequillo(c.flequillo) ? c.flequillo : 'ondas',
+      pestanas: !!c.pestanas, pecas: !!c.pecas, magia: !!c.magia, ropa,
+    };
+    return limpio;
+  }
+  // de lo guardado a una entrada de la lista de personajes
+  const comoPersonaje = (c) => ({
+    id: c.id, nombre: c.nombre, grupo: 'Creados', creado: true, piel: c.piel, ojos: c.ojos,
+    peloEstilo: c.peloEstilo, peloColor: c.peloColor, flequillo: c.flequillo,
+    rasgos: { pestanas: c.pestanas, pecas: c.pecas }, raton: c.tipo === 'raton',
+    especie: c.tipo !== 'persona' && c.tipo !== 'raton' ? c.tipo : undefined, ropa: c.ropa,
+  });
+  function ponerCreados(lista) {
+    creadosRaw = (Array.isArray(lista) ? lista : []).map(normalizarCreado).filter(Boolean).slice(0, MAX_CREADOS);
+    for (let i = PERSONAJES.length - 1; i >= 0; i--) if (PERSONAJES[i].creado) PERSONAJES.splice(i, 1);
+    PERSONAJES.splice(1, 0, ...creadosRaw.map(comoPersonaje));
+  }
+
   // categorías (y lugares de Joyas) que les sirven a los que no son personas
   const CATS_ESPECIE = ['cabeza', 'sombrero', 'cara', 'joyas'];
   const especieDe = (id) => (PERSONAJES.find((p) => p.id === id) || {}).especie || null;
@@ -385,7 +426,9 @@ const Juego = (function () {
   // ================= DIBUJO (js/vestuario.js) =================
   // o = { pose, parche } (para la cámara). Mili lleva el estampado de su
   // avatar y, si se pide, su parche.
-  function figura(id, st, o) {
+  function figura(id, st, o) { return figuraDe(personaje(id), st, o); }
+  function figuraDe(p, st, o) {
+    const id = p.id;
     o = o || {};
     let defs = '', relleno = null, sobreOjos = '';
     if (id === 'mili') {
@@ -394,10 +437,14 @@ const Juego = (function () {
       relleno = e.relleno;
       sobreOjos = Mili.parcheFoto(aparienciaMili, 'jmili', o.parche);
     }
-    const esp = especieDe(id);
+    const esp = p.especie || null;
     if (esp) return Vestuario.especie(esp, st).figura;
-    const raton = esRaton(id);
-    return defs + Vestuario.persona(st, { piel: personaje(id).piel, relleno, pose: o.pose, sobreOjos, sinBrazo: o.sinBrazo, raton, manos: raton ? '#ffffff' : null, rasgos: personaje(id).rasgos }).figura;
+    const raton = !!p.raton;
+    return defs + Vestuario.persona(st, {
+      piel: p.piel, relleno, pose: o.pose, sobreOjos, sinBrazo: o.sinBrazo, raton, manos: raton ? '#ffffff' : null, rasgos: p.rasgos,
+      // lo que hace reconocible a cada uno (peinado propio, detalles) y ojos "de película"
+      firma: { id: p.firma || id, peloEstilo: p.peloEstilo }, ojosPelicula: id !== 'mili' && !p.creado,
+    }).figura;
   }
 
   function icono(cat, valor, st, id) {
@@ -427,12 +474,13 @@ const Juego = (function () {
     return null;
   }
   function aplicarGuardado(j) {
+    ponerCreados(j && j.creados);
     estados = {};
     PERSONAJES.forEach((p) => { estados[p.id] = normalizar(p.id, j && j.personajes && j.personajes[p.id]); });
     if (j && PERSONAJES.some((p) => p.id === j.actual)) actual = j.actual;
     miliFirma = (j && typeof j.miliFirma === 'string') ? j.miliFirma : null;
   }
-  function paquete() { return { personajes: estados, actual, miliFirma }; }
+  function paquete() { return { personajes: estados, actual, miliFirma, creados: creadosRaw }; }
 
   // Si el avatar cambió desde la última vez, la Mili del juego se pone igual a él.
   function sincronizarMili() {
@@ -480,7 +528,7 @@ const Juego = (function () {
   // título entre un grupo y otro (el orden lo da la lista PERSONAJES).
   const SECCION = {
     Frozen: '❄️ Frozen', Huntrix: '🎤 Huntrix', Moana: '🌊 Moana', Encanto: '🦋 Encanto', 'Lilo y Stitch': '🌺 Lilo y Stitch',
-    Disney: '🐭 Mickey y Minnie', Canciones: '📺 Tele y videos', Videos: '📺 Tele y videos',
+    Creados: '✨ Creados por Mili', Disney: '🐭 Mickey y Minnie', Canciones: '📺 Tele y videos', Videos: '📺 Tele y videos',
   };
   const seccionDe = (p) => (p.id === 'mili' ? '' : SECCION[p.grupo] || '👑 Princesas');
   function renderPersonajes() {
@@ -613,6 +661,7 @@ const Juego = (function () {
     }
     conConfirmacion('juegoReset', () => { estados[actual] = enBlanco(actual); });
     conConfirmacion('juegoOriginal', () => { estados[actual] = inicial(actual); });
+    $('juegoCrear').addEventListener('click', () => Taller.abrir());
 
     $('juegoFoto').addEventListener('click', () => {
       const id = actual;
@@ -732,5 +781,40 @@ const Juego = (function () {
     return normalizar(id, j && j.personajes && j.personajes[id]);
   }
 
-  return { abrir, cerrar, restablecerTodos, figura, personajes, original, vestido };
+  // ---------- para el Taller de personajes (js/taller.js) ----------
+  function creados() { return JSON.parse(JSON.stringify(creadosRaw)); }
+  // dibuja un personaje que todavía no se guarda (la vista previa del taller)
+  function vistaPrevia(raw) {
+    const c = normalizarCreado({ ...raw, id: raw.id || 'c_vista' });
+    if (!c) return '';
+    const p = comoPersonaje(c);
+    const st = { ojos: p.ojos, peloEstilo: p.peloEstilo, peloColor: p.peloColor, flequillo: p.flequillo };
+    PRENDAS.forEach((k) => { st[k] = p.ropa[k] || null; });
+    return figuraDe(p, st, {});
+  }
+  function guardarCreado(raw) {
+    const id = raw.id && creadosRaw.some((c) => c.id === raw.id) ? raw.id : 'c_' + Math.random().toString(36).slice(2, 10);
+    const c = normalizarCreado({ ...raw, id });
+    if (!c) return null;
+    const lista = creadosRaw.filter((x) => x.id !== id);
+    if (lista.length >= MAX_CREADOS) return null;
+    lista.unshift(c);
+    ponerCreados(lista);
+    estados[id] = inicial(id); // con la ropa que eligió en el taller
+    actual = id;
+    renderPersonajes(); renderEscenario(true); renderCats(); renderItems();
+    guardar();
+    return id;
+  }
+  function borrarCreado(id) {
+    ponerCreados(creadosRaw.filter((c) => c.id !== id));
+    delete estados[id];
+    if (actual === id) actual = 'mili';
+    renderPersonajes(); renderEscenario(true); renderCats(); renderItems();
+    guardar();
+  }
+  // al cargar la app, los creados ya están (para la fiesta, los cuentos y los juegos)
+  ponerCreados((leerLocal() || {}).creados);
+
+  return { abrir, cerrar, restablecerTodos, figura, personajes, original, vestido, creados, vistaPrevia, guardarCreado, borrarCreado, MAX_CREADOS };
 })();

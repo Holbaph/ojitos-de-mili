@@ -784,6 +784,158 @@ const Vestuario = (function () {
     }).join('');
   }
 
+  // ================= OJOS DE PRINCESA (personajes de las películas) =================
+  // Almendrados, con el párpado de arriba marcado y el iris grande (más
+  // "de película" que los ojos redondos de Mili). Mismo lugar: (112,168) y (208,168).
+  function ojosPelicula(color, pestanas) {
+    return [112, 208].map((x) => {
+      const a = x < 160 ? -1 : 1; // hacia afuera
+      const P = (dx, dy) => `${x + a * dx} ${168 + dy}`;
+      const parpado = `M${P(-24, 6)} Q${P(-6, -28)} ${P(27, -6)}`;
+      const ix = x + a * 2;
+      return `<path d="${parpado} Q${P(20, 22)} ${P(-2, 24)} Q${P(-20, 22)} ${P(-24, 6)} Z" fill="#fff"/>` +
+        `<circle cx="${ix}" cy="171" r="15" fill="${color}"/><circle cx="${ix}" cy="171" r="15" fill="none" stroke="${oscurecer(color, 0.35)}" stroke-width="2"/>` +
+        `<circle cx="${ix}" cy="171" r="6.5" fill="#1f1a24"/><circle cx="${ix - 5}" cy="165" r="4" fill="#fff"/><circle cx="${ix + 5}" cy="177" r="2" fill="#fff" opacity=".8"/>` +
+        `<path d="${parpado}" fill="none" stroke="#2a2330" stroke-width="5" stroke-linecap="round"/>` +
+        (pestanas ? `<path d="M${P(26, -6)} l${a * 9} -9 M${P(20, -14)} l${a * 6} -10" stroke="#2a2330" stroke-width="3.5" stroke-linecap="round"/>` : '');
+    }).join('');
+  }
+
+  // ================= FIRMAS: lo que hace reconocible a cada personaje =================
+  // Peinados propios (el tupé y la trenza de Elsa, la melena de rizos de Moana,
+  // Mérida y Mirabel, el remolino de Ariel, la trenza con flores de Rapunzel…)
+  // y detalles del cuerpo (tatuajes y anzuelo de Maui, el corsé bordado de Anna,
+  // los copos de nieve de Elsa…). El peinado propio se usa mientras el personaje
+  // tenga su peinado original: si en el juego le cambian el peinado, se usa el nuevo.
+  //   atras / frente / delante (h, o) -> pelo detrás, sobre la frente y delante del cuerpo
+  //   capa (st)    -> algo detrás del cuerpo (una capita)
+  //   cuerpo (st)  -> dibujo sobre la ropa, debajo de los brazos
+  //   fuerte       -> brazos más gruesos; sinCamiseta -> sin la polera blanca de abajo
+  const n1 = (v) => v.toFixed(1);
+  const bolas = (lista, h) => lista.map(([x, y, r]) => `<circle cx="${n1(x)}" cy="${n1(y)}" r="${r}" fill="${h}"/>`).join('');
+  function copo(x, y, r, c) {
+    let d = '';
+    for (let i = 0; i < 3; i++) {
+      const g = i * Math.PI / 3, dx = Math.cos(g) * r, dy = Math.sin(g) * r;
+      d += `M${n1(x - dx)} ${n1(y - dy)} L${n1(x + dx)} ${n1(y + dy)} `;
+    }
+    return `<path d="${d}" stroke="${c}" stroke-width="${Math.max(1.4, r / 3.5).toFixed(1)}" stroke-linecap="round"/>`;
+  }
+  // una melena grande de rizos (detrás de la cabeza): un manto con bolitas por el borde
+  function melenaRizos(h, o, ancho, largo, r) {
+    r = r || 28;
+    let s = `<path d="M${160 - ancho} 190 A${ancho} ${ancho} 0 0 1 ${160 + ancho} 190 L${160 + ancho - 8} ${largo - 24} Q160 ${largo + 10} ${160 - ancho + 8} ${largo - 24} Z" fill="${h}"/>`;
+    const b = [];
+    for (let g = -20; g <= 200; g += 18) { const q = g * Math.PI / 180; b.push([160 + ancho * Math.cos(q), 190 - ancho * Math.sin(q), r]); }
+    for (let y = 226; y <= largo - 26; y += 30) { b.push([160 - ancho + 6, y, r - 2], [160 + ancho - 6, y, r - 2]); }
+    for (let x = 160 - ancho + 26; x <= 160 + ancho - 26; x += 34) b.push([x, largo - 22 + ((x / 34) % 2 ? 6 : 0), r - 4]);
+    s += bolas(b, h);
+    // espirales para que se vean rizos
+    for (let i = 0; i < 6; i++) {
+      const lado = i % 2 ? 1 : -1, y = 230 + Math.floor(i / 2) * ((largo - 260) / 3), x = 160 + lado * (ancho - 24);
+      s += `<path d="M${n1(x)} ${n1(y)} q${lado * 10} -10 ${lado * 16} 2 q4 14 -10 14 q-8 -2 -4 -10" fill="none" stroke="${o}" stroke-width="3" stroke-linecap="round" opacity=".55"/>`;
+    }
+    return s;
+  }
+  // rulitos sobre la frente (sobre la línea del pelo)
+  function rulitosFrente(h, o, r, cuantos) {
+    const b = [];
+    for (let i = 0; i < cuantos; i++) {
+      const g = Math.PI * (0.92 - 0.84 * i / (cuantos - 1));
+      b.push([160 + 112 * Math.cos(g), 150 - 86 * Math.sin(g), r]);
+    }
+    return `<path d="M44 150 A121 121 0 0 1 276 150 Q262 104 214 80 Q160 64 106 80 Q58 104 44 150 Z" fill="${h}"/>` + bolas(b, h) +
+      b.map(([x, y]) => `<path d="M${n1(x - r * 0.4)} ${n1(y)} q${n1(r * 0.4)} ${n1(-r * 0.5)} ${n1(r * 0.7)} 0" fill="none" stroke="${o}" stroke-width="2.5" opacity=".5"/>`).join('');
+  }
+  const SIN_FLEQUILLO = (h) => `<path d="M44 150 A121 121 0 0 1 276 150 Q262 104 214 80 Q160 64 106 80 Q58 104 44 150 Z" fill="${h}"/>`;
+  const PARTIDO = (h, o) => SIN_FLEQUILLO(h) + `<path d="M162 62 Q150 76 120 84 Q84 98 62 128 M162 62 Q176 78 204 84 Q240 98 258 128" fill="none" stroke="${o}" stroke-width="3" opacity=".45"/>`;
+  const flores = (lista) => lista.map(([x, y, s, c]) => flor(x, y, s, c)).join('');
+
+  const FIRMAS = {
+    elsa: {
+      atras: (h) => `<path d="${CASQUETE}" fill="${h}"/>`,
+      // el tupé peinado hacia atrás, con volumen arriba
+      frente: (h, o) => `<path d="M42 156 Q36 92 92 62 Q140 36 198 40 Q252 48 276 100 Q284 126 278 156 Q262 112 224 98 Q190 88 160 92 Q118 96 84 118 Q56 134 42 156 Z" fill="${h}"/>` +
+        `<path d="M76 106 Q138 58 222 66 M98 86 Q160 50 244 82 M66 132 Q120 92 190 86" fill="none" stroke="${o}" stroke-width="3" stroke-linecap="round" opacity=".45"/>`,
+      // la trenza gruesa que cae por delante, sobre un hombro
+      delante: (h) => trenza(256, -1.5, 8, 21, h),
+      cuerpo: () => [[132, 330, 6], [188, 350, 5], [150, 388, 7], [208, 402, 5], [106, 404, 5], [226, 372, 4], [170, 416, 4], [62, 420, 6], [258, 422, 6], [84, 372, 4]]
+        .map(([x, y, r]) => copo(x, y, r, '#ffffff')).join(''),
+    },
+    anna: {
+      capa: () => `<path d="M116 290 L204 290 L238 384 Q160 398 82 384 Z" fill="#b3366b"/>`,
+      // el corsé negro bordado con flores
+      cuerpo: () => `<path d="M124 286 L196 286 L203 336 Q160 344 117 336 Z" fill="#2a2530"/>` +
+        `<path d="M136 300 Q148 312 138 326 M184 300 Q172 312 182 326" fill="none" stroke="#5f9a4c" stroke-width="2.5"/>` +
+        flores([[140, 310, 0.42, '#d9534f'], [180, 310, 0.42, '#d9534f'], [160, 324, 0.36, '#e8b84a'], [160, 298, 0.3, '#7cc4ea']]),
+    },
+    kristoff: {
+      // chasquilla desordenada
+      frente: (h, o) => `<path d="M42 156 A121 121 0 0 1 278 156 L270 128 L252 140 L246 110 L226 124 L216 98 L196 114 L184 90 L166 110 L150 88 L136 112 L116 96 L106 124 L86 108 L80 138 L58 128 Z" fill="${h}"/>`,
+    },
+    moana: {
+      atras: (h, o) => melenaRizos(h, o, 140, 380),
+      frente: PARTIDO,
+      cuerpo: () => {
+        let z = '';
+        for (let x = 98; x < 222; x += 14) z += `<path d="M${x} 372 l7 -10 l7 10" fill="none" stroke="#c9503a" stroke-width="3"/>`;
+        return z + `<path d="M100 384 Q160 394 220 384" fill="none" stroke="#c9503a" stroke-width="4"/>` +
+          `<path d="M108 352 Q160 360 212 352" fill="none" stroke="#8a5a3a" stroke-width="5"/>`;
+      },
+    },
+    maui: {
+      atras: (h, o) => melenaRizos(h, o, 146, 330, 30),
+      frente: PARTIDO,
+      fuerte: true, sinCamiseta: true,
+      // el anzuelo mágico (detrás del brazo) y los tatuajes del pecho
+      cuerpo: () => `<path d="M250 424 L250 250 Q250 196 290 198 Q324 204 318 246 Q314 272 292 274" fill="none" stroke="#9c8a62" stroke-width="20" stroke-linecap="round"/>` +
+        `<path d="M250 424 L250 250 Q250 196 290 198 Q324 204 318 246 Q314 272 292 274" fill="none" stroke="#eadfc2" stroke-width="14" stroke-linecap="round"/>` +
+        `<path d="M250 300 l-6 6 l6 6 l-6 6 l6 6" fill="none" stroke="#9c8a62" stroke-width="3"/>` +
+        `<g fill="none" stroke="#2a2530" stroke-width="3" opacity=".75" stroke-linecap="round">` +
+        `<path d="M126 300 Q160 318 194 300"/><path d="M130 312 l8 8 l8 -8 l8 8 l8 -8 l8 8 l8 -8 l8 8"/>` +
+        `<path d="M140 330 q20 10 40 0"/><circle cx="160" cy="300" r="5"/></g>` +
+        [...Array(9).keys()].map((i) => `<path d="M${102 + i * 13} 386 l6 18 l6 -18" fill="#4f7a34"/>`).join(''),
+    },
+    rapunzel: {
+      // la trenza larguísima con florcitas, que llega al suelo
+      delante: (h) => trenza(262, -1.2, 10, 20, h) +
+        flores([[260, 236, 0.45, '#e88fae'], [258, 280, 0.4, '#b392d6'], [256, 324, 0.45, '#ffffff'], [254, 368, 0.4, '#e88fae'], [252, 412, 0.4, '#f2cf5b']]),
+      cuerpo: () => `<path d="M140 300 L180 300 M142 310 L178 310 M144 320 L176 320" stroke="#f3e3c3" stroke-width="2.5"/>` +
+        `<path d="M124 286 L196 286 L204 326 L116 326 Z" fill="none" stroke="#e88fae" stroke-width="3"/>`,
+    },
+    ariel: {
+      atras: (h, o) => `<path d="M24 172 A136 136 0 0 1 296 172 Q320 232 306 300 Q300 346 270 354 Q248 332 236 304 L84 304 Q72 332 50 354 Q20 346 14 300 Q0 232 24 172 Z" fill="${h}"/>` +
+        `<path d="M30 230 Q22 280 40 330 M290 230 Q298 280 280 330" fill="none" stroke="${o}" stroke-width="3" opacity=".45"/>`,
+      // el gran remolino sobre la frente
+      frente: (h, o) => `<path d="M42 156 A121 121 0 0 1 278 156 Q268 112 232 96 Q240 56 202 36 Q152 16 108 42 Q152 42 170 70 Q120 70 84 104 Q54 124 42 156 Z" fill="${h}"/>` +
+        `<path d="M118 46 Q160 40 176 70 M90 112 Q130 80 180 80" fill="none" stroke="${o}" stroke-width="3" opacity=".45"/>`,
+    },
+    merida: {
+      atras: (h, o) => melenaRizos(h, o, 160, 352, 32),
+      frente: (h, o) => rulitosFrente(h, o, 20, 9),
+    },
+    mirabel: {
+      atras: (h, o) => melenaRizos(h, o, 132, 296, 26),
+      frente: (h, o) => rulitosFrente(h, o, 15, 10),
+      // flores bordadas de colores en la falda
+      cuerpo: () => flores([[118, 384, 0.45, '#e8578a'], [146, 400, 0.4, '#f2cf5b'], [176, 392, 0.45, '#b392d6'], [204, 404, 0.4, '#f0a04b'], [132, 364, 0.35, '#8fd8c4'], [190, 366, 0.35, '#e8578a']]),
+    },
+    luisa: { fuerte: true },
+    lilo: {
+      // las hojitas blancas del vestido rojo
+      cuerpo: () => [[132, 320, 30], [186, 334, -20], [150, 356, 60], [112, 372, -40], [204, 372, 20], [170, 384, -60], [136, 390, 10]]
+        .map(([x, y, g]) => `<ellipse cx="${x}" cy="${y}" rx="9" ry="4" fill="#ffffff" transform="rotate(${g} ${x} ${y})"/>`).join(''),
+    },
+    cenicienta: {
+      cuerpo: () => [[128, 360], [186, 372], [150, 396], [210, 392], [100, 392], [172, 344]].map(([x, y]) => copo(x, y, 4, '#ffffff')).join(''),
+    },
+    jasmine: {
+      // la joya azul del cintillo
+      frente: (h, o) => flequillo({ peloColor: h, flequillo: 'cortina' }) + `<circle cx="160" cy="78" r="7" fill="#3fb8b0" stroke="#e2b64a" stroke-width="3"/>`,
+    },
+  };
+  const FIRMAS_IDS = Object.keys(FIRMAS);
+
   // ================= PERSONA COMPLETA =================
   // opts: { piel, relleno (estampado de la prenda principal), sinOjos,
   //         pose (ver POSES), sobreOjos (algo justo encima de los ojos: el parche),
@@ -803,7 +955,12 @@ const Vestuario = (function () {
     });
 
     const raton = !!opts.raton;
-    let s = raton ? ratonOrejas(piel) : peloAtras(st);
+    // la "firma" del personaje (ver FIRMAS); su peinado, solo si tiene el original
+    const fi = opts.firma && FIRMAS[opts.firma.id];
+    const peloF = !!fi && !raton && st.peloEstilo === opts.firma.peloEstilo;
+    const ph = st.peloColor, po = oscurecer(ph || '#000000', 0.22);
+    let s = raton ? ratonOrejas(piel) : (peloF && fi.atras ? fi.atras(ph, po) : peloAtras(st));
+    if (fi && fi.capa) s += fi.capa(st);
     if (partes.encima && partes.encima.atras) s += partes.encima.atras;
 
     // Piernas y zapatos van bajo la ropa (así la falda tapa la caña de las
@@ -823,13 +980,15 @@ const Vestuario = (function () {
     if (partes.vestido) s += partes.vestido.svg;
     else {
       // (Mickey y Minnie van sin ropa interior: sin polera se les ve el cuerpo)
+      const sinInterior = raton || (fi && fi.sinCamiseta);
       s += partes.abajo ? partes.abajo.svg : raton ? '' : `<path d="M110 338 L210 338 L210 362 L166 362 L160 356 L154 362 L110 362 Z" fill="${blanco}"/>`;
-      s += partes.arriba ? partes.arriba.svg : raton ? ''
+      s += partes.arriba ? partes.arriba.svg : sinInterior ? ''
         : `<path d="M126 292 L194 292 L200 342 L120 342 Z" fill="${blanco}"/><path d="M130 294 L126 284 M190 294 L194 284" stroke="${blanco}" stroke-width="5" stroke-linecap="round"/>`;
       if (partes.abajo && partes.abajo.sobre) s += partes.abajo.sobre; // la pechera de la jardinera, sobre la polera
     }
     if (botasMetidas) s += zapatos(st.zapatos, piel, true);
     if (partes.encima) s += partes.encima.svg;
+    if (fi && fi.cuerpo) s += fi.cuerpo(st);
 
     // brazos (cada uno en su grupo, para poder animarlo), con su manga (la
     // chaqueta tapa la de abajo), reloj/pulsera y anillo
@@ -845,8 +1004,9 @@ const Vestuario = (function () {
       const pts = pose[lado];
       const [hx, hy] = pts[pts.length - 1];
       const d = 'M' + pts.map(([x, y]) => `${x} ${y}`).join(' L');
-      let b = `<path d="${d}" fill="none" stroke="${contorno}" stroke-width="17.5" stroke-linecap="round" stroke-linejoin="round"/>` +
-        `<path d="${d}" fill="none" stroke="${piel}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>` +
+      const k = fi && fi.fuerte ? 1.55 : 1;
+      let b = `<path d="${d}" fill="none" stroke="${contorno}" stroke-width="${17.5 * k}" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `<path d="${d}" fill="none" stroke="${piel}" stroke-width="${15 * k}" stroke-linecap="round" stroke-linejoin="round"/>` +
         `<circle cx="${hx}" cy="${hy}" r="${opts.manos ? 11 : 9}" fill="${colorMano}" stroke="${bordeMano}" stroke-width="1.2"/>`;
       if (opts.pose === 'victoria' && lado === 'der') {
         b += `<path d="M${hx - 3} ${hy - 6} l-5 -15 M${hx + 3} ${hy - 6} l5 -15" stroke="${piel}" stroke-width="5.5" stroke-linecap="round"/>`;
@@ -860,8 +1020,10 @@ const Vestuario = (function () {
 
     // cabeza
     const rasgos = opts.rasgos || {};
-    s += (raton ? ratonCara(piel) : peloDelante(st) + cara(piel, st.peloColor, rasgos)) + pendientes(st.pendientes);
-    const arribaDeLosOjos = (raton ? cabeza(st.cabeza, { peloEstilo: 'corto', peloColor: piel }) : flequillo(st) + cabeza(st.cabeza, st)) + sombrero(st.sombrero);
+    const delantePelo = peloF && fi.delante ? fi.delante(ph, po) : peloDelante(st);
+    s += (raton ? ratonCara(piel) : delantePelo + cara(piel, st.peloColor, rasgos)) + pendientes(st.pendientes);
+    const frentePelo = peloF && fi.frente ? fi.frente(ph, po) : flequillo(st);
+    const arribaDeLosOjos = (raton ? cabeza(st.cabeza, { peloEstilo: 'corto', peloColor: piel }) : frentePelo + cabeza(st.cabeza, st)) + sombrero(st.sombrero);
     // para dibujar un brazo aparte (en canvas no sirve un estampado url(#…): va el color base)
     const prendaPrincipal = st.vestido || st.arriba;
     const brazo = {
@@ -871,7 +1033,7 @@ const Vestuario = (function () {
       pierna: { c: pantalonLargo ? (st.vestido || st.abajo).c : piel, zapato: st.zapatos ? st.zapatos.c : null },
     };
     if (opts.sinOjos) return { figura: s + arribaDeLosOjos, delante: lentes(st.cara), brazo };
-    return { figura: s + (raton ? ratonOjos(rasgos.pestanas) : ojos(st.ojos, rasgos.pestanas)) + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '', brazo };
+    return { figura: s + (raton ? ratonOjos(rasgos.pestanas) : opts.ojosPelicula ? ojosPelicula(st.ojos, rasgos.pestanas) : ojos(st.ojos, rasgos.pestanas)) + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '', brazo };
   }
 
   // ================= PERSONAJES QUE NO SON PERSONAS =================
