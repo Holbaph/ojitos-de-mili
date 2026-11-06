@@ -23,8 +23,9 @@ const Fiesta = (function () {
     { n: 'Ay mi gatito miau miau', e: '🐱', yt: 'JUVz3beVAAk', bpm: 120 },
     { n: 'De nada (Moana)', e: '🌊', yt: 'HS2qe2nL2Co', bpm: 104 },
     { n: 'Cuán lejos voy (Moana)', e: '⛵', yt: 'ftNOCfqoIjQ', bpm: 90 },
+    { n: 'Brillo (Dan Osorio, Moana)', e: '🦀', yt: 'beiUZSieBt0', bpm: 110 },
     { n: 'Soda Pop (Saja Boys)', e: '🥤', yt: '983bBbJx0Mk', bpm: 116 },
-    { n: 'Golden (Huntrix)', e: '✨', yt: 'yebNIHKAC4A', bpm: 122 },
+    { n: 'Golden (Huntrix)', e: '✨', yt: 'OwpgvSo_G0g', bpm: 122 }, // el de Netflix Family (el de Sony no se deja incrustar)
     { n: 'Libre soy (Frozen)', e: '❄️', yt: 'rVjI9YRc4pE', bpm: 100 },
     { n: 'No se habla de Bruno (Encanto)', e: '🦋', yt: 'wTi8yLyHeb8', bpm: 103 },
     { n: 'Congelados (Luli Pampín)', e: '💜', yt: 'mnJ7Wk1FASA', bpm: 112 },
@@ -182,10 +183,48 @@ const Fiesta = (function () {
       if (!timerRitmo) ritmoFijo(100);
     }
   }
+  // El video se ve con el reproductor de YouTube. Para que al terminar NO
+  // muestre ni pase a otros videos, la app escucha los avisos del reproductor
+  // (enablejsapi, por mensajes, sin cargar scripts de afuera) y, apenas
+  // termina, lo saca y muestra "¡Terminó la canción!".
+  let videoActual = null;
+  const ORIGEN_YT = /^https:\/\/www\.youtube(-nocookie)?\.com$/;
   function ponerVideo(id, bpm, titulo) {
-    $('fiVideo').innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1" title="${titulo}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+    videoActual = { id, bpm, titulo };
+    const origen = encodeURIComponent(location.origin);
+    $('fiVideo').innerHTML = `<iframe id="fiIframe" src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&enablejsapi=1&origin=${origen}" title="${titulo}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+    const f = $('fiIframe');
+    // pedirle al reproductor que avise sus cambios (se repite por si tarda en cargar)
+    const escuchar = () => { try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'fi', channel: 'widget' }), '*'); } catch (e) {} };
+    f.addEventListener('load', () => { escuchar(); setTimeout(escuchar, 800); setTimeout(escuchar, 2500); });
+    bailando = true; $('fiPausa').textContent = '⏸ Parar el baile';
     ritmoFijo(bpm);
   }
+  function videoTerminado() {
+    if (!videoActual) return;
+    const v = videoActual;
+    $('fiVideo').innerHTML = `<div class="fi-fin"><p>🎉 ¡Terminó "${v.titulo}"!</p><button class="btn-save small" id="fiOtraVez">🔁 Otra vez</button><small>o elige otra canción 👇</small></div>`;
+    $('fiOtraVez').addEventListener('click', () => ponerVideo(v.id, v.bpm, v.titulo));
+    videoActual = null;
+    clearInterval(timerRitmo); timerRitmo = null;
+    confeti();
+  }
+  function videoNoDisponible() {
+    if (!videoActual) return;
+    $('fiVideo').innerHTML = '<div class="fi-fin"><p>😕 Este video no se puede ver dentro de la app</p><small>Elige otra canción 👇</small></div>';
+    videoActual = null;
+  }
+  window.addEventListener('message', (e) => {
+    if (!ORIGEN_YT.test(e.origin) || !videoActual) return;
+    let d = e.data;
+    try { if (typeof d === 'string') d = JSON.parse(d); } catch (er) { return; }
+    if (!d || typeof d !== 'object') return;
+    const estado = d.event === 'onStateChange' ? d.info : (d.event === 'infoDelivery' && d.info ? d.info.playerState : undefined);
+    if (d.event === 'onError') { videoNoDisponible(); return; } // 100/101/150: no se deja ver fuera de YouTube
+    if (estado === 0) videoTerminado();              // 0 = terminó
+    else if (estado === 2) bailando = false;         // en pausa: dejan de bailar
+    else if (estado === 1) bailando = true;          // sonando
+  });
   const idYoutube = (url) => { const m = String(url).match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([\w-]{11})/); return m ? m[1] : null; };
 
   // ---------- elegir bailarines ----------
@@ -261,6 +300,7 @@ const Fiesta = (function () {
     abierta = false;
     clearInterval(timerRitmo); timerRitmo = null;
     apagarMicro();
+    videoActual = null;
     const v = $('fiVideo'); if (v) v.innerHTML = '';
   }
   function cerrar() {
