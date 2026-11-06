@@ -1098,3 +1098,24 @@ details.cfg[open] .cfg-ico{ background:var(--surface); }
 .fi-fin p{ margin:0; font-weight:800; font-size:15px; }
 .fi-fin small{ opacity:.8; }
 .pin-bio{ width:100%; margin-top:12px; }
+
+/* ---------- el avatar vive (js/vida.js) ---------- */
+.face-wrap{ position:relative; }
+svg.face.vi-viva{ animation:vi-respira 3.8s ease-in-out infinite; transform-origin:50% 100%; }
+@keyframes vi-respira{ 50%{ transform:scale(1.012,1.022); } }
+svg.face.vi-salto{ animation:vi-salto .65s ease; }
+@keyframes vi-salto{ 30%{ transform:translateY(-6%) scale(1.02,.98); } 60%{ transform:translateY(0) scale(1.03,.95); } }
+svg.face .eye-visual{ transform-box:fill-box; transform-origin:center; }
+svg.face.vi-parpadeo .eye-visual{ animation:vi-parpadeo .2s ease-in-out; }
+@keyframes vi-parpadeo{ 50%{ transform:scaleY(.06); } }
+svg.face .eye-visual circle:not(:first-child){ transform:translate(var(--mira-x,0px), var(--mira-y,0px)); transition:transform .45s ease; }
+.vi-boca{ opacity:0; transform-box:fill-box; transform-origin:center; transition:opacity .12s; }
+svg.face.vi-habla .vi-boca{ opacity:1; animation:vi-habla .26s ease-in-out infinite alternate; }
+@keyframes vi-habla{ from{ transform:scaleY(.25); } to{ transform:scaleY(1); } }
+svg.face.vi-sonrisa .vi-boca{ opacity:1; transform:scale(1.35,.32); }
+#miliFigura{ cursor:pointer; }
+.vi-globo{ position:absolute; top:2%; right:0; z-index:3; max-width:62%; padding:8px 12px; border-radius:16px 16px 16px 4px;
+  background:#fff; color:#2a2740; font-weight:800; font-size:14px; line-height:1.25; box-shadow:0 4px 14px rgba(0,0,0,.18);
+  opacity:0; transform:translateY(6px) scale(.9); transition:opacity .2s ease, transform .2s ease; pointer-events:none; }
+.vi-globo.ver{ opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce){ svg.face.vi-viva, svg.face.vi-salto, svg.face.vi-parpadeo .eye-visual, svg.face.vi-habla .vi-boca{ animation:none; } }

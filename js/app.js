@@ -132,6 +132,8 @@
 
     renderCuenta();
     showApp();
+    // el avatar "vive": respira, pestañea, mira, habla y reacciona al tocarlo
+    Vida.iniciar({ svg: document.getElementById('miliSvg'), contenedor: document.querySelector('.face-wrap'), figura: document.getElementById('miliFigura') });
     await cargarYRenderizar();
     suscribirRealtime();
     duracionMinutos = await Config.obtenerDuracionMinutos();
@@ -209,6 +211,7 @@
       entries[id] = { fecha: id, ojo: side, hora: horaISO, horaFin: null, registradoPor: perfil.id };
       renderAll();
       showToast((current ? '' : '📒 ¡Ganaste un sticker nuevo! · ') + 'Registrado: ojo ' + Utils.label(side).toLowerCase() + ' a las ' + Utils.fmtTime(horaISO));
+      Vida.celebrar(current ? '¡Listo, cambiamos de ojo! 👀' : '¡Bien! Ya tengo mi parche 🩹');
       if (!current) { const b = document.getElementById('albumBtn'); b.classList.remove('brilla'); void b.offsetWidth; b.classList.add('brilla'); }
     } catch (e) {
       showToast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');

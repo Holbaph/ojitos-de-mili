@@ -111,6 +111,9 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
     con estrellitas en la pantalla principal.
   - **Resumen semanal**: los domingos a las 7 de la tarde llega un aviso con
     los días y horas de la semana (se puede desactivar).
+- **Mili está viva**: en la pantalla principal respira, pestañea, mira para los
+  lados, mueve la boca como si conversara y, al tocarla, salta, se ríe y dice
+  algo (también celebra cuando se registra el parche).
 - **🔒 PIN de padres**: en Configuración → PIN de padres se crea un PIN de 4
   números (el mismo para toda la familia). Con PIN, Historial y Configuración lo
   piden siempre antes de abrir. En cada celular se puede activar Face ID / huella
@@ -353,6 +356,7 @@ js/juegos-parche.js       juegos de visión fina para el rato con el parche pues
 js/fiesta.js              💃 Fiesta de baile: bailarines, ritmo por micrófono y videos de YouTube
 js/candado.js             🔒 PIN de padres para Historial y Configuración
 js/album.js               📒 álbum de stickers (uno por día con parche)
+js/vida.js                el avatar vive: respira, pestañea, mira, habla y reacciona
 js/juegos-peques.js       rompecabezas, memoria, pintar, formas, colores y sombras
 js/cocina.js              🍰 Cocinita: platos, ingredientes y niveles del juego de cocina
 js/app.js                 toda la interacción de la app
