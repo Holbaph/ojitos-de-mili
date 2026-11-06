@@ -1060,8 +1060,18 @@
     document.getElementById('pinCambiar').classList.toggle('hidden', !hay);
     document.getElementById('pinQuitar').classList.toggle('hidden', !hay);
     const r = document.getElementById('cfgPinRes');
-    if (r) r.textContent = hay ? 'Activado: se pide para Historial y Configuración' : 'Sin PIN (cualquiera puede entrar)';
+    if (r) r.textContent = hay ? 'Activado' + (Candado.bioActivo() ? ' · con Face ID / huella' : '') + ': se pide siempre para Historial y Configuración' : 'Sin PIN (cualquiera puede entrar)';
+    // Face ID / huella: solo si hay PIN y el celular lo permite
+    document.getElementById('bioActivo').checked = Candado.bioActivo();
+    if (!hay) { document.getElementById('bioFila').classList.add('hidden'); return; }
+    Candado.bioDisponible().then((si) => document.getElementById('bioFila').classList.toggle('hidden', !si));
   }
+  document.getElementById('bioActivo').addEventListener('change', async (e) => {
+    if (!e.target.checked) { Candado.bioQuitar(); renderPin(); showToast('Face ID / huella desactivado en este celular'); return; }
+    try { await Candado.bioActivar(); showToast('🙂 Listo: puedes entrar con Face ID / huella'); }
+    catch (err) { e.target.checked = false; showToast('No se pudo activar Face ID / huella en este celular'); }
+    renderPin();
+  });
   async function nuevoPin() {
     const huella = await Candado.crear();
     if (!huella) return;
@@ -1086,7 +1096,7 @@
       return;
     }
     clearTimeout(confirmarQuitarPin); confirmarQuitarPin = null; b.textContent = 'Quitar PIN';
-    try { await Config.guardarPin(null); Candado.configurar({ huella: null }); renderPin(); showToast('PIN quitado'); }
+    try { await Config.guardarPin(null); Candado.configurar({ huella: null }); Candado.bioQuitar(); renderPin(); showToast('PIN quitado'); }
     catch (e) { showToast('No se pudo quitar el PIN, revisa tu conexión'); }
   });
 
