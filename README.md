@@ -119,6 +119,15 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   suena una campanita, cae confeti y Mili avisa que ya se puede sacar.
 - **📖 Cuentos de Mili**: un cuento nuevo cada vez, armado al azar con un amigo,
   un lugar, una misión y un problema que resuelven con el parche mágico.
+- **✨ Taller de personajes** (botón *Crear* en el juego de vestir): Mili crea sus
+  propios personajes eligiendo qué es (niña/niño, animalito, muñeco de nieve…), piel,
+  peinado, colores y ropa. Con **🪄 Crear con magia** escribe o dice un nombre ("Bluey")
+  y la inteligencia artificial elige cómo dibujarlo con las piezas de la app (no se
+  bajan imágenes de internet). La magia pide el PIN de padres. Los creados aparecen en
+  el juego de vestir, los cuentos, la fiesta y los juegos con el parche.
+- Los personajes de las películas tienen su "firma": el tupé y la trenza de Elsa, la
+  melena de rizos de Moana, Mérida y Mirabel, el remolino de Ariel, la trenza con flores
+  de Rapunzel, el anzuelo y los tatuajes de Maui, y ojos de película.
 - **🌦️ Ropa según el clima** (Configuración → ✨ Mili): con frío se abriga, con
   lluvia botas, con calor lentes de sol (ubicación aproximada, Open-Meteo).
 - **Mili está viva**: en la pantalla principal respira, pestañea, mira para los
@@ -284,6 +293,17 @@ Corre [`supabase/schema_juego.sql`](supabase/schema_juego.sql) en **SQL Editor**
 minutos de juego por día). Sin esto el juego igual funciona, pero la ropa se
 guarda solo en ese dispositivo.
 
+### 3g. Activar "Crear con magia" (opcional)
+
+1. Crea una clave en [console.anthropic.com](https://console.anthropic.com) → API Keys
+   (cada personaje creado con magia cuesta muy poquito).
+2. Guárdala como secreto y despliega la función:
+   ```bash
+   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+   supabase functions deploy crear-personaje
+   ```
+Sin esto, el taller funciona igual a mano; el botón de magia avisa que no está configurada.
+
 ### 3f. Control del tratamiento
 
 Corre [`supabase/schema_tratamiento.sql`](supabase/schema_tratamiento.sql) en
@@ -366,6 +386,7 @@ js/juegos-parche.js       juegos de visión fina para el rato con el parche pues
 js/fiesta.js              💃 Fiesta de baile: bailarines, ritmo por micrófono y videos de YouTube
 js/candado.js             🔒 PIN de padres para Historial y Configuración
 js/album.js               📒 álbum de stickers (uno por día con parche)
+js/taller.js              taller para crear personajes (a mano o con magia)
 js/vida.js                el avatar vive: respira, pestañea, mira, habla y reacciona
 js/voz.js                 la voz de Mili (speechSynthesis del celular)
 js/clima.js               ropa según el clima (ubicación aproximada + Open-Meteo)
