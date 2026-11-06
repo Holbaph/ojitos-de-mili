@@ -73,7 +73,7 @@ const Candado = (function () {
       if (escrito.length === 4) { const pin = escrito; setTimeout(() => { const r = resolver; if (r) { resolver = null; $('pinCaja').classList.add('hidden'); r(pin); } }, 150); }
     });
     $('pinCancelar').addEventListener('click', () => terminar(null));
-    $('pinBio').addEventListener('click', () => bioPedir().then((ok) => { if (ok && resolver) terminar('bio'); }));
+    $('pinBio').addEventListener('click', () => { if (bioEnCurso) return; bioPedir().then((ok) => { if (ok && resolver) terminar('bio'); }); });
     $('pinOlvido').addEventListener('click', () => {
       // mostrar el campo de contraseña de la cuenta
       $('pinTitulo').textContent = 'Entra con tu contraseña';
@@ -136,21 +136,33 @@ const Candado = (function () {
     localStorage.setItem(BIO, b64(cred.rawId));
   }
   function bioQuitar() { try { localStorage.removeItem(BIO); } catch (e) {} }
+  // Un solo pedido de Face ID a la vez: si ya hay uno en curso (por ejemplo, el
+  // automático y el botón), se usa el mismo y no aparece dos veces.
+  let bioEnCurso = null;
   function bioPedir() {
     const id = bioId();
     if (!id || !navigator.credentials) return Promise.resolve(false);
-    return navigator.credentials.get({ publicKey: {
+    if (bioEnCurso) return bioEnCurso;
+    bioEnCurso = navigator.credentials.get({ publicKey: {
       challenge: crypto.getRandomValues(new Uint8Array(32)),
       allowCredentials: [{ type: 'public-key', id: desdeB64(id), transports: ['internal'] }],
       userVerification: 'required',
       timeout: 60000,
-    } }).then((c) => !!c).catch(() => false);
+    } }).then((c) => !!c).catch(() => false).finally(() => { bioEnCurso = null; });
+    return bioEnCurso;
   }
 
   // Pide el PIN (o Face ID) SIEMPRE. Devuelve 'ok', 'olvido' (entró con la
   // contraseña: conviene crear un PIN nuevo) o null (canceló).
-  async function pedir(motivo) {
-    if (!huella) return 'ok';
+  // Si se toca dos veces seguidas (o dos botones), se usa el mismo pedido.
+  let pidiendo = null;
+  function pedir(motivo) {
+    if (!huella) return Promise.resolve('ok');
+    if (pidiendo) return pidiendo;
+    pidiendo = pedirUnaVez(motivo).finally(() => { pidiendo = null; });
+    return pidiendo;
+  }
+  async function pedirUnaVez(motivo) {
     const conBio = !!bioId();
     // Face ID parte altiro (todavía dentro del toque, como pide el celular);
     // si falla o se cancela, queda el teclado para escribir el PIN.

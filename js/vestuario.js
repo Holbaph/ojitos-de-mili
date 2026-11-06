@@ -761,22 +761,26 @@ const Vestuario = (function () {
   // ================= CABEZA DE RATÓN (Mickey y Minnie) =================
   // Va sobre el cuerpo normal, así que se pueden vestir como cualquiera.
   const CARITA_RATON = '#f3cfa6';
+  // Mickey y Minnie: orejas grandes un poco hacia atrás; la cara clara con
+  // forma de dos lóbulos (con el "pico" negro al medio de la frente), ojos
+  // altos y juntos, nariz negra grande en la punta y sonrisa ancha con lengua.
   function ratonOrejas(piel) {
-    return `<circle cx="66" cy="70" r="58" fill="${piel}"/><circle cx="254" cy="70" r="58" fill="${piel}"/>`;
+    return `<circle cx="56" cy="74" r="62" fill="${piel}"/><circle cx="264" cy="74" r="62" fill="${piel}"/>`;
   }
   function ratonCara(piel) {
-    return `<circle cx="160" cy="176" r="118" fill="${piel}"/>` +
-      `<g fill="${CARITA_RATON}"><ellipse cx="116" cy="170" rx="46" ry="60"/><ellipse cx="204" cy="170" rx="46" ry="60"/><ellipse cx="160" cy="240" rx="100" ry="62"/></g>` +
-      `<ellipse cx="160" cy="222" rx="22" ry="15" fill="#1f1a1c"/><ellipse cx="153" cy="217" rx="6" ry="3.5" fill="#fff" opacity=".5"/>` +
-      `<path d="M112 246 Q160 300 208 246" fill="#7a2a2a" stroke="#1f1a1c" stroke-width="5" stroke-linecap="round"/>` +
-      `<path d="M140 272 Q160 290 180 272 Q160 262 140 272 Z" fill="#e8605a"/>`;
+    return `<circle cx="160" cy="180" r="116" fill="${piel}"/>` +
+      `<path d="M160 104 C150 74 112 70 104 104 C98 130 100 158 88 186 C70 222 78 274 128 292 C148 300 172 300 192 292 C242 274 250 222 232 186 C220 158 222 130 216 104 C208 70 170 74 160 104 Z" fill="${CARITA_RATON}"/>` +
+      `<path d="M92 236 q-8 4 -4 14 M228 236 q8 4 4 14" fill="none" stroke="#1f1a1c" stroke-width="3.5" stroke-linecap="round"/>` +
+      `<path d="M104 236 Q160 304 216 236 Q160 262 104 236 Z" fill="#6b1f2a" stroke="#1f1a1c" stroke-width="4" stroke-linejoin="round"/>` +
+      `<path d="M134 270 Q160 292 186 270 Q160 258 134 270 Z" fill="#e8605a"/>` +
+      `<ellipse cx="160" cy="212" rx="27" ry="18" fill="#1f1a1c"/><ellipse cx="150" cy="205" rx="9" ry="5" fill="#fff" opacity=".55"/>`;
   }
   function ratonOjos(pestanas) {
-    return [112, 208].map((x) => {
+    return [126, 194].map((x) => {
       const afuera = x < 160 ? -1 : 1;
-      return `<ellipse cx="${x}" cy="164" rx="20" ry="30" fill="#fff" stroke="#1f1a1c" stroke-width="2"/>` +
-        `<ellipse cx="${x + 3}" cy="174" rx="9" ry="16" fill="#1f1a1c"/><circle cx="${x + 5}" cy="166" r="3" fill="#fff"/>` +
-        (pestanas ? `<path d="M${x + afuera * 12} 138 l${afuera * 9} -10 M${x + afuera * 18} 146 l${afuera * 11} -6 M${x + afuera * 21} 156 l${afuera * 11} -2" stroke="#1f1a1c" stroke-width="3.5" stroke-linecap="round"/>` : '');
+      return `<ellipse cx="${x}" cy="152" rx="17" ry="32" fill="#fff" stroke="#1f1a1c" stroke-width="2.5"/>` +
+        `<ellipse cx="${x - afuera * 2}" cy="164" rx="8.5" ry="17" fill="#1f1a1c"/><ellipse cx="${x - afuera * 3}" cy="156" rx="3" ry="5" fill="#fff"/>` +
+        (pestanas ? `<path d="M${x + afuera * 10} 124 l${afuera * 8} -12 M${x + afuera * 15} 132 l${afuera * 11} -8 M${x + afuera * 17} 142 l${afuera * 12} -4" stroke="#1f1a1c" stroke-width="3.5" stroke-linecap="round"/>` : '');
     }).join('');
   }
 

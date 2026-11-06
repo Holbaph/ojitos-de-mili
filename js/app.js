@@ -132,6 +132,10 @@
 
     renderCuenta();
     showApp();
+    actualizarClima(false);
+    if (!climaTick) climaTick = setInterval(() => actualizarClima(false), 30 * 60 * 1000);
+    // el avatar "vive": respira, pestañea, mira, habla y reacciona al tocarlo
+    Vida.iniciar({ svg: document.getElementById('miliSvg'), contenedor: document.querySelector('.face-wrap'), figura: document.getElementById('miliFigura') });
     await cargarYRenderizar();
     suscribirRealtime();
     duracionMinutos = await Config.obtenerDuracionMinutos();
@@ -159,7 +163,7 @@
     renderJuegoHint();
     renderTimer();
     refrescarEstadoAvisos();
-    if (!timerTick) timerTick = setInterval(renderTimer, 30000);
+    if (!timerTick) timerTick = setInterval(renderTimer, 15000);
   }
 
   function renderCuenta() {
@@ -209,6 +213,7 @@
       entries[id] = { fecha: id, ojo: side, hora: horaISO, horaFin: null, registradoPor: perfil.id };
       renderAll();
       showToast((current ? '' : '📒 ¡Ganaste un sticker nuevo! · ') + 'Registrado: ojo ' + Utils.label(side).toLowerCase() + ' a las ' + Utils.fmtTime(horaISO));
+      Vida.celebrar(current ? '¡Listo, cambiamos de ojo! 👀' : '¡Bien! Ya tengo mi parche 🩹');
       if (!current) { const b = document.getElementById('albumBtn'); b.classList.remove('brilla'); void b.offsetWidth; b.classList.add('brilla'); }
     } catch (e) {
       showToast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
@@ -249,6 +254,13 @@
       const sug = Tratamiento.sugerencia(conf, entries);
       hint.innerHTML = '<span class="hint-chip">' + (sug.ojo ? '💡 ' : '') + Utils.esc(sug.texto) + '</span>';
     }
+    // flechita "¡Hoy!" sobre el ojito que toca tapar (si todavía no se registra)
+    const flecha = document.getElementById('flechaHoy');
+    const sugHoy = rec ? null : Tratamiento.sugerencia(conf, entries);
+    if (sugHoy && sugHoy.ojo) {
+      flecha.setAttribute('transform', 'translate(' + (sugHoy.ojo === 'derecho' ? 112 : 208) + ' 116)');
+      flecha.classList.remove('hidden');
+    } else flecha.classList.add('hidden');
   }
 
   // constancia y racha cuentan solo los días indicados (js/tratamiento.js):
@@ -386,6 +398,7 @@
     } else if (fraccion >= 1) {
       card.classList.remove('idle'); card.classList.add('done');
       text.textContent = '¡Ya se puede sacar el parche! 🎉';
+      despertador(rec);
     } else {
       card.classList.remove('idle', 'done');
       const restanteMin = Math.max(1, Math.ceil((duracionMs - transcurrido) / 60000));
@@ -505,7 +518,70 @@
   }
 
   function renderMili() {
-    Mili.dibujar(document.getElementById('miliSvg'), document.getElementById('miliFigura'), apariencia, 'main');
+    // con "ropa según el clima", el avatar se abriga o se desabriga (sin cambiar lo guardado)
+    const ap = Clima.activo() && climaActual ? Clima.vestir(apariencia, climaActual) : apariencia;
+    Mili.dibujar(document.getElementById('miliSvg'), document.getElementById('miliFigura'), ap, 'main');
+  }
+
+  // ================= CLIMA (js/clima.js) =================
+  let climaActual = null, climaTick = null, climaTipoDicho = null;
+  async function actualizarClima(forzar) {
+    const chip = document.getElementById('climaChip');
+    if (!Clima.activo()) { climaActual = null; chip.classList.add('hidden'); renderMili(); renderResumenesConfig(); return; }
+    try {
+      climaActual = await Clima.obtener(forzar);
+      chip.textContent = Clima.texto(climaActual);
+      chip.classList.remove('hidden');
+      document.getElementById('climaHint').textContent = 'Ahora en tu zona: ' + Clima.texto(climaActual) + '. ' + Clima.frase(climaActual);
+      renderMili();
+      // lo cuenta una vez por cada cambio de tiempo
+      const t = Clima.tipo(climaActual);
+      if (t !== climaTipoDicho && t !== 'templado') { climaTipoDicho = t; setTimeout(() => Vida.decir(Clima.frase(climaActual), 2600), 3500); }
+    } catch (e) {
+      chip.classList.add('hidden');
+      document.getElementById('climaHint').textContent = 'No se pudo saber el clima: revisa el permiso de ubicación del celular para esta app.';
+    }
+    renderResumenesConfig();
+  }
+
+  // ================= DESPERTADOR DEL PARCHE =================
+  // Cuando se cumple el tiempo (con la app abierta): campanita, confeti y Mili
+  // lo dice. Una vez por día en cada dispositivo.
+  function despertador(rec) {
+    const CLAVE = 'ojitos-despertador', hoy = Utils.todayId();
+    let ya = null; try { ya = localStorage.getItem(CLAVE); } catch (e) {}
+    if (ya === hoy) return;
+    try { localStorage.setItem(CLAVE, hoy); } catch (e) {}
+    const fin = new Date(rec.hora).getTime() + duracionMinutos * 60000;
+    if (Date.now() - fin > 30 * 60000) return; // si ya pasó hace rato, no suena
+    campanita();
+    confetiPantalla();
+    Vida.celebrar('¡Ya me puedo sacar el parche! 🎉');
+  }
+  function campanita() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [1046.5, 1318.5, 1568, 2093, 1568, 2093].forEach((f, i) => {
+        const t = ctx.currentTime + i * 0.18, o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+        o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + 1);
+      });
+      setTimeout(() => ctx.close(), 2500);
+    } catch (e) { /* sin sonido */ }
+  }
+  function confetiPantalla() {
+    const capa = document.createElement('div');
+    capa.className = 'confeti-pantalla';
+    for (let i = 0; i < 60; i++) {
+      const c = document.createElement('i');
+      c.style.left = Math.random() * 100 + '%';
+      c.style.background = ['#f28bb0', '#7cc4ea', '#f2cf5b', '#8fd48f', '#b392d6'][i % 5];
+      c.style.animationDelay = Math.random() * 0.8 + 's';
+      capa.appendChild(c);
+    }
+    document.body.appendChild(capa);
+    setTimeout(() => capa.remove(), 4000);
   }
 
   let borrador = null;     // lo que se está eligiendo en el editor, antes de Guardar
@@ -1100,6 +1176,21 @@
     catch (e) { showToast('No se pudo quitar el PIN, revisa tu conexión'); }
   });
 
+  // --- ✨ Mili: voz y ropa según el clima ---
+  document.getElementById('vozActiva').addEventListener('change', (e) => {
+    Voz.setActiva(e.target.checked);
+    if (e.target.checked) Voz.decir('¡Hola! Ahora puedo hablar');
+    renderResumenesConfig();
+  });
+  document.getElementById('climaActivo').addEventListener('change', async (e) => {
+    Clima.setActivo(e.target.checked);
+    document.getElementById('climaHint').textContent = e.target.checked ? 'Buscando el clima de tu zona…' : 'Desactivado: Mili usa siempre la ropa que le elegiste.';
+    await actualizarClima(true);
+  });
+
+  // --- cuentos ---
+  document.getElementById('openCuentos').addEventListener('click', () => Cuentos.abrir());
+
   // --- álbum de stickers ---
   Album.iniciar();
   document.getElementById('albumBtn').addEventListener('click', () => Album.abrir(entries));
@@ -1107,6 +1198,10 @@
   scrim.addEventListener('click', cerrarConfig);
   function renderResumenesConfig() {
     const pon = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+    pon('cfgMiliRes', 'Voz ' + (Voz.activa() ? 'encendida' : 'apagada') + ' · ropa según el clima ' + (Clima.activo() ? (climaActual ? 'sí (' + Clima.texto(climaActual) + ')' : 'sí') : 'no'));
+    const chkVoz = document.getElementById('vozActiva'), chkClima = document.getElementById('climaActivo');
+    if (chkVoz) chkVoz.checked = Voz.activa();
+    if (chkClima) chkClima.checked = Clima.activo();
     pon('cfgTratamientoRes', Tratamiento.textoIndicacion(conf));
     pon('cfgAvisosRes', (avisosEstado ? 'Avisos ' + avisosEstado : 'Avisos') +
       (recordatorioHora ? ' · recordatorio ' + Utils.fmtTime('2000-01-01T' + recordatorioHora + ':00') : ' · sin recordatorio'));

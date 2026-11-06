@@ -5,9 +5,9 @@
 <!-- Solo se aceptan scripts de esta misma página y de jsDelivr (Supabase y la IA de la cámara),
      y solo se conecta a Supabase y a los modelos de la IA: si alguien lograra meter código
      en un dato (por ejemplo un nombre), el navegador no lo ejecuta ni lo deja mandar nada afuera. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://gbkrwzihzmbskpivagpn.supabase.co wss://gbkrwzihzmbskpivagpn.supabase.co https://cdn.jsdelivr.net https://storage.googleapis.com; worker-src 'self' blob:; frame-src https://www.youtube-nocookie.com https://www.youtube.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.open-meteo.com https://gbkrwzihzmbskpivagpn.supabase.co wss://gbkrwzihzmbskpivagpn.supabase.co https://cdn.jsdelivr.net https://storage.googleapis.com; worker-src 'self' blob:; frame-src https://www.youtube-nocookie.com https://www.youtube.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<script src="js/inicio.js?v=28"></script>
+<script src="js/inicio.js?v=30"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Ojitos de Mili</title>
 <meta name="theme-color" content="#eef3f6">
@@ -21,7 +21,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=28">
+<link rel="stylesheet" href="css/styles.css?v=30">
 </head>
 <body>
 
@@ -130,9 +130,12 @@
       <span>Ojo izquierdo</span>
     </div>
     <div class="face-wrap">
+      <div class="clima-chip hidden" id="climaChip"></div>
       <svg class="face" id="miliSvg" viewBox="0 0 320 440" xmlns="http://www.w3.org/2000/svg">
         <!-- pelo, cuerpo, ropa, cara y accesorios: los dibuja js/mili.js según la apariencia elegida -->
         <g id="miliFigura"></g>
+        <!-- boca que se abre cuando "habla" (js/vida.js) -->
+        <g class="vi-boca" pointer-events="none"><ellipse cx="160" cy="239" rx="16" ry="11" fill="#8a2f45"/><ellipse cx="160" cy="245" rx="9" ry="4.5" fill="#e8708a"/></g>
 
         <g class="eye" data-side="derecho" id="eyeDerecho" role="button" tabindex="0" aria-label="Ojo derecho de Mili">
           <circle class="hit" cx="112" cy="168" r="46"/>
@@ -158,6 +161,14 @@
           <g class="eye-patch" data-lado="1"><!-- lo dibuja js/mili.js (forma, estampado, color) --></g>
         </g>
 
+        <!-- flechita sobre el ojito que toca tapar hoy (js/app.js) -->
+        <g class="flecha-hoy hidden" id="flechaHoy" pointer-events="none">
+          <g class="flecha-salto">
+            <rect x="-30" y="-58" width="60" height="26" rx="13" fill="#e8578a"/>
+            <text x="0" y="-40" text-anchor="middle" font-family="Figtree, sans-serif" font-size="15" font-weight="800" fill="#fff">¡Hoy!</text>
+            <path d="M-14 -28 H14 V-12 H26 L0 14 L-26 -12 H-14 Z" fill="#f6d26b" stroke="#c9961a" stroke-width="3" stroke-linejoin="round"/>
+          </g>
+        </g>
         <!-- lo que va por encima de los ojos (lentes); no bloquea los toques en los ojos -->
         <g class="mili-delante" pointer-events="none"></g>
       </svg>
@@ -231,6 +242,12 @@
   <button class="juego-entrar jp-entrar" id="openJuegosParche">
     <span class="je-emoji">🎯</span>
     <span><strong>Juegos con el parche</strong><small>Diferencias, burbujas, caminitos y más</small></span>
+    <span class="je-flecha">›</span>
+  </button>
+
+  <button class="juego-entrar cu-entrar" id="openCuentos">
+    <span class="je-emoji">📖</span>
+    <span><strong>Cuentos de Mili</strong><small>Un cuento nuevo cada vez, leído en voz alta</small></span>
     <span class="je-flecha">›</span>
   </button>
 
@@ -348,6 +365,19 @@
       <div class="settings-row hidden" id="bioFila">
         <label class="check-row"><input type="checkbox" id="bioActivo"> Entrar con Face ID / huella en este celular</label>
         <p class="settings-hint">En vez de escribir el PIN, se entra con la cara o la huella de este teléfono (el PIN sigue sirviendo). Se activa en cada celular por separado.</p>
+      </div>
+    </div>
+  </details>
+  <details class="cfg" id="cfgMili">
+    <summary><span class="cfg-ico" aria-hidden="true">✨</span><span class="cfg-txt"><strong>Mili</strong><small id="cfgMiliRes"></small></span></summary>
+    <div class="cfg-cuerpo">
+      <div class="settings-row">
+        <label class="check-row"><input type="checkbox" id="vozActiva"> 🗣️ Voz de Mili en este celular</label>
+        <p class="settings-hint">Mili lee en voz alta lo que dice, las instrucciones de los juegos y los cuentos (con la voz del propio celular).</p>
+      </div>
+      <div class="settings-row">
+        <label class="check-row"><input type="checkbox" id="climaActivo"> 🌦️ Ropa según el clima</label>
+        <p class="settings-hint" id="climaHint">Con frío se abriga, si llueve usa botas de lluvia y con calor se pone lentes de sol. Pide permiso de ubicación; al servicio del clima (Open-Meteo) se manda solo la ubicación aproximada (~10 km).</p>
       </div>
     </div>
   </details>
@@ -569,6 +599,24 @@
   <article class="informe-hoja" id="infHoja"></article>
 </div>
 
+<!-- ============ Cuentos de Mili (js/cuentos.js) ============ -->
+<div class="cuento hidden" id="cuento" role="dialog" aria-label="Cuentos de Mili">
+  <div class="jp-top">
+    <button class="icon-btn" id="cuCerrar" aria-label="Volver">←</button>
+    <div class="jp-titulo"><strong id="cuTitulo">📖 Cuento</strong><small id="cuSub"></small></div>
+    <button class="icon-btn" id="cuLeer" aria-label="Leer otra vez">🔊</button>
+  </div>
+  <div class="cu-cuerpo">
+    <div class="cu-dibujo" id="cuDibujo"></div>
+    <p class="cu-texto" id="cuTexto"></p>
+    <div class="cu-botones">
+      <button class="history-btn ghost" id="cuAntes">◀ Atrás</button>
+      <button class="history-btn" id="cuDespues">Seguir ▶</button>
+      <button class="history-btn hidden" id="cuOtro">🎲 Otro cuento</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ PIN de padres (js/candado.js) ============ -->
 <div class="pin hidden" id="pinCaja" role="dialog" aria-label="PIN de padres">
   <div class="pin-box">
@@ -631,6 +679,7 @@
   <div class="jp-top">
     <button class="icon-btn" id="jpVolver" aria-label="Volver">←</button>
     <div class="jp-titulo"><strong id="jpTitulo">Juegos con el parche</strong><small id="jpSub"></small></div>
+    <button class="icon-btn" id="jpVoz" aria-label="Escuchar las instrucciones">🔊</button>
     <div class="juego-reloj" id="jpReloj">⏱ 20:00</div>
     <div class="jp-estrellas" id="jpEstrellas">⭐ 0</div>
   </div>
@@ -715,22 +764,26 @@
 
 <!-- versión fija + huella (integrity): si el archivo del CDN cambiara, el navegador no lo carga -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
-<script src="js/supabase-config.js?v=28"></script>
-<script src="js/auth.js?v=28"></script>
-<script src="js/core.js?v=28"></script>
-<script src="js/tratamiento.js?v=28"></script>
-<script src="js/vestuario.js?v=28"></script>
-<script src="js/mili.js?v=28"></script>
-<script src="js/tiempo-juego.js?v=28"></script>
-<script src="js/juego.js?v=28"></script>
-<script src="js/ar.js?v=28"></script>
-<script src="js/camara.js?v=28"></script>
-<script src="js/cocina.js?v=28"></script>
-<script src="js/juegos-peques.js?v=28"></script>
-<script src="js/juegos-parche.js?v=28"></script>
-<script src="js/fiesta.js?v=28"></script>
-<script src="js/candado.js?v=28"></script>
-<script src="js/album.js?v=28"></script>
-<script src="js/app.js?v=28"></script>
+<script src="js/supabase-config.js?v=30"></script>
+<script src="js/auth.js?v=30"></script>
+<script src="js/core.js?v=30"></script>
+<script src="js/tratamiento.js?v=30"></script>
+<script src="js/vestuario.js?v=30"></script>
+<script src="js/mili.js?v=30"></script>
+<script src="js/tiempo-juego.js?v=30"></script>
+<script src="js/juego.js?v=30"></script>
+<script src="js/ar.js?v=30"></script>
+<script src="js/camara.js?v=30"></script>
+<script src="js/cocina.js?v=30"></script>
+<script src="js/juegos-peques.js?v=30"></script>
+<script src="js/juegos-parche.js?v=30"></script>
+<script src="js/fiesta.js?v=30"></script>
+<script src="js/candado.js?v=30"></script>
+<script src="js/album.js?v=30"></script>
+<script src="js/voz.js?v=30"></script>
+<script src="js/clima.js?v=30"></script>
+<script src="js/cuentos.js?v=30"></script>
+<script src="js/vida.js?v=30"></script>
+<script src="js/app.js?v=30"></script>
 </body>
 </html>

@@ -50,6 +50,7 @@ const JuegosParche = (function () {
   function aviso(texto) {
     const el = $('jpMensaje');
     el.textContent = texto;
+    Voz.decir(texto);
     el.classList.remove('ver'); void el.offsetWidth; el.classList.add('ver');
   }
 
@@ -505,14 +506,24 @@ const JuegosParche = (function () {
     $('jpCuerpo').innerHTML = '<div class="jp-area" id="jpArea"></div>';
     const limpiar = j.f($('jpArea'), nivel, (texto) => premio(id, texto));
     enJuego = { id, limpiar: limpiar || (() => {}) };
+    setTimeout(leerInstrucciones, 350);
   }
 
+  // la instrucción del juego, en voz alta (también con el botón 🔊)
+  function leerInstrucciones() {
+    if (!enJuego) return;
+    const c = $('jpCuerpo').querySelector('.jp-consigna');
+    const pedido = $('jpCuerpo').querySelector('.coc-pedido-txt');
+    if (c) Voz.decir(c.textContent.replace(/\d+\/\d+/, ''));
+    else if (pedido) Voz.decir(pedido.querySelector('small').textContent + ': ' + pedido.querySelector('strong').textContent);
+  }
   function premio(id, texto) {
     if (!enJuego || enJuego.id !== id) return;
     try { enJuego.limpiar(); } catch (e) {}
     sumarEstrellas(3);
     subirNivel(id);
     $('jpPremioTexto').textContent = texto;
+    Voz.decir('¡Muy bien! ' + texto);
     $('jpPremio').classList.remove('hidden');
   }
 
@@ -532,6 +543,7 @@ const JuegosParche = (function () {
     });
     $('jpSiguiente').addEventListener('click', () => { const id = enJuego && enJuego.id; if (id) iniciar(id); });
     $('jpOtro').addEventListener('click', mostrarMenu);
+    $('jpVoz').addEventListener('click', () => (enJuego ? leerInstrucciones() : Voz.decir('Elige un juego')));
   }
 
   // opts: { minutosDia } — el tiempo de juego por día (0 = sin límite)
