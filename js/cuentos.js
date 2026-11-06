@@ -94,7 +94,7 @@ const Cuentos = (function () {
     const mili = Juego.figura('mili', Juego.vestido('mili'), p.parche ? { parche: 'izquierdo' } : {});
     const amigo = Juego.figura(cuento.amigo.id, Juego.vestido(cuento.amigo.id), { pose: p.fiesta ? 'hurra' : 'normal' });
     return `<div class="cu-escena${p.brillo ? ' brillo' : ''}${p.fiesta ? ' fiesta' : ''}" style="background:linear-gradient(180deg,${L.f[0]},${L.f[1]})">${deco}` +
-      `<svg class="cu-pj" viewBox="0 -10 320 450">${mili}</svg><svg class="cu-pj" viewBox="0 -10 320 450">${amigo}</svg>` +
+      `<svg class="cu-pj pj-vivo" viewBox="0 -10 320 450"><g class="pj-cuerpo">${mili}</g></svg><svg class="cu-pj pj-vivo" viewBox="0 -10 320 450" style="--pj-retraso:-2.3s"><g class="pj-cuerpo">${amigo}</g></svg>` +
       (p.fiesta ? `<span class="cu-premio">${cuento.mision.e}</span>` : '') + '</div>';
   }
 

@@ -1033,7 +1033,7 @@ const Vestuario = (function () {
       pierna: { c: pantalonLargo ? (st.vestido || st.abajo).c : piel, zapato: st.zapatos ? st.zapatos.c : null },
     };
     if (opts.sinOjos) return { figura: s + arribaDeLosOjos, delante: lentes(st.cara), brazo };
-    return { figura: s + (raton ? ratonOjos(rasgos.pestanas) : opts.ojosPelicula ? ojosPelicula(st.ojos, rasgos.pestanas) : ojos(st.ojos, rasgos.pestanas)) + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '', brazo };
+    return { figura: s + '<g class="pj-ojos">' + (raton ? ratonOjos(rasgos.pestanas) : opts.ojosPelicula ? ojosPelicula(st.ojos, rasgos.pestanas) : ojos(st.ojos, rasgos.pestanas)) + '</g>' + (opts.sobreOjos || '') + arribaDeLosOjos + lentes(st.cara), delante: '', brazo };
   }
 
   // ================= PERSONAJES QUE NO SON PERSONAS =================
@@ -1056,7 +1056,8 @@ const Vestuario = (function () {
   function especie(tipo, st, opts) {
     opts = opts || {};
     let s = '', color = '#f7fafd', contorno = '#b8cadf';
-    const conOjos = (o) => (opts.sinOjos ? '' : o);
+    // los ojos van en su grupo (pj-ojos) para poder pestañear (personajes vivos)
+    const conOjos = (o) => (opts.sinOjos ? '' : `<g class="pj-ojos">${o}</g>`);
     switch (tipo) {
       case 'olaf': {
         const nieve = '#f7fafd', rama = '#6b4428', carbon = '#2a2527';

@@ -34,6 +34,11 @@ const Taller = (function () {
   const esEspecie = (t) => t !== 'persona' && t !== 'raton';
 
   let st = null, ropaSel = 'princesa', ropaColor = '#e88fae', cableado = false, pidiendo = false;
+  // si la magia todavía no está activada, se avisa altiro (sin pedir el PIN) por un rato
+  const SIN_MAGIA = 'ojitos-magia-no';
+  const NO_ACTIVADA = '🪄 La magia todavía no está activada: un adulto tiene que conectarla. Mientras, ¡créalo tú eligiendo abajo! 👇';
+  const magiaApagada = () => { try { return Date.now() - Number(localStorage.getItem(SIN_MAGIA) || 0) < 60 * 60 * 1000; } catch (e) { return false; } };
+  const marcarSinMagia = () => { try { localStorage.setItem(SIN_MAGIA, String(Date.now())); } catch (e) {} };
 
   function nuevo() {
     st = { id: null, tipo: 'persona', nombre: '', piel: '#fbe3ce', ojos: '#8b5e3c', peloEstilo: 'largo', peloColor: '#6b4428', flequillo: 'ondas', pestanas: true, pecas: false, ropa: {} };
@@ -49,7 +54,7 @@ const Taller = (function () {
 
   function render() {
     const t = st.tipo, persona = t === 'persona';
-    $('taSvg').innerHTML = Juego.vistaPrevia(st);
+    $('taSvg').innerHTML = `<g class="pj-cuerpo">${Juego.vistaPrevia(st)}</g>`;
     $('taTipo').innerHTML = chips(TIPOS, t, 'tipo');
     $('taPielTitulo').textContent = t === 'raton' ? 'Color del pelaje' : 'Piel';
     $('taPiel').innerHTML = colores(t === 'raton' ? PELAJES : PIELES, st.piel, 'piel');
@@ -82,6 +87,8 @@ const Taller = (function () {
     if (!pedido) { estado('Escribe o dime a quién quieres crear 🎤'); decir('¿A quién quieres crear?'); return; }
     if (pidiendo) return;
     if (typeof supabaseClient === 'undefined' || !supabaseClient) { estado('La magia necesita internet'); return; }
+    if (magiaApagada()) { estado(NO_ACTIVADA); decir('La magia todavía no está activada. ¡Créalo tú!'); return; }
+    if (!navigator.onLine) { estado('La magia necesita internet 📶'); return; }
     const ok = await Candado.pedir('Para crear con magia');
     if (ok !== 'ok' && ok !== 'olvido') return;
     pidiendo = true;
@@ -90,7 +97,16 @@ const Taller = (function () {
     estado('✨ Haciendo magia…');
     decir('¡Abracadabra!');
     try {
-      const { data, error } = await supabaseClient.functions.invoke('crear-personaje', { body: { pedido } });
+      // si en 25 segundos no responde, se avisa (no se queda pensando para siempre)
+      const tiempo = new Promise((res) => setTimeout(() => res({ data: null, error: { name: 'Tiempo' } }), 25000));
+      const { data, error } = await Promise.race([supabaseClient.functions.invoke('crear-personaje', { body: { pedido } }), tiempo]);
+      const status = error && error.context && error.context.status;
+      // la función no está subida (404 / error de red) o le falta la clave
+      if ((error && (status === 404 || error.name === 'FunctionsFetchError' || error.name === 'FunctionsRelayError')) ||
+          (data && data.error === 'La magia todavía no está configurada')) {
+        marcarSinMagia(); estado(NO_ACTIVADA); decir('La magia todavía no está activada. ¡Créalo tú!'); return;
+      }
+      if (error && error.name === 'Tiempo') { estado('La magia se demoró mucho. Prueba otra vez 🙏'); return; }
       if (error || !data || !data.ok) { estado((data && data.error) || 'La magia falló, prueba otra vez'); return; }
       const p = data.personaje;
       st = { id: null, tipo: p.tipo, nombre: p.nombre, piel: p.piel, ojos: p.ojos, peloEstilo: p.peloEstilo, peloColor: p.peloColor, flequillo: p.flequillo, pestanas: p.pestanas, pecas: p.pecas, ropa: p.ropa || {}, magia: true };
