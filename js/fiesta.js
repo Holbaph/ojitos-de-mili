@@ -211,9 +211,7 @@ const Fiesta = (function () {
   }
   function videoNoDisponible() {
     if (!videoActual) return;
-    const v = videoActual;
-    $('fiVideo').innerHTML = `<div class="fi-fin"><p>😕 Este video no se puede ver dentro de la app</p><button class="btn-save small" id="fiAbrirYt">Abrir en YouTube</button><small>o elige otra canción 👇</small></div>`;
-    $('fiAbrirYt').addEventListener('click', () => window.open('https://www.youtube.com/watch?v=' + v.id, '_blank', 'noopener'));
+    $('fiVideo').innerHTML = '<div class="fi-fin"><p>😕 Este video no se puede ver dentro de la app</p><small>Elige otra canción 👇</small></div>';
     videoActual = null;
   }
   window.addEventListener('message', (e) => {
