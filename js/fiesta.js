@@ -25,7 +25,7 @@ const Fiesta = (function () {
     { n: 'Cuán lejos voy (Moana)', e: '⛵', yt: 'ftNOCfqoIjQ', bpm: 90 },
     { n: 'Brillo (Dan Osorio, Moana)', e: '🦀', yt: 'beiUZSieBt0', bpm: 110 },
     { n: 'Soda Pop (Saja Boys)', e: '🥤', yt: '983bBbJx0Mk', bpm: 116 },
-    { n: 'Golden (Huntrix)', e: '✨', yt: 'yebNIHKAC4A', bpm: 122 },
+    { n: 'Golden (Huntrix)', e: '✨', yt: 'OwpgvSo_G0g', bpm: 122 }, // el de Netflix Family (el de Sony no se deja incrustar)
     { n: 'Libre soy (Frozen)', e: '❄️', yt: 'rVjI9YRc4pE', bpm: 100 },
     { n: 'No se habla de Bruno (Encanto)', e: '🦋', yt: 'wTi8yLyHeb8', bpm: 103 },
     { n: 'Congelados (Luli Pampín)', e: '💜', yt: 'mnJ7Wk1FASA', bpm: 112 },
@@ -209,12 +209,20 @@ const Fiesta = (function () {
     clearInterval(timerRitmo); timerRitmo = null;
     confeti();
   }
+  function videoNoDisponible() {
+    if (!videoActual) return;
+    const v = videoActual;
+    $('fiVideo').innerHTML = `<div class="fi-fin"><p>😕 Este video no se puede ver dentro de la app</p><button class="btn-save small" id="fiAbrirYt">Abrir en YouTube</button><small>o elige otra canción 👇</small></div>`;
+    $('fiAbrirYt').addEventListener('click', () => window.open('https://www.youtube.com/watch?v=' + v.id, '_blank', 'noopener'));
+    videoActual = null;
+  }
   window.addEventListener('message', (e) => {
     if (!ORIGEN_YT.test(e.origin) || !videoActual) return;
     let d = e.data;
     try { if (typeof d === 'string') d = JSON.parse(d); } catch (er) { return; }
     if (!d || typeof d !== 'object') return;
     const estado = d.event === 'onStateChange' ? d.info : (d.event === 'infoDelivery' && d.info ? d.info.playerState : undefined);
+    if (d.event === 'onError') { videoNoDisponible(); return; } // 100/101/150: no se deja ver fuera de YouTube
     if (estado === 0) videoTerminado();              // 0 = terminó
     else if (estado === 2) bailando = false;         // en pausa: dejan de bailar
     else if (estado === 1) bailando = true;          // sonando
