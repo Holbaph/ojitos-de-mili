@@ -137,6 +137,12 @@
     duracionMinutos = await Config.obtenerDuracionMinutos();
     document.getElementById('duracionInput').value = duracionMinutos;
     actualizarDuracionHint(duracionMinutos);
+    Candado.configurar({
+      huella: await Config.obtenerPin(),
+      // "¿olvidaste el PIN?": se confirma con la contraseña de la cuenta
+      verificarCuenta: async (clave) => { try { await Auth.login(perfil.email, clave); return true; } catch (e) { return false; } },
+    });
+    renderPin();
     conf = await Config.obtenerTratamiento();
     conf.duracion = duracionMinutos;
     renderConfigTratamiento();
@@ -202,7 +208,8 @@
       await DB.guardarRegistro(id, side, horaISO, perfil.id, null);
       entries[id] = { fecha: id, ojo: side, hora: horaISO, horaFin: null, registradoPor: perfil.id };
       renderAll();
-      showToast('Registrado: ojo ' + Utils.label(side).toLowerCase() + ' a las ' + Utils.fmtTime(horaISO));
+      showToast((current ? '' : '📒 ¡Ganaste un sticker nuevo! · ') + 'Registrado: ojo ' + Utils.label(side).toLowerCase() + ' a las ' + Utils.fmtTime(horaISO));
+      if (!current) { const b = document.getElementById('albumBtn'); b.classList.remove('brilla'); void b.offsetWidth; b.classList.add('brilla'); }
     } catch (e) {
       showToast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
     }
@@ -325,7 +332,8 @@
     });
   }
 
-  function renderAll() { renderToday(); renderStats(); renderCalendar(); renderList(); renderTimer(); renderSemana(); renderPremio(); renderControl(); }
+  function renderAll() { renderToday(); renderStats(); renderCalendar(); renderList(); renderTimer(); renderSemana(); renderPremio(); renderControl(); renderAlbumBtn(); }
+  function renderAlbumBtn() { document.getElementById('albumBtnTxt').textContent = Album.texto(entries) + ' · cada día con parche ganas uno'; }
 
   // ================= TEMPORIZADOR (reloj de arena) =================
   function actualizarDuracionHint(minutos) {
@@ -943,7 +951,7 @@
     b.classList.toggle('pronto', c.dias <= 1);
     b.textContent = '👁️ Control con el oftalmólogo ' + c.cuando + ' · ' + c.fecha;
   }
-  $t('controlCard').addEventListener('click', () => abrirConfig('cfgControl'));
+  $t('controlCard').addEventListener('click', () => pedirYAbrirConfig('cfgControl'));
   $t('ctrlGuardar').addEventListener('click', async () => {
     const fecha = $t('ctrlFecha').value || null, hora = $t('ctrlHora').value || null;
     const detalle = $t('ctrlDetalle').value.trim().slice(0, 80), preguntas = $t('ctrlPreguntas').value.trim().slice(0, 1500);
@@ -1015,8 +1023,12 @@
 
   const sheet = document.getElementById('sheet'), scrim = document.getElementById('scrim');
   function openSheet() { sheet.classList.add('show'); scrim.classList.add('show'); }
-  function closeSheet() { sheet.classList.remove('show'); scrim.classList.remove('show'); }
-  document.getElementById('openHistory').addEventListener('click', openSheet);
+  function closeSheet() { if (sheet.classList.contains('show')) Candado.seguirAbierto(); sheet.classList.remove('show'); scrim.classList.remove('show'); }
+  document.getElementById('openHistory').addEventListener('click', async () => {
+    const r = await Candado.pedir('Para ver el historial');
+    if (r === 'olvido') { abrirConfig('cfgPin'); showToast('Entraste con tu contraseña: crea un PIN nuevo'); return; }
+    if (r) openSheet();
+  });
   document.getElementById('closeHistory').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
 
@@ -1024,6 +1036,11 @@
   // Todo lo que se ajusta (tratamiento, avisos, control, premio, juegos y
   // personas), en grupos que se abren y cierran; cada uno muestra un resumen.
   const sheetConfig = document.getElementById('sheetConfig');
+  async function pedirYAbrirConfig(grupo) {
+    const r = await Candado.pedir('Para entrar a Configuración');
+    if (r === 'olvido') { abrirConfig('cfgPin'); showToast('Entraste con tu contraseña: crea un PIN nuevo'); return; }
+    if (r) abrirConfig(grupo);
+  }
   function abrirConfig(grupo) {
     refrescarEstadoAvisos(); renderJuegoHint(); renderResumenesConfig();
     sheetConfig.classList.add('show'); scrim.classList.add('show');
@@ -1033,8 +1050,49 @@
       setTimeout(() => g.scrollIntoView({ behavior: 'smooth', block: 'start' }), 260);
     }
   }
-  function cerrarConfig() { sheetConfig.classList.remove('show'); scrim.classList.remove('show'); }
-  document.getElementById('openConfig').addEventListener('click', () => abrirConfig());
+  function cerrarConfig() { if (sheetConfig.classList.contains('show')) Candado.seguirAbierto(); sheetConfig.classList.remove('show'); scrim.classList.remove('show'); }
+  document.getElementById('openConfig').addEventListener('click', () => pedirYAbrirConfig());
+
+  // --- PIN de padres ---
+  function renderPin() {
+    const hay = Candado.activo();
+    document.getElementById('pinCrear').classList.toggle('hidden', hay);
+    document.getElementById('pinCambiar').classList.toggle('hidden', !hay);
+    document.getElementById('pinQuitar').classList.toggle('hidden', !hay);
+    const r = document.getElementById('cfgPinRes');
+    if (r) r.textContent = hay ? 'Activado: se pide para Historial y Configuración' : 'Sin PIN (cualquiera puede entrar)';
+  }
+  async function nuevoPin() {
+    const huella = await Candado.crear();
+    if (!huella) return;
+    try {
+      await Config.guardarPin(huella);
+      Candado.configurar({ huella });
+      Candado.seguirAbierto();
+      renderPin();
+      showToast('🔒 PIN guardado');
+    } catch (e) {
+      showToast(/pin_padres/i.test((e && e.message) || '') ? 'No se pudo guardar (¿corriste supabase/schema_pin.sql?)' : 'No se pudo guardar el PIN, revisa tu conexión');
+    }
+  }
+  document.getElementById('pinCrear').addEventListener('click', nuevoPin);
+  document.getElementById('pinCambiar').addEventListener('click', nuevoPin);
+  let confirmarQuitarPin = null;
+  document.getElementById('pinQuitar').addEventListener('click', async () => {
+    const b = document.getElementById('pinQuitar');
+    if (!confirmarQuitarPin) {
+      b.textContent = '¿Seguro? Toca otra vez para quitarlo';
+      confirmarQuitarPin = setTimeout(() => { confirmarQuitarPin = null; b.textContent = 'Quitar PIN'; }, 3500);
+      return;
+    }
+    clearTimeout(confirmarQuitarPin); confirmarQuitarPin = null; b.textContent = 'Quitar PIN';
+    try { await Config.guardarPin(null); Candado.configurar({ huella: null }); renderPin(); showToast('PIN quitado'); }
+    catch (e) { showToast('No se pudo quitar el PIN, revisa tu conexión'); }
+  });
+
+  // --- álbum de stickers ---
+  Album.iniciar();
+  document.getElementById('albumBtn').addEventListener('click', () => Album.abrir(entries));
   document.getElementById('closeConfig').addEventListener('click', cerrarConfig);
   scrim.addEventListener('click', cerrarConfig);
   function renderResumenesConfig() {

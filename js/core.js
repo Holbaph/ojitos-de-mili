@@ -155,6 +155,18 @@ const Config = {
     if (error) throw error;
   },
 
+  // PIN de padres (schema_pin.sql): la huella "sal:sha256", o null.
+  async obtenerPin() {
+    const { data, error } = await supabaseClient.from('configuracion').select('pin_padres').eq('id', 'general').maybeSingle();
+    if (error || !data) return null;
+    return data.pin_padres || null;
+  },
+  async guardarPin(huella) {
+    const { error } = await supabaseClient.from('configuracion')
+      .update({ pin_padres: huella, updated_at: new Date().toISOString() }).eq('id', 'general');
+    if (error) throw error;
+  },
+
   // Apariencia de Mili (piel, pelo, ropa…), compartida por toda la familia.
   // null si todavía no se personaliza; undefined si no se pudo leer (sin red,
   // o si aún no se corrió schema_apariencia.sql) — ahí conviene no tocar nada.

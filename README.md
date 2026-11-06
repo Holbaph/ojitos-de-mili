@@ -111,6 +111,13 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
     con estrellitas en la pantalla principal.
   - **Resumen semanal**: los domingos a las 7 de la tarde llega un aviso con
     los días y horas de la semana (se puede desactivar).
+- **🔒 PIN de padres**: en Configuración → PIN de padres se crea un PIN de 4
+  números (el mismo para toda la familia). Con PIN, Historial y Configuración lo
+  piden antes de abrir; queda abierto unos minutos. Si se olvida, se entra con la
+  contraseña de la cuenta y se crea otro. Requiere `supabase/schema_pin.sql`.
+- **📒 Mi álbum de stickers**: por cada día con parche, Mili gana el sticker de
+  un personaje (los que faltan se ven como sombra); al completarlo, siguen los
+  dorados.
 - **💃 Fiesta de baile**: Mili elige hasta 4 personajes (vestidos como los dejó
   en el juego de vestir) y bailan en un escenario con luces. La música no viene
   dentro de la app (tiene derechos de autor); se elige de dónde sale:
@@ -118,7 +125,7 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   parlante y la app escucha el ritmo con el micrófono, sin grabar ni enviar nada;
   con botones para buscar cada canción en esas apps) o **▶️ Video de YouTube**
   (el video oficial dentro de la app, o cualquier enlace pegado). Canciones listas:
-  Ay mi gatito miau miau, De nada, Cuán lejos voy, Soda Pop, Golden, Libre soy,
+  Ay mi gatito miau miau, De nada, Cuán lejos voy, Brillo (Dan Osorio), Soda Pop, Golden, Libre soy,
   No se habla de Bruno y Congelados. Usa el mismo tiempo de juego del día.
 - **Juegos con el parche**: trece juegos de visión fina para entretenerse
   *mientras* se usa el parche (así trabaja el ojito destapado): 🍰 Cocinita,
@@ -343,6 +350,8 @@ js/camara.js              foto con el personaje + "Mis fotos" (solo en el dispos
 js/ar.js                  realidad aumentada: el avatar abraza, hace orejitas, etc.
 js/juegos-parche.js       juegos de visión fina para el rato con el parche puesto
 js/fiesta.js              💃 Fiesta de baile: bailarines, ritmo por micrófono y videos de YouTube
+js/candado.js             🔒 PIN de padres para Historial y Configuración
+js/album.js               📒 álbum de stickers (uno por día con parche)
 js/juegos-peques.js       rompecabezas, memoria, pintar, formas, colores y sombras
 js/cocina.js              🍰 Cocinita: platos, ingredientes y niveles del juego de cocina
 js/app.js                 toda la interacción de la app
@@ -353,6 +362,7 @@ supabase/schema_apariencia.sql    apariencia personalizable de Mili (paso 3c)
 supabase/schema_juego.sql         ropa de los personajes y minutos de juego (paso 3d)
 supabase/schema_seguridad.sql     refuerzo de seguridad: roles, nombres, acceso solo con perfil (paso 3e)
 supabase/schema_tratamiento.sql   indicación, hora de sacado, premio, control y resumen (paso 3f)
+supabase/schema_pin.sql           PIN de padres
 supabase/functions/invite-user           Edge Function que envía invitaciones (paso 2)
 supabase/functions/send-patch-reminders  Edge Function que manda los avisos y el recordatorio (pasos 3 y 3b)
 supabase/functions/remove-user           Edge Function para que el admin quite el acceso (paso 3e)

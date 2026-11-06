@@ -23,6 +23,7 @@ const Fiesta = (function () {
     { n: 'Ay mi gatito miau miau', e: '🐱', yt: 'JUVz3beVAAk', bpm: 120 },
     { n: 'De nada (Moana)', e: '🌊', yt: 'HS2qe2nL2Co', bpm: 104 },
     { n: 'Cuán lejos voy (Moana)', e: '⛵', yt: 'ftNOCfqoIjQ', bpm: 90 },
+    { n: 'Brillo (Dan Osorio, Moana)', e: '🦀', yt: 'beiUZSieBt0', bpm: 110 },
     { n: 'Soda Pop (Saja Boys)', e: '🥤', yt: '983bBbJx0Mk', bpm: 116 },
     { n: 'Golden (Huntrix)', e: '✨', yt: 'yebNIHKAC4A', bpm: 122 },
     { n: 'Libre soy (Frozen)', e: '❄️', yt: 'rVjI9YRc4pE', bpm: 100 },
