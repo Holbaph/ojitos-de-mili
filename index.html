@@ -7,7 +7,7 @@
      en un dato (por ejemplo un nombre), el navegador no lo ejecuta ni lo deja mandar nada afuera. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.open-meteo.com https://gbkrwzihzmbskpivagpn.supabase.co wss://gbkrwzihzmbskpivagpn.supabase.co https://cdn.jsdelivr.net https://storage.googleapis.com; worker-src 'self' blob:; frame-src https://www.youtube-nocookie.com https://www.youtube.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<script src="js/inicio.js?v=31"></script>
+<script src="js/inicio.js?v=32"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Ojitos de Mili</title>
 <meta name="theme-color" content="#eef3f6">
@@ -21,7 +21,7 @@
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=31">
+<link rel="stylesheet" href="css/styles.css?v=32">
 </head>
 <body>
 
@@ -634,7 +634,7 @@
       </div>
       <small id="taMagiaEstado" aria-live="polite"></small>
     </div>
-    <div class="ta-vista"><svg id="taSvg" viewBox="0 -10 320 450" aria-hidden="true"></svg></div>
+    <div class="ta-vista"><svg id="taSvg" class="pj-vivo" viewBox="0 -10 320 450" aria-hidden="true"></svg></div>
     <input class="ta-nombre" id="taNombre" maxlength="18" placeholder="✏️ ¿Cómo se llama?" autocomplete="off">
     <div class="ta-grupo"><h4>¿Qué es?</h4><div class="ta-opciones" id="taTipo"></div></div>
     <div class="ta-grupo" data-solo="cuerpo"><h4 id="taPielTitulo">Piel</h4><div class="ta-colores" id="taPiel"></div></div>
@@ -796,27 +796,27 @@
 
 <!-- versión fija + huella (integrity): si el archivo del CDN cambiara, el navegador no lo carga -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
-<script src="js/supabase-config.js?v=31"></script>
-<script src="js/auth.js?v=31"></script>
-<script src="js/core.js?v=31"></script>
-<script src="js/tratamiento.js?v=31"></script>
-<script src="js/vestuario.js?v=31"></script>
-<script src="js/mili.js?v=31"></script>
-<script src="js/tiempo-juego.js?v=31"></script>
-<script src="js/juego.js?v=31"></script>
-<script src="js/ar.js?v=31"></script>
-<script src="js/camara.js?v=31"></script>
-<script src="js/cocina.js?v=31"></script>
-<script src="js/juegos-peques.js?v=31"></script>
-<script src="js/juegos-parche.js?v=31"></script>
-<script src="js/fiesta.js?v=31"></script>
-<script src="js/candado.js?v=31"></script>
-<script src="js/album.js?v=31"></script>
-<script src="js/voz.js?v=31"></script>
-<script src="js/clima.js?v=31"></script>
-<script src="js/cuentos.js?v=31"></script>
-<script src="js/taller.js?v=31"></script>
-<script src="js/vida.js?v=31"></script>
-<script src="js/app.js?v=31"></script>
+<script src="js/supabase-config.js?v=32"></script>
+<script src="js/auth.js?v=32"></script>
+<script src="js/core.js?v=32"></script>
+<script src="js/tratamiento.js?v=32"></script>
+<script src="js/vestuario.js?v=32"></script>
+<script src="js/mili.js?v=32"></script>
+<script src="js/tiempo-juego.js?v=32"></script>
+<script src="js/juego.js?v=32"></script>
+<script src="js/ar.js?v=32"></script>
+<script src="js/camara.js?v=32"></script>
+<script src="js/cocina.js?v=32"></script>
+<script src="js/juegos-peques.js?v=32"></script>
+<script src="js/juegos-parche.js?v=32"></script>
+<script src="js/fiesta.js?v=32"></script>
+<script src="js/candado.js?v=32"></script>
+<script src="js/album.js?v=32"></script>
+<script src="js/voz.js?v=32"></script>
+<script src="js/clima.js?v=32"></script>
+<script src="js/cuentos.js?v=32"></script>
+<script src="js/taller.js?v=32"></script>
+<script src="js/vida.js?v=32"></script>
+<script src="js/app.js?v=32"></script>
 </body>
 </html>

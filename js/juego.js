@@ -545,9 +545,45 @@ const Juego = (function () {
     if (activo) activo.scrollIntoView({ block: 'nearest', inline: 'center' });
   }
 
+  // ---------- personajes vivos: pestañean, respiran y reaccionan al tocarlos ----------
+  const FRASES = {
+    mili: '¡Me gusta mi parche! 🩹', elsa: '¡Mira mi magia de hielo! ❄️', anna: '¡Vamos a jugar juntas! 💚', olaf: '¡Me encantan los abrazos! ⛄',
+    sven: '¡Quiero una zanahoria! 🥕', kristoff: '¡Vamos en trineo! 🛷', moana: '¡A navegar por el mar! 🌊', maui: '¡Soy fuertísimo! 💪',
+    heihei: '¡Kikirikí! 🐔', pua: '¡Oink, oink! 🐷', tamatoa: '¡Me encanta lo que brilla! ✨', stitch: '¡Hola, amiga! 💙', angel: '¡Qué lindo día! 💗',
+    mirabel: '¡Me encantan las mariposas! 🦋', luisa: '¡Yo puedo cargarlo todo! 💪', isabela: '¡Mira mis flores! 🌸', bruno: '¡Hola! ¿Jugamos?',
+    rapunzel: '¡Me encanta pintar! 🎨', ariel: '¡Me encanta el mar! 🐠', bella: '¡Me encantan los libros! 📚', cenicienta: '¡Qué lindo baile! ✨',
+    merida: '¡Soy muy valiente! 🏹', tiana: '¡Vamos a cocinar! 🍰', jasmine: '¡A volar en alfombra! ✨', mickey: '¡Hola, amiguitos! 🐭',
+    minnie: '¡Me encantan los moños! 🎀', rumi: '¡A cantar! 🎤', mira: '¡A bailar! 💃', zoey: '¡Qué buena canción! 🎶',
+    blippi: '¡Vamos a explorar! 🔍', luli: '¡A bailar! 💃', bruni: '¡Brrr, qué fueguito! 🔥', malvavisco: '¡Grrr! Jijiji ❄️',
+  };
+  const FRASES_TODOS = ['¡Hola! 👋', '¡Jijiji, cosquillas!', '¡Qué lindo me veo!', '¡Gracias por vestirme! 💖', '¡Te quiero! 💗', '¡Uy, qué divertido!'];
+  const quieto = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function globo(cont) {
+    let g = cont.querySelector('.vi-globo');
+    if (!g) { g = document.createElement('div'); g.className = 'vi-globo'; g.setAttribute('aria-live', 'polite'); cont.appendChild(g); }
+    return g;
+  }
+  function decirEn(cont, texto) {
+    const g = globo(cont);
+    g.textContent = texto;
+    g.classList.remove('ver'); void g.offsetWidth; g.classList.add('ver');
+    clearTimeout(g._t); g._t = setTimeout(() => g.classList.remove('ver'), 2400);
+    if (typeof Voz !== 'undefined') Voz.decir(texto);
+  }
+  // salta, saluda con la mano y dice algo (svg: el <svg> donde está dibujado)
+  function animar(svg, id, cont, texto) {
+    if (!quieto()) {
+      svg.classList.remove('pj-salto'); void svg.getBoundingClientRect(); svg.classList.add('pj-salto');
+      clearTimeout(svg._salto); svg._salto = setTimeout(() => svg.classList.remove('pj-salto'), 1100);
+    }
+    const r = Math.random();
+    decirEn(cont, texto || (r < 0.6 && FRASES[id]) || FRASES_TODOS[Math.floor(Math.random() * FRASES_TODOS.length)]);
+  }
+
   function renderEscenario(pop) {
     const svg = $('juegoSvg');
-    svg.innerHTML = figura(actual, estados[actual]);
+    svg.classList.add('pj-vivo');
+    svg.innerHTML = `<g class="pj-cuerpo">${figura(actual, estados[actual])}</g>`;
     const p = personaje(actual);
     $('juegoNombre').textContent = p.nombre;
     $('juegoGrupo').textContent = p.grupo === p.nombre ? '' : p.grupo;
@@ -630,7 +666,10 @@ const Juego = (function () {
       actual = b.dataset.id;
       renderPersonajes(); renderEscenario(true); renderCats(); renderItems();
       guardar();
+      animar($('juegoSvg'), actual, $('juegoEscenario'), `¡Hola, soy ${personaje(actual).nombre}! 👋`);
     });
+    // tocar al personaje: salta, saluda y habla
+    $('juegoSvg').addEventListener('click', () => { if (!sinClick) animar($('juegoSvg'), actual, $('juegoEscenario')); });
 
     $('juegoCats').addEventListener('click', (e) => {
       const b = e.target.closest('button[data-cat]');
@@ -816,5 +855,5 @@ const Juego = (function () {
   // al cargar la app, los creados ya están (para la fiesta, los cuentos y los juegos)
   ponerCreados((leerLocal() || {}).creados);
 
-  return { abrir, cerrar, restablecerTodos, figura, personajes, original, vestido, creados, vistaPrevia, guardarCreado, borrarCreado, MAX_CREADOS };
+  return { abrir, cerrar, restablecerTodos, figura, personajes, original, vestido, creados, vistaPrevia, guardarCreado, borrarCreado, MAX_CREADOS, animar };
 })();

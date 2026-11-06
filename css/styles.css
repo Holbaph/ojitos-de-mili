@@ -1180,3 +1180,23 @@ svg.face.vi-sonrisa .vi-boca{ opacity:1; transform:scale(1.35,.32); }
 .ta-vacio{ color:var(--ink-faint); margin:0; }
 .ja-crear, .ja-crear .ja-txt{ color:#2a2740 !important; }
 .ta-fila .history-btn{ width:auto; flex:0 0 auto; margin:0; padding:10px 14px; }
+
+/* ===== Personajes vivos (juego de vestir, cuentos, taller) ===== */
+.pj-vivo .pj-ojos{ transform-box:fill-box; transform-origin:center; animation:pj-parpadeo 4.6s infinite; animation-delay:var(--pj-retraso,0s); }
+@keyframes pj-parpadeo{ 0%,90%,96%,100%{ transform:none; } 93%{ transform:scaleY(.08); } }
+.pj-vivo .pj-cuerpo{ transform-box:fill-box; transform-origin:50% 100%; animation:pj-respira 3.4s ease-in-out infinite; animation-delay:var(--pj-retraso,0s); }
+@keyframes pj-respira{ 50%{ transform:scale(1.012,1.024); } }
+.pj-vivo.pj-salto .pj-cuerpo{ animation:pj-salto .75s ease; }
+@keyframes pj-salto{ 30%{ transform:translateY(-7%) scale(1.02,.98); } 60%{ transform:translateY(0) scale(1.04,.94); } 80%{ transform:scale(.99,1.02); } }
+.pj-vivo .brazo-der{ transform-box:fill-box; transform-origin:0% 0%; }
+.pj-vivo.pj-salto .brazo-der{ animation:pj-saluda 1s ease; }
+@keyframes pj-saluda{ 25%,75%{ transform:rotate(-28deg); } 50%{ transform:rotate(-12deg); } }
+.juego-escenario .vi-globo{ top:4%; right:4%; }
+.juego-escenario svg{ cursor:pointer; }
+@media (prefers-reduced-motion: reduce){ .pj-vivo .pj-ojos, .pj-vivo .pj-cuerpo, .pj-vivo .brazo-der{ animation:none !important; } }
+
+/* taller: el dibujo queda siempre a la vista mientras se eligen las cosas */
+.ta-vista{ position:sticky; top:0; z-index:2; height:26vh; min-height:160px; box-shadow:0 8px 16px -12px rgba(0,0,0,.4); }
+.ta-vacio{ grid-column:1 / -1; }
+.ta-guardar{ background:linear-gradient(120deg,#f28bb0,#b392d6) !important; color:#fff !important; font-family:'Baloo 2'; font-weight:800; border:none; border-radius:18px; }
+.ta-vista{ top:-6px; }
