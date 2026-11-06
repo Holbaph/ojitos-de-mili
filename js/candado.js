@@ -3,15 +3,15 @@
 // Es un "candado para niños": evita que Mili entre sin querer a la parte de los
 // padres (por ejemplo, a "Dar más tiempo hoy"). El PIN es de 4 números y es el
 // mismo en todos los celulares de la familia (se guarda en configuracion.pin_padres
-// como "sal:sha256", nunca el número). Después de escribirlo bien, queda abierto
-// unos minutos para no pedirlo a cada rato. Si se olvida, se entra con la
-// contraseña de la cuenta y se puede crear otro.
+// como "sal:sha256", nunca el número). Se pide SIEMPRE, cada vez que se entra.
+// En cada celular se puede activar Face ID / huella (WebAuthn, con el
+// autenticador del propio teléfono) para entrar sin escribirlo. Si se olvida,
+// se entra con la contraseña de la cuenta y se puede crear otro.
 
 const Candado = (function () {
   const $ = (id) => document.getElementById(id);
-  const GRACIA_MS = 3 * 60 * 1000;
+  const BIO = 'ojitos-biometria'; // id de la credencial de Face ID / huella de ESTE celular
   let huella = null;           // 'sal:hash' o null (sin PIN)
-  let abiertoHasta = 0;
   let verificarCuenta = null;  // async (contraseña) => boolean
 
   const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -32,7 +32,7 @@ const Candado = (function () {
   function pintarPuntos() {
     $('pinPuntos').querySelectorAll('i').forEach((p, i) => p.classList.toggle('lleno', i < escrito.length));
   }
-  function teclado(titulo, sub, { conOlvido = false } = {}) {
+  function teclado(titulo, sub, { conOlvido = false, conBio = false } = {}) {
     return new Promise((res) => {
       resolver = res; escrito = '';
       $('pinTitulo').textContent = titulo;
@@ -42,6 +42,7 @@ const Candado = (function () {
       $('pinPuntos').classList.remove('hidden');
       $('pinClave').classList.add('hidden');
       $('pinOlvido').classList.toggle('hidden', !conOlvido);
+      $('pinBio').classList.toggle('hidden', !conBio);
       pintarPuntos();
       $('pinCaja').classList.remove('hidden');
     });
@@ -72,6 +73,7 @@ const Candado = (function () {
       if (escrito.length === 4) { const pin = escrito; setTimeout(() => { const r = resolver; if (r) { resolver = null; $('pinCaja').classList.add('hidden'); r(pin); } }, 150); }
     });
     $('pinCancelar').addEventListener('click', () => terminar(null));
+    $('pinBio').addEventListener('click', () => bioPedir().then((ok) => { if (ok && resolver) terminar('bio'); }));
     $('pinOlvido').addEventListener('click', () => {
       // mostrar el campo de contraseña de la cuenta
       $('pinTitulo').textContent = 'Entra con tu contraseña';
@@ -111,23 +113,62 @@ const Candado = (function () {
     if (opts.verificarCuenta) verificarCuenta = opts.verificarCuenta;
   }
   const activo = () => !!huella;
-  // Pide el PIN si hace falta. Devuelve 'ok', 'olvido' (entró con la
+  // ---------- Face ID / huella (WebAuthn con el autenticador del celular) ----------
+  // No se manda nada a ningún servidor: solo se le pide al teléfono que confirme
+  // que es su dueño (cara o huella). Es para no escribir el PIN.
+  const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const desdeB64 = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+  function bioId() { try { return localStorage.getItem(BIO); } catch (e) { return null; } }
+  async function bioDisponible() {
+    try { return !!(window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); }
+    catch (e) { return false; }
+  }
+  async function bioActivar() {
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rp: { name: 'Ojitos de Mili' },
+      user: { id: crypto.getRandomValues(new Uint8Array(16)), name: 'padres-de-mili', displayName: 'Padres de Mili' },
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'discouraged' },
+      timeout: 60000,
+    } });
+    if (!cred) throw new Error('sin credencial');
+    localStorage.setItem(BIO, b64(cred.rawId));
+  }
+  function bioQuitar() { try { localStorage.removeItem(BIO); } catch (e) {} }
+  function bioPedir() {
+    const id = bioId();
+    if (!id || !navigator.credentials) return Promise.resolve(false);
+    return navigator.credentials.get({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials: [{ type: 'public-key', id: desdeB64(id), transports: ['internal'] }],
+      userVerification: 'required',
+      timeout: 60000,
+    } }).then((c) => !!c).catch(() => false);
+  }
+
+  // Pide el PIN (o Face ID) SIEMPRE. Devuelve 'ok', 'olvido' (entró con la
   // contraseña: conviene crear un PIN nuevo) o null (canceló).
   async function pedir(motivo) {
-    if (!huella || Date.now() < abiertoHasta) return 'ok';
+    if (!huella) return 'ok';
+    const conBio = !!bioId();
+    // Face ID parte altiro (todavía dentro del toque, como pide el celular);
+    // si falla o se cancela, queda el teclado para escribir el PIN.
+    if (conBio) bioPedir().then((ok) => { if (ok && resolver) terminar('bio'); });
     let sub = motivo;
     for (;;) {
-      const pin = await teclado('🔒 PIN de padres', sub, { conOlvido: true });
+      const pin = await teclado('🔒 PIN de padres', sub, { conOlvido: true, conBio });
       if (pin === null) return null;
-      if (pin === 'olvido') { abiertoHasta = Date.now() + GRACIA_MS; return 'olvido'; }
-      if (await coincide(pin)) { abiertoHasta = Date.now() + GRACIA_MS; return 'ok'; }
+      if (pin === 'bio') return 'ok';
+      if (pin === 'olvido') return 'olvido';
+      if (await coincide(pin)) return 'ok';
       sub = 'PIN incorrecto 🙈 intenta de nuevo';
       await new Promise((r) => setTimeout(r, 50));
       error(sub);
     }
   }
-  // Mientras los padres están adentro, el tiempo de gracia se renueva.
-  function seguirAbierto() { if (huella) abiertoHasta = Date.now() + GRACIA_MS; }
+  // (ya no hay tiempo de gracia: el PIN se pide cada vez)
+  function seguirAbierto() {}
   // Pide un PIN nuevo dos veces. Devuelve la huella para guardar, o null.
   async function crear() {
     let sub = 'Que Mili no lo vea 🙈';
@@ -140,5 +181,5 @@ const Candado = (function () {
       sub = 'No coincidían 🙈 vamos de nuevo';
     }
   }
-  return { configurar, activo, pedir, crear, seguirAbierto };
+  return { configurar, activo, pedir, crear, seguirAbierto, bioDisponible, bioActivo: () => !!bioId(), bioActivar, bioQuitar };
 })();

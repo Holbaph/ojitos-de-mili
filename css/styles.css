@@ -1097,3 +1097,4 @@ details.cfg[open] .cfg-ico{ background:var(--surface); }
 .fi-fin{ display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; padding:10px; }
 .fi-fin p{ margin:0; font-weight:800; font-size:15px; }
 .fi-fin small{ opacity:.8; }
+.pin-bio{ width:100%; margin-top:12px; }

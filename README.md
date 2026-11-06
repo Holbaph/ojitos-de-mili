@@ -113,7 +113,8 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
     los días y horas de la semana (se puede desactivar).
 - **🔒 PIN de padres**: en Configuración → PIN de padres se crea un PIN de 4
   números (el mismo para toda la familia). Con PIN, Historial y Configuración lo
-  piden antes de abrir; queda abierto unos minutos. Si se olvida, se entra con la
+  piden siempre antes de abrir. En cada celular se puede activar Face ID / huella
+  para entrar sin escribirlo. Si se olvida, se entra con la
   contraseña de la cuenta y se crea otro. Requiere `supabase/schema_pin.sql`.
 - **📒 Mi álbum de stickers**: por cada día con parche, Mili gana el sticker de
   un personaje (los que faltan se ven como sombra); al completarlo, siguen los
