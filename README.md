@@ -113,6 +113,14 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
     los días y horas de la semana (se puede desactivar).
 - **Flechita "¡Hoy!"**: sobre el ojito que toca tapar hoy (según la indicación
   del doctor), hasta que se registra el parche.
+- **🗣️ Voz de Mili**: lee en voz alta lo que dice, las instrucciones y pistas de
+  los juegos (con 🔊 para repetir) y los cuentos, con la voz del celular.
+- **⏰ Despertador del parche**: al cumplirse el tiempo con la app abierta,
+  suena una campanita, cae confeti y Mili avisa que ya se puede sacar.
+- **📖 Cuentos de Mili**: un cuento nuevo cada vez, armado al azar con un amigo,
+  un lugar, una misión y un problema que resuelven con el parche mágico.
+- **🌦️ Ropa según el clima** (Configuración → ✨ Mili): con frío se abriga, con
+  lluvia botas, con calor lentes de sol (ubicación aproximada, Open-Meteo).
 - **Mili está viva**: en la pantalla principal respira, pestañea, mira para los
   lados, mueve la boca como si conversara y, al tocarla, salta, se ríe y dice
   algo (también celebra cuando se registra el parche).
@@ -359,6 +367,9 @@ js/fiesta.js              💃 Fiesta de baile: bailarines, ritmo por micrófono
 js/candado.js             🔒 PIN de padres para Historial y Configuración
 js/album.js               📒 álbum de stickers (uno por día con parche)
 js/vida.js                el avatar vive: respira, pestañea, mira, habla y reacciona
+js/voz.js                 la voz de Mili (speechSynthesis del celular)
+js/clima.js               ropa según el clima (ubicación aproximada + Open-Meteo)
+js/cuentos.js             cuentos al azar, leídos en voz alta
 js/juegos-peques.js       rompecabezas, memoria, pintar, formas, colores y sombras
 js/cocina.js              🍰 Cocinita: platos, ingredientes y niveles del juego de cocina
 js/app.js                 toda la interacción de la app

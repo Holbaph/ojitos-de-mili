@@ -58,7 +58,9 @@ const Vida = (function () {
   // ---------- tocarla ----------
   function alTocar() {
     clase('vi-salto', 700);
-    hablar(pick(FRASES_TOQUE), 1500);
+    const f = pick(FRASES_TOQUE);
+    hablar(f, 1500);
+    if (typeof Voz !== 'undefined') Voz.decir(f);
   }
 
   // svg: el <svg> del avatar; contenedor: dónde va el globo de diálogo;
@@ -81,7 +83,7 @@ const Vida = (function () {
     document.addEventListener('visibilitychange', () => { if (!document.hidden) despues(500, () => clase('vi-parpadeo', 200)); });
   }
   // para que reaccione desde afuera (por ejemplo, al registrar el parche)
-  function celebrar(texto) { if (svg) { clase('vi-salto', 700); hablar(texto, 1600); } }
+  function celebrar(texto) { if (svg) { clase('vi-salto', 700); hablar(texto, 1600); if (typeof Voz !== 'undefined') Voz.decir(texto); } }
 
   return { iniciar, celebrar, decir };
 })();
