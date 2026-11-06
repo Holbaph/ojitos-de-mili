@@ -111,6 +111,8 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
     con estrellitas en la pantalla principal.
   - **Resumen semanal**: los domingos a las 7 de la tarde llega un aviso con
     los días y horas de la semana (se puede desactivar).
+- **Flechita "¡Hoy!"**: sobre el ojito que toca tapar hoy (según la indicación
+  del doctor), hasta que se registra el parche.
 - **Mili está viva**: en la pantalla principal respira, pestañea, mira para los
   lados, mueve la boca como si conversara y, al tocarla, salta, se ríe y dice
   algo (también celebra cuando se registra el parche).

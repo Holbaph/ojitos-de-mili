@@ -252,6 +252,13 @@
       const sug = Tratamiento.sugerencia(conf, entries);
       hint.innerHTML = '<span class="hint-chip">' + (sug.ojo ? '💡 ' : '') + Utils.esc(sug.texto) + '</span>';
     }
+    // flechita "¡Hoy!" sobre el ojito que toca tapar (si todavía no se registra)
+    const flecha = document.getElementById('flechaHoy');
+    const sugHoy = rec ? null : Tratamiento.sugerencia(conf, entries);
+    if (sugHoy && sugHoy.ojo) {
+      flecha.setAttribute('transform', 'translate(' + (sugHoy.ojo === 'derecho' ? 112 : 208) + ' 116)');
+      flecha.classList.remove('hidden');
+    } else flecha.classList.add('hidden');
   }
 
   // constancia y racha cuentan solo los días indicados (js/tratamiento.js):

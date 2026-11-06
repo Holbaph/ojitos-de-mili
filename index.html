@@ -160,6 +160,14 @@
           <g class="eye-patch" data-lado="1"><!-- lo dibuja js/mili.js (forma, estampado, color) --></g>
         </g>
 
+        <!-- flechita sobre el ojito que toca tapar hoy (js/app.js) -->
+        <g class="flecha-hoy hidden" id="flechaHoy" pointer-events="none">
+          <g class="flecha-salto">
+            <rect x="-30" y="-58" width="60" height="26" rx="13" fill="#e8578a"/>
+            <text x="0" y="-40" text-anchor="middle" font-family="Figtree, sans-serif" font-size="15" font-weight="800" fill="#fff">¡Hoy!</text>
+            <path d="M-14 -28 H14 V-12 H26 L0 14 L-26 -12 H-14 Z" fill="#f6d26b" stroke="#c9961a" stroke-width="3" stroke-linejoin="round"/>
+          </g>
+        </g>
         <!-- lo que va por encima de los ojos (lentes); no bloquea los toques en los ojos -->
         <g class="mili-delante" pointer-events="none"></g>
       </svg>
