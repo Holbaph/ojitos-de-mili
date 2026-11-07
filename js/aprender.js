@@ -259,6 +259,8 @@ const Aprender = (function () {
   function aviso(t) { $('apMsg').textContent = t; decir(t); }
   function ganarEstrella() {
     op.estrellas = (op.estrellas || 0) + 1; guardarOp();
+    // también cuentan para la tiendita del perrito (se comparten entre los celulares)
+    try { Juego.guardarExtra('estrellas', Math.max(0, Math.floor(Number(Juego.extra('estrellas')) || 0)) + 1); } catch (e) {}
     $('apEstrellas').textContent = `⭐ ${op.estrellas}`;
     const f = $('apFx'); f.textContent = '⭐'; f.classList.remove('ver'); void f.offsetWidth; f.classList.add('ver');
   }

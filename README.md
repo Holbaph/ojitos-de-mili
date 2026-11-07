@@ -136,6 +136,10 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   - **🌙 Hora de dormir**: rutina con pasos, reloj de 2 minutos para los dientes, cuento y
     lucecita de noche con canción de cuna.
   - **🖼️ Mi galería**: los dibujos de "Pintar" y de la hoja en blanco; quedan solo en ese celular.
+  - **📞 Llamada**: al ponerse el parche, la "llama" un personaje (o su perrito) para felicitarla.
+  - **🥁 Mi banda**: tambores, xilófono y maracas (también moviendo el celular).
+  - **🧩 Fotos**: rompecabezas con fotos de la familia; las agregan los papás con el PIN y quedan solo en ese celular.
+  - **🛍️ Tiendita** (en Mi perrito): con las estrellas (3 por día con parche, 1 por letra en Aprender) le compra cosas a su perrito.
 - Los personajes de las películas tienen su "firma": el tupé y la trenza de Elsa, la
   melena de rizos de Moana, Mérida y Mirabel, el remolino de Ariel, la trenza con flores
   de Rapunzel, el anzuelo y los tatuajes de Maui, y ojos de película.
@@ -403,6 +407,9 @@ js/mascota.js             el perrito de Mili
 js/noche.js               rutina de la noche y canción de cuna
 js/aprender.js            repasar letras, números y su nombre; contar
 js/galeria.js             galería de dibujos (solo en el celular)
+js/llamada.js             videollamada de un personaje al ponerse el parche
+js/banda.js               tambores, xilófono y maracas
+js/fotos.js               rompecabezas con fotos de la familia (solo en el celular)
 js/vida.js                el avatar vive: respira, pestañea, mira, habla y reacciona
 js/voz.js                 la voz de Mili (speechSynthesis del celular)
 js/clima.js               ropa según el clima (ubicación aproximada + Open-Meteo)
