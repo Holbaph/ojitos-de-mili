@@ -228,7 +228,7 @@ const Aprender = (function () {
     if (!dibujando || listo || !cv || !tinta) return;
     pararComo();
     const [x, y] = pos(e), t = tinta.getContext('2d');
-    t.strokeStyle = color; t.lineWidth = tam * 0.1; t.lineCap = 'round'; t.lineJoin = 'round';
+    t.strokeStyle = color; t.lineWidth = tam * 0.045; // línea fina (más fácil no salirse de la letra) t.lineCap = 'round'; t.lineJoin = 'round';
     t.beginPath(); t.moveTo(...(ultimo || [x, y])); t.lineTo(x, y); t.stroke();
     ultimo = [x, y];
     pintar();
@@ -241,8 +241,10 @@ const Aprender = (function () {
     if (listo || !trazosG.length || !tinta) return;
     const td = tinta.getContext('2d').getImageData(0, 0, tam, tam).data;
     const hay = (x, y) => { x = Math.round(x); y = Math.round(y); return x >= 0 && y >= 0 && x < tam && y < tam && td[(y * tam + x) * 4 + 3] > 0; };
-    const r = tam * 0.035;
-    const cerca = ([x, y]) => hay(x, y) || hay(x + r, y) || hay(x - r, y) || hay(x, y + r) || hay(x, y - r);
+    // un punto de la línea de rayitas cuenta si su trazo pasó cerca (la línea es fina)
+    const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]];
+    const RADIOS = [tam * 0.025, tam * 0.05];
+    const cerca = ([x, y]) => hay(x, y) || RADIOS.some((r) => DIRS.some(([dx, dy]) => hay(x + dx * r, y + dy * r)));
     // de cada trazo se mira solo "su" parte: no lo que queda pegado a otro trazo
     // (si no, la rayita del medio de la A quedaría hecha con solo hacer los lados)
     const D = tam * 0.1;
