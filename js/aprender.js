@@ -23,9 +23,10 @@ const Aprender = (function () {
   // ⚙️ ajustes (los eligen los papás; se guardan en este celular)
   //   nivel: cuánto tiene que seguir las rayitas · hoja: tamaño del recuadro · lápiz: grosor de su línea
   const NIVELES = {
-    facil: { n: '🐣 Fácil', radios: [0.025, 0.05, 0.07], pide: [0.4, 0.3, 0.2], fuera: 0.8, rescate: 7 },
-    normal: { n: '🐥 Normal', radios: [0.02, 0.04], pide: [0.6, 0.5, 0.45], fuera: 0.65, rescate: 0 },
-    dificil: { n: '🦅 Difícil', radios: [0.015, 0.03], pide: [0.8, 0.75, 0.7], fuera: 0.5, rescate: 0 },
+    // margen: qué tan cerca de las rayitas tiene que pasar el dedo · meta: cuántas rayitas tienen que quedar verdes
+    facil: { n: '🐣 Fácil', margen: 0.065, meta: 0.85, paralelo: 0.45 },
+    normal: { n: '🐥 Normal', margen: 0.05, meta: 0.92, paralelo: 0.6 },
+    dificil: { n: '🦅 Difícil', margen: 0.035, meta: 0.97, paralelo: 0.75 },
   };
   const HOJAS = { grande: 'Grande', mediana: 'Mediana', chica: 'Chica' };
   const LAPICES = { fino: { n: 'Fino', g: 0.03 }, medio: { n: 'Medio', g: 0.045 }, grueso: { n: 'Grueso', g: 0.07 } };
@@ -172,16 +173,14 @@ const Aprender = (function () {
     c.setLineDash([]);
     // lo que dibujó Mili
     c.drawImage(tinta, 0, 0, tam, tam);
-    // los numeritos verdes donde empieza cada trazo (y una flechita hacia dónde va)
-    trazosG.forEach((t, i) => {
-      const [x, y] = t[0], [x2, y2] = t[Math.min(t.length - 1, 6)];
-      const ang = Math.atan2(y2 - y, x2 - x), r = Math.max(9, 5.5 * escala);
-      c.fillStyle = '#56b04a';
-      c.beginPath(); c.moveTo(x + Math.cos(ang) * r * 2.1, y + Math.sin(ang) * r * 2.1);
-      c.lineTo(x + Math.cos(ang + 2.5) * r * 1.1, y + Math.sin(ang + 2.5) * r * 1.1); c.lineTo(x + Math.cos(ang - 2.5) * r * 1.1, y + Math.sin(ang - 2.5) * r * 1.1); c.fill();
-      c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
-      c.fillStyle = '#fff'; c.font = `800 ${Math.round(r * 1.3)}px "Baloo 2", system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText(String(i + 1), x, y + r * 0.08);
+    // las rayitas por donde ya pasó el dedito se ponen verdes
+    c.strokeStyle = '#56b04a'; c.lineWidth = Math.max(5, 4.5 * escala);
+    centro.forEach((q, i) => {
+      if (!hecho[i]) return;
+      const sig = centro[i + 1];
+      c.beginPath(); c.moveTo(q[0], q[1]);
+      if (sig && hecho[i + 1] && q[2] === sig[2]) c.lineTo(sig[0], sig[1]); else c.lineTo(q[0] + 0.1, q[1]);
+      c.stroke();
     });
     // la animación de "cómo se hace": un dedito que va dibujando la letra
     if (anim) {
@@ -228,67 +227,70 @@ const Aprender = (function () {
     const d = m.getImageData(0, 0, tam, tam).data, paso = Math.max(4, Math.round(tam / 60));
     puntos = [];
     for (let y = 0; y < tam; y += paso) for (let x = 0; x < tam; x += paso) if (d[(y * tam + x) * 4 + 3] > 128) puntos.push([x, y]);
-    centro = [].concat(...trazosG.map((t) => t.filter((_, i) => i % 3 === 0)));
+    // los puntos de la línea de rayitas (x, y, nº de trazo) y cuáles ya recorrió
+    // + la dirección de la línea en ese punto (para contar solo si el dedo va "a lo largo")
+    centro = [].concat(...trazosG.map((t, k) => t.map((q, i) => {
+      const a = t[Math.max(0, i - 2)], b = t[Math.min(t.length - 1, i + 2)], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      return [q[0], q[1], k, L ? (b[0] - a[0]) / L : 0, L ? (b[1] - a[1]) / L : 0];
+    }).filter((_, i) => i % 2 === 0)));
+    hecho = centro.map(() => false); largoTinta = 0;
+    largoGuia = trazosG.reduce((a, t) => a + t.reduce((b, q, i) => b + (i ? Math.hypot(q[0] - t[i - 1][0], q[1] - t[i - 1][1]) : 0), 0), 0);
     m.lineWidth = GRUESO * escala + tam * 0.18; trazosG.forEach((t) => linea(m, t));
     pintar();
     setTimeout(() => { if (glifo === g && !listo) mostrarComo(); }, 500);
   }
-  function borrar() { tinta.getContext('2d').clearRect(0, 0, tam, tam); listo = false; trazos = 0; pintar(); }
+  function borrar() { tinta.getContext('2d').clearRect(0, 0, tam, tam); listo = false; trazos = 0; hecho = centro.map(() => false); largoTinta = 0; pintar(); }
   function pos(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * tam / r.width, (e.clientY - r.top) * tam / r.height]; }
-  let ultimo = null, trazos = 0;
+  let ultimo = null, trazos = 0, hecho = [], largoTinta = 0, largoGuia = 1, historia = [];
   function trazar(e) {
     if (!dibujando || listo || !cv || !tinta) return;
     pararComo();
     const [x, y] = pos(e), t = tinta.getContext('2d');
-    t.strokeStyle = color; t.lineWidth = tam * LAPICES[op.lapiz].g; // grosor elegido en ⚙️ Ajustes t.lineCap = 'round'; t.lineJoin = 'round';
+    t.strokeStyle = color; t.lineWidth = tam * LAPICES[op.lapiz].g; t.lineCap = 'round'; t.lineJoin = 'round'; // grosor: ⚙️ Ajustes
     t.beginPath(); t.moveTo(...(ultimo || [x, y])); t.lineTo(x, y); t.stroke();
+    // las rayitas cerca del dedito (según la dificultad) quedan recorridas
+    const NV = NIVELES[op.nivel], R = tam * NV.margen, [ax, ay] = ultimo || [x, y];
+    const mov = Math.hypot(x - ax, y - ay);
+    // la dirección se mide sobre un tramo más largo (el pulso tiembla un poco)
+    historia.push([x, y]); if (historia.length > 8) historia.shift();
+    const h0 = historia.find((q) => Math.hypot(x - q[0], y - q[1]) <= R * 1.5) || historia[0];
+    const dl = Math.hypot(x - h0[0], y - h0[1]), ux = dl > 3 ? (x - h0[0]) / dl : 0, uy = dl > 3 ? (y - h0[1]) / dl : 0;
+    const pasos = Math.max(1, Math.ceil(mov / (R / 2)));
+    for (let k = 0; k <= pasos; k++) {
+      const px = ax + (x - ax) * k / pasos, py = ay + (y - ay) * k / pasos;
+      centro.forEach((q, i) => {
+        if (hecho[i] || Math.hypot(q[0] - px, q[1] - py) >= R) return;
+        // cuenta si el dedo va a lo largo de la línea (no si la cruza de lado a lado)
+        const sinDir = !q[3] && !q[4];
+        if (sinDir || (!ux && !uy) || Math.abs(ux * q[3] + uy * q[4]) >= NV.paralelo) hecho[i] = true;
+      });
+    }
+    // lo que dibuja LEJOS de la letra (para notar un garabato por toda la hoja)
+    const dist = Math.hypot(x - ax, y - ay);
+    if (dist > 0 && !centro.some((q) => Math.hypot(q[0] - x, q[1] - y) < R * 2)) largoTinta += dist;
     ultimo = [x, y];
     pintar();
+    revisar(true);
   }
-  // ¿siguió la línea de rayitas? Se revisa CADA trazo de la letra (p. ej. las 4
-  // rayitas de la M): cada uno tiene que estar recorrido casi entero. El dedito
-  // tiene un margen cómodo (un punto cuenta si pasó cerca), pero una sola raya
-  // no alcanza: hay que hacer la letra completa.
-  function revisar() {
-    if (listo || !trazosG.length || !tinta) return;
-    const td = tinta.getContext('2d').getImageData(0, 0, tam, tam).data;
-    const hay = (x, y) => { x = Math.round(x); y = Math.round(y); return x >= 0 && y >= 0 && x < tam && y < tam && td[(y * tam + x) * 4 + 3] > 0; };
-    // un punto de la línea de rayitas cuenta si su trazo pasó cerca (la línea es fina)
-    const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]];
-    const NV = NIVELES[op.nivel];
-    const RADIOS = NV.radios.map((r) => tam * r); // margen según la dificultad elegida
-    const cerca = ([x, y]) => hay(x, y) || RADIOS.some((r) => DIRS.some(([dx, dy]) => hay(x + dx * r, y + dy * r)));
-    // de cada trazo se mira solo "su" parte: no lo que queda pegado a otro trazo
-    // (si no, la rayita del medio de la A quedaría hecha con solo hacer los lados)
-    const D = tam * 0.1;
-    const propios = trazosG.map((t, k) => t.filter((q, i) => i % 2 === 0 &&
-      !trazosG.some((o, j) => j !== k && o.some((w) => Math.hypot(w[0] - q[0], w[1] - q[1]) < D))));
-    const cubierto = propios.map((m, k) => {
-      const lista = m.length >= 2 ? m : trazosG[k];
-      return lista.filter(cerca).length / lista.length;
-    });
-    const md = mascara.getContext('2d').getImageData(0, 0, tam, tam).data;
-    let tintaTotal = 0, tintaFuera = 0;
-    const paso = Math.max(4, Math.round(tam / 60));
-    for (let y = 0; y < tam; y += paso) for (let x = 0; x < tam; x += paso) {
-      const i = (y * tam + x) * 4;
-      if (td[i + 3] > 0) { tintaTotal++; if (md[i + 3] < 128) tintaFuera++; }
+  // ¿pasó por las rayitas? No importa el orden ni por dónde empiece: gana cuando
+  // casi todas las rayitas quedaron verdes (cuántas, según la dificultad). Si rayó
+  // muchísimo por toda la hoja (garabato), se le pide borrar y seguir las rayitas.
+  function revisar(alMover) {
+    if (listo || !centro.length || !tinta) return;
+    const listas = hecho.filter(Boolean).length / centro.length;
+    const garabato = largoTinta > largoGuia * ({ facil: 0.8, normal: 0.5, dificil: 0.3 }[op.nivel]);
+    if (listas >= NIVELES[op.nivel].meta && !garabato) {
+      listo = true; dibujando = false; ganarEstrella();
+      aviso(['¡Lo lograste! ⭐', '¡Muy bien, Mili! ⭐', '¡Qué bonita te quedó! ⭐'][Math.floor(Math.random() * 3)]);
+      if (alTerminar) setTimeout(alTerminar, 1100);
+      return;
     }
-    const fuera = tintaTotal ? tintaFuera / tintaTotal : 0;
+    if (alMover) return; // los mensajes, solo al levantar el dedo
     trazos++;
-    // AMABLE (es una niña de 4 años): basta con pasar por cada parte de la letra
-    // (no completarla), y cada intento pide un poco menos. Nunca se queda pegada:
-    // después de varios intentos, si dibujó algo, gana igual.
-    const minimo = trazos >= 4 ? NV.pide[2] : trazos >= 2 ? NV.pide[1] : NV.pide[0];
-    const promedio = cubierto.reduce((a, b) => a + b, 0) / cubierto.length;
-    const falta = cubierto.findIndex((c) => c < minimo);
-    const gana = (falta === -1 && promedio >= Math.min(0.95, minimo + 0.1) && fuera < NV.fuera) || (NV.rescate && trazos >= NV.rescate && tintaTotal > 10);
-    if (gana) { listo = true; ganarEstrella(); aviso(['¡Lo lograste! ⭐', '¡Muy bien, Mili! ⭐', '¡Qué bonita te quedó! ⭐'][Math.floor(Math.random() * 3)]); if (alTerminar) setTimeout(alTerminar, 1100); return; }
-    if (fuera >= NV.fuera && tintaTotal > 30) { aviso('¡Casi! Prueba pasando el dedito por la letra clarita 😊'); return; }
-    if (falta === -1) { aviso('¡Muy bien! Repasa un poquito más las rayitas ✍️'); return; }
-    const hechas = cubierto.filter((c) => c >= minimo).length;
-    if (trazosG.length > 1 && hechas > 0) aviso(`¡Muy bien! Ahora sigue la rayita número ${falta + 1} 🟢`);
-    else aviso(cubierto[falta] > 0.3 ? '¡Casi! Sigue la línea de rayitas hasta el final ✍️' : 'Empieza en el puntito verde y sigue las rayitas ✍️');
+    if (garabato) aviso('¡Uy, muchas rayas! Toca 🧽 Borrar y pasa por las rayitas 😊');
+    else if (listas >= 0.5) aviso('¡Muy bien! Te faltan poquitas rayitas por pintar de verde ✍️');
+    else if (listas > 0) aviso('¡Bien! Sigue pasando el dedito por las rayitas ✍️');
+    else aviso('Pasa tu dedito por encima de las rayitas 😊');
   }
   function aviso(t) { $('apMsg').textContent = t; decir(t); }
   function ganarEstrella() {
@@ -359,7 +361,7 @@ const Aprender = (function () {
     const fila = (titulo, lista, actual, attr) => `<div class="ap-aj-fila"><span>${titulo}</span>` +
       Object.entries(lista).map(([k, v]) => `<button class="ta-chip${k === actual ? ' activo' : ''}" data-${attr}="${k}">${typeof v === 'string' ? v : v.n}</button>`).join('') + '</div>';
     $('apAjustes').innerHTML = fila('Dificultad', NIVELES, op.nivel, 'nivel') + fila('Hoja', HOJAS, op.hoja, 'hoja') + fila('Lápiz', LAPICES, op.lapiz, 'lapiz') +
-      '<small>🐣 Fácil: basta con pasar por cada parte de la letra. 🦅 Difícil: hay que seguir las rayitas casi exactas.</small>';
+      '<small>Las rayitas por donde pasa el dedito se ponen verdes; cuando están casi todas verdes, ¡estrellita! 🐣 Fácil: puede pasar cerquita. 🦅 Difícil: tiene que ir justo encima y pintarlas todas.</small>';
     $('aprender').dataset.hoja = op.hoja;
   }
   function render() {
@@ -409,7 +411,7 @@ const Aprender = (function () {
       renderAjustes();
     });
     const c = $('apLienzo');
-    c.addEventListener('pointerdown', (e) => { dibujando = true; ultimo = null; c.setPointerCapture(e.pointerId); trazar(e); });
+    c.addEventListener('pointerdown', (e) => { dibujando = true; ultimo = null; historia = []; c.setPointerCapture(e.pointerId); trazar(e); });
     c.addEventListener('pointermove', trazar);
     const soltar = () => { if (!dibujando) return; dibujando = false; ultimo = null; revisar(); };
     c.addEventListener('pointerup', soltar); c.addEventListener('pointercancel', soltar);
