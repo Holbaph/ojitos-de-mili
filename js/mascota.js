@@ -22,6 +22,23 @@ const Mascota = (function () {
     husky: { n: 'Husky', c: '#7d8590', h: '#ffffff', o: '#6a7179', oreja: 'parada', cola: 'esponja', husky: true },
     beagle: { n: 'Beagle', c: '#c98a4a', h: '#ffffff', o: '#8a5426', oreja: 'caida', cola: 'larga', beagle: true },
   };
+  // ---------- 🛍️ tiendita de estrellas ----------
+  // Se ganan 3 ⭐ por cada día con parche y 1 ⭐ por cada letra/número en Aprender.
+  const COSAS = [
+    { id: 'pelota', e: '⚽', n: 'Pelota', p: 5 }, { id: 'hueso', e: '🦴', n: 'Hueso', p: 5 }, { id: 'pato', e: '🦆', n: 'Patito de goma', p: 8 },
+    { id: 'moño', e: '🎀', n: 'Moño', p: 8 }, { id: 'gorro', e: '🥳', n: 'Gorro de fiesta', p: 10 }, { id: 'lentes', e: '🕶️', n: 'Lentes de sol', p: 10 },
+    { id: 'corona', e: '👑', n: 'Corona', p: 15 }, { id: 'capa', e: '🦸', n: 'Capa de héroe', p: 15 },
+    { id: 'cama', e: '🛏️', n: 'Camita', p: 20 }, { id: 'casa', e: '🏠', n: 'Casita', p: 30 },
+  ];
+  const ESCENA = { pelota: [8, 4, 34], hueso: [78, 3, 34], pato: [86, 18, 30], cama: [72, 0, 64], casa: [2, 14, 90] }; // izq%, abajo%, tamaño
+  let dias = 0;
+  function tienda() {
+    const t = Juego.extra('tienda') || {};
+    const ok = (l) => (Array.isArray(l) ? l.filter((id) => COSAS.some((c) => c.id === id)) : []);
+    return { gastado: Math.max(0, Math.floor(Number(t.gastado) || 0)), compradas: ok(t.compradas), puestas: ok(t.puestas) };
+  }
+  const saldo = () => dias * 3 + Math.max(0, Math.floor(Number(Juego.extra('estrellas')) || 0)) - tienda().gastado;
+
   const COLLARES = ['#e8578a', '#d9534f', '#4a78c2', '#7cc4ea', '#6fbf73', '#f2cf5b', '#b392d6', '#f0a04b'];
   const HORAS = 3600 * 1000;
   const DURA = { comida: 10 * HORAS, bano: 36 * HORAS, juego: 8 * HORAS };
@@ -61,6 +78,8 @@ const Mascota = (function () {
       esponja: `<path d="M220 246 q44 -4 40 -56 q-2 -14 -14 -10" fill="none" stroke="${c}" stroke-width="22" stroke-linecap="round"/><path d="M252 194 q8 -4 8 4" stroke="#fff" stroke-width="10" stroke-linecap="round"/>`,
     };
     s += `<g class="ma-cola${feliz ? ' rapida' : ''}${triste ? ' quieta' : ''}">${colas[r.cola]}</g>`;
+    const lleva = (id) => (o.cosas || []).includes(id);
+    if (lleva('capa')) s += `<path d="M104 178 Q160 200 216 178 L254 298 Q160 322 66 298 Z" fill="#d9534f"/><path d="M104 178 Q160 200 216 178" fill="none" stroke="#f2cf5b" stroke-width="6"/>`;
     // cuerpo sentado
     s += `<ellipse cx="96" cy="282" rx="34" ry="22" fill="${oscuro}"/><ellipse cx="224" cy="282" rx="34" ry="22" fill="${oscuro}"/>`;
     s += `<ellipse cx="160" cy="232" rx="72" ry="64" fill="${c}"/>`;
@@ -116,6 +135,11 @@ const Mascota = (function () {
     s += triste
       ? `<path d="M144 ${by + 14} q16 -10 32 0" fill="none" stroke="#2a1f1c" stroke-width="3.5" stroke-linecap="round"/>`
       : `<path d="M160 ${by - 4} l0 6 M142 ${by + 4} q9 8 18 0 q9 8 18 0" fill="none" stroke="#2a1f1c" stroke-width="3.5" stroke-linecap="round"/>`;
+    if (lleva('lentes')) s += `<rect x="102" y="98" width="48" height="30" rx="12" fill="#2a2740" opacity=".92"/><rect x="170" y="98" width="48" height="30" rx="12" fill="#2a2740" opacity=".92"/>` +
+      `<path d="M150 108 L170 108" stroke="#2a2740" stroke-width="5"/><path d="M110 104 l12 0" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".6"/>`;
+    if (lleva('gorro')) s += `<path d="M124 60 L160 -26 L198 62 Q160 52 124 60 Z" fill="#7cc4ea" stroke="#4a78c2" stroke-width="2"/><path d="M138 30 L184 28 M148 6 L174 4" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="160" cy="-28" r="12" fill="#f2cf5b"/>`;
+    else if (lleva('corona')) s += `<path d="M118 58 L112 18 L138 38 L160 6 L182 38 L208 18 L202 58 Z" fill="#f2cf5b" stroke="#c9a23a" stroke-width="2.5" stroke-linejoin="round"/><circle cx="160" cy="44" r="6" fill="#e8578a"/><circle cx="134" cy="48" r="4" fill="#7cc4ea"/><circle cx="186" cy="48" r="4" fill="#6fbf73"/>`;
+    if (lleva('moño')) s += `<g transform="translate(214 56) rotate(18)"><path d="M0 0 Q-24 -20 -30 0 Q-24 20 0 0 Z M0 0 Q24 -20 30 0 Q24 20 0 0 Z" fill="#e8578a"/><circle r="7" fill="#c23f6f"/></g>`;
     if (o.sucio) s += [[110, 230], [204, 250], [130, 80], [196, 70], [150, 280]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="11" ry="7" fill="#8a6a4a" opacity=".45"/>`).join('');
     return s;
   }
@@ -153,7 +177,10 @@ const Mascota = (function () {
   let comiendo = false;
   function dibujar() {
     const a = animo();
-    $('maSvg').innerHTML = svgPerro(m.raza, { animo: a, collar: m.collar, parche, comiendo, sucio: nivel('bano') < 25 });
+    const t = tienda();
+    $('maSvg').innerHTML = svgPerro(m.raza, { animo: a, collar: m.collar, parche, comiendo, sucio: nivel('bano') < 25, cosas: t.puestas });
+    // lo de la escena (casita, camita, juguetes)
+    $('maDeco').innerHTML = t.puestas.filter((id) => ESCENA[id]).map((id) => { const [x, y, f] = ESCENA[id]; return `<span style="left:${x}%;bottom:${y}%;font-size:${f}px">${COSAS.find((c) => c.id === id).e}</span>`; }).join('');
     $('maTitulo').textContent = `🐶 ${m.nombre}`;
     $('maSub').textContent = a === 'feliz' ? '¡Está feliz! 💖' : a === 'triste' ? 'Está un poquito triste 🥺' : 'Está tranquilo 🙂';
     const barra = (e, n, v) => `<div class="ma-barra"><span>${e} ${n}</span><i><b style="width:${v}%;background:${v > 50 ? '#6fbf73' : v > 25 ? '#f2cf5b' : '#e8605a'}"></b></i></div>`;
@@ -210,6 +237,38 @@ const Mascota = (function () {
     }
   }
 
+  function renderTienda() {
+    const t = tienda(), s = saldo();
+    $('maSaldo').textContent = `⭐ ${s}`;
+    $('maCosas').innerHTML = COSAS.map((c) => {
+      const tiene = t.compradas.includes(c.id), puesta = t.puestas.includes(c.id);
+      const btn = tiene ? `<b>${puesta ? '✅ Puesto' : 'Ponérselo'}</b>` : `<b>⭐ ${c.p}</b>`;
+      return `<button class="ma-cosa${tiene ? ' tiene' : ''}${puesta ? ' puesta' : ''}${!tiene && s < c.p ? ' falta' : ''}" data-cosa="${c.id}"><span>${c.e}</span><small>${c.n}</small>${btn}</button>`;
+    }).join('');
+  }
+  function tocarCosa(id) {
+    const c = COSAS.find((x) => x.id === id), t = tienda();
+    if (!t.compradas.includes(id)) {
+      if (saldo() < c.p) { globo(`¡Te faltan ${c.p - saldo()} estrellitas! Usa tu parche y aprende letras para ganar más ⭐`); return; }
+      t.compradas.push(id); t.gastado += c.p; t.puestas.push(id);
+      globo(`¡Gracias! ¡Me encanta ${c.n.toLowerCase()}! ${c.e}`); efecto('⭐', 4);
+    } else if (t.puestas.includes(id)) t.puestas = t.puestas.filter((x) => x !== id);
+    else {
+      // el gorro y la corona no van juntos
+      if (id === 'gorro') t.puestas = t.puestas.filter((x) => x !== 'corona');
+      if (id === 'corona') t.puestas = t.puestas.filter((x) => x !== 'gorro');
+      t.puestas.push(id);
+    }
+    Juego.guardarExtra('tienda', t);
+    dibujar(); renderTienda(); salto();
+  }
+  function abrirTienda() {
+    const p = $('maTiendaPanel');
+    p.classList.toggle('hidden');
+    $('mascota').classList.toggle('con-tienda', !p.classList.contains('hidden'));
+    if (!p.classList.contains('hidden')) { renderTienda(); globo('¡Mira mi tiendita! ¿Me compras algo? 🛍️'); setTimeout(() => p.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50); }
+  }
+
   // ---------- elegir raza y nombre ----------
   let eleccion = null;
   function mostrarElegir() {
@@ -240,6 +299,8 @@ const Mascota = (function () {
   function cablear() {
     $('maCerrar').addEventListener('click', cerrar);
     $('maAjustes').addEventListener('click', mostrarElegir);
+    $('maTienda').addEventListener('click', abrirTienda);
+    $('maCosas').addEventListener('click', (e) => { const b = e.target.closest('[data-cosa]'); if (b) tocarCosa(b.dataset.cosa); });
     $('maListo').addEventListener('click', listo);
     $('maNombre').addEventListener('input', () => $('maNombre').classList.remove('falta'));
     $('maElegir').addEventListener('click', (e) => {
@@ -257,9 +318,12 @@ const Mascota = (function () {
   }
 
   // parcheHoy: si Mili tiene registrado el parche de hoy
-  function abrir(parcheHoy) {
+  // parcheHoy: si Mili tiene el parche de hoy; diasConParche: para las estrellas de la tienda
+  function abrir(parcheHoy, diasConParche) {
     if (!cableado) { cablear(); cableado = true; }
     parche = !!parcheHoy;
+    dias = Math.max(0, Number(diasConParche) || 0);
+    $('maTiendaPanel').classList.add('hidden'); $('mascota').classList.remove('con-tienda');
     m = leer();
     $('mascota').classList.remove('hidden');
     document.body.classList.add('jugando');

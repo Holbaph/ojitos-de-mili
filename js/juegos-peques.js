@@ -68,14 +68,16 @@ const JuegosPeques = (function () {
 
   // ================= 🧩 ROMPECABEZAS =================
   const PIEZAS = { 4: [2, 2], 6: [2, 3], 9: [3, 3], 12: [3, 4], 16: [4, 4] };
-  function rompecabezas(area, nivel, ganar, aviso) {
+  // fuente (opcional): { fig: contenido SVG, nombre, W, H, consigna } — sirve
+  // también para armar fotos de la familia (js/fotos.js)
+  function rompecabezas(area, nivel, ganar, aviso, fuente) {
     const elegido = PIEZAS[opcion('rompecabezas')] ? opcion('rompecabezas') : (nivel <= 2 ? 4 : nivel <= 5 ? 6 : 9);
     const [cols, filas] = PIEZAS[elegido];
-    const p = pick(Juego.personajes());
-    const fig = figura(p.id), W = 320, H = 440, cw = W / cols, ch = H / filas;
+    const p = fuente ? { nombre: fuente.nombre } : pick(Juego.personajes());
+    const fig = fuente ? fuente.fig : figura(p.id), W = fuente ? fuente.W : 320, H = fuente ? fuente.H : 440, cw = W / cols, ch = H / filas;
     const n = cols * filas;
     area.innerHTML = selector('Piezas', Object.keys(PIEZAS).map(Number), elegido) +
-      `<p class="jp-consigna">Arma a <strong>${p.nombre}</strong>: lleva cada pieza a su lugar</p>` +
+      `<p class="jp-consigna">${fuente && fuente.consigna ? fuente.consigna : `Arma a <strong>${p.nombre}</strong>: lleva cada pieza a su lugar`}</p>` +
       '<div class="pz">' +
       `<div class="pz-tablero" id="pzT" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${filas},1fr)">` +
       `<svg class="pz-guia" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${fig}</svg>` +
@@ -92,7 +94,7 @@ const JuegosPeques = (function () {
       hueco.appendChild(pieza.querySelector('svg'));
       hueco.classList.add('lleno');
       pieza.remove(); elegida = null; puestas++;
-      if (puestas === n) { fin = true; area.querySelector('.pz-tablero').classList.add('listo'); setTimeout(() => ganar(`¡Armaste a ${p.nombre}! 🧩`), 700); }
+      if (puestas === n) { fin = true; area.querySelector('.pz-tablero').classList.add('listo'); setTimeout(() => ganar(fuente ? `¡Armaste ${p.nombre}! 🧩` : `¡Armaste a ${p.nombre}! 🧩`), 700); }
     }
     area.querySelectorAll('.pz-pieza').forEach((pieza) => arrastrable(pieza,
       (x, y) => poner(pieza, bajo(x, y, '.pz-hueco')),
@@ -101,7 +103,7 @@ const JuegosPeques = (function () {
       const hueco = e.target.closest('.pz-hueco');
       if (hueco && elegida) poner(elegida, hueco);
     });
-    alElegir(area, 'rompecabezas', () => { fin = true; limpiarFantasmas(); rompecabezas(area, nivel, ganar, aviso); });
+    alElegir(area, 'rompecabezas', () => { fin = true; limpiarFantasmas(); rompecabezas(area, nivel, ganar, aviso, fuente); });
     if (nivel === 1) aviso('Arrastra las piezas (o toca una pieza y después su lugar) 🧩');
     return () => { fin = true; limpiarFantasmas(); };
   }

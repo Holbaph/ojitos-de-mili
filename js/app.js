@@ -216,6 +216,8 @@
       renderAll();
       showToast((current ? '' : '📒 ¡Ganaste un sticker nuevo! · ') + 'Registrado: ojo ' + Utils.label(side).toLowerCase() + ' a las ' + Utils.fmtTime(horaISO));
       Vida.celebrar(current ? '¡Listo, cambiamos de ojo! 👀' : '¡Bien! Ya tengo mi parche 🩹 ¡Y hay un huevito sorpresa! 🥚');
+      // al ponerse el parche (la primera vez del día), la llama un amigo
+      if (!current) setTimeout(() => Llamada.llamar(), 3500);
       if (!current) { const b = document.getElementById('albumBtn'); b.classList.remove('brilla'); void b.offsetWidth; b.classList.add('brilla'); }
     } catch (e) {
       showToast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
@@ -780,7 +782,14 @@
   Premios.iniciar({ alCambiar: renderMundo, alVestir: () => document.getElementById('openJuego').click() });
   document.getElementById('openHuevito').addEventListener('click', () => Premios.abrirHuevo());
   document.getElementById('openJardin').addEventListener('click', () => Premios.abrirJardin());
-  document.getElementById('openMascota').addEventListener('click', () => Mascota.abrir(!!entries[Utils.todayId()]));
+  document.getElementById('openMascota').addEventListener('click', () => Mascota.abrir(!!entries[Utils.todayId()], Object.keys(entries).length));
+  Llamada.iniciar();
+  document.getElementById('openLlamada').addEventListener('click', () => {
+    if (entries[Utils.todayId()]) Llamada.llamar();
+    else { showToast('📞 Cuando te pongas el parche, te va a llamar un amigo'); Vida.celebrar('¡Ponte el parche y te va a llamar un amigo! 📞'); }
+  });
+  document.getElementById('openBanda').addEventListener('click', () => Banda.abrir());
+  document.getElementById('openFotos').addEventListener('click', () => Fotos.abrir());
   document.getElementById('maCerrar').addEventListener('click', renderMundo);
   document.getElementById('openAprender').addEventListener('click', () => Aprender.abrir());
   document.getElementById('openNoche').addEventListener('click', () => Noche.abrir());
