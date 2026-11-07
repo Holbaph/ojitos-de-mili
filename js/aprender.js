@@ -225,22 +225,33 @@ const Aprender = (function () {
   function pos(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * tam / r.width, (e.clientY - r.top) * tam / r.height]; }
   let ultimo = null, trazos = 0;
   function trazar(e) {
-    if (!dibujando || listo) return;
+    if (!dibujando || listo || !cv || !tinta) return;
     pararComo();
     const [x, y] = pos(e), t = tinta.getContext('2d');
-    t.strokeStyle = color; t.lineWidth = tam * 0.13; t.lineCap = 'round'; t.lineJoin = 'round';
+    t.strokeStyle = color; t.lineWidth = tam * 0.1; t.lineCap = 'round'; t.lineJoin = 'round';
     t.beginPath(); t.moveTo(...(ultimo || [x, y])); t.lineTo(x, y); t.stroke();
     ultimo = [x, y];
     pintar();
   }
-  // ¿cubrió bien la letra o siguió la línea de rayitas (y no rayó todo afuera)?
+  // ¿siguió la línea de rayitas? Se revisa CADA trazo de la letra (p. ej. las 4
+  // rayitas de la M): cada uno tiene que estar recorrido casi entero. El dedito
+  // tiene un margen cómodo (un punto cuenta si pasó cerca), pero una sola raya
+  // no alcanza: hay que hacer la letra completa.
   function revisar() {
-    if (listo || !puntos.length) return;
+    if (listo || !trazosG.length || !tinta) return;
     const td = tinta.getContext('2d').getImageData(0, 0, tam, tam).data;
-    const pinta = ([x, y]) => td[(Math.floor(y) * tam + Math.floor(x)) * 4 + 3] > 0;
-    const enLetra = puntos.filter(pinta).length / puntos.length;
-    const enLinea = centro.length ? centro.filter(pinta).length / centro.length : 0;
-    const dentro = Math.max(enLetra, enLinea * 0.8);
+    const hay = (x, y) => { x = Math.round(x); y = Math.round(y); return x >= 0 && y >= 0 && x < tam && y < tam && td[(y * tam + x) * 4 + 3] > 0; };
+    const r = tam * 0.035;
+    const cerca = ([x, y]) => hay(x, y) || hay(x + r, y) || hay(x - r, y) || hay(x, y + r) || hay(x, y - r);
+    // de cada trazo se mira solo "su" parte: no lo que queda pegado a otro trazo
+    // (si no, la rayita del medio de la A quedaría hecha con solo hacer los lados)
+    const D = tam * 0.1;
+    const propios = trazosG.map((t, k) => t.filter((q, i) => i % 2 === 0 &&
+      !trazosG.some((o, j) => j !== k && o.some((w) => Math.hypot(w[0] - q[0], w[1] - q[1]) < D))));
+    const cubierto = propios.map((m, k) => {
+      const lista = m.length >= 2 ? m : trazosG[k];
+      return lista.filter(cerca).length / lista.length;
+    });
     const md = mascara.getContext('2d').getImageData(0, 0, tam, tam).data;
     let tintaTotal = 0, tintaFuera = 0;
     const paso = Math.max(4, Math.round(tam / 60));
@@ -250,11 +261,15 @@ const Aprender = (function () {
     }
     const fuera = tintaTotal ? tintaFuera / tintaTotal : 0;
     trazos++;
-    // fácil: con cubrir menos de la mitad basta; y si ya lo intentó varias veces, también vale
-    const basta = dentro >= 0.4 || (trazos >= 3 && dentro >= 0.2) || (trazos >= 5 && dentro >= 0.1);
-    if (basta && fuera < 0.9) { listo = true; ganarEstrella(); if (alTerminar) setTimeout(alTerminar, 900); }
-    else if (tintaTotal > 40 && fuera >= 0.9) aviso('¡Casi! Pasa el dedito por la línea de rayitas 😊');
-    else if (trazos === 1) aviso('¡Muy bien! Sigue un poquito más ✍️');
+    // tras varios intentos se pide un poquito menos (pero siempre la letra entera)
+    const minimo = trazos >= 6 ? 0.55 : 0.7;
+    const falta = cubierto.findIndex((c) => c < minimo);
+    if (falta === -1 && fuera < 0.55) { listo = true; ganarEstrella(); if (alTerminar) setTimeout(alTerminar, 900); return; }
+    if (fuera >= 0.55 && tintaTotal > 30) { aviso('Te saliste mucho de la letra 😊 Toca 🧽 Borrar y sigue las rayitas'); return; }
+    if (falta === -1) return;
+    const hechas = cubierto.filter((c) => c >= minimo).length;
+    if (trazosG.length > 1 && hechas > 0) aviso(`¡Muy bien! Ahora sigue la rayita número ${falta + 1} 🟢`);
+    else aviso(cubierto[falta] > 0.3 ? '¡Casi! Sigue la línea de rayitas hasta el final ✍️' : 'Empieza en el puntito verde y sigue las rayitas ✍️');
   }
   function aviso(t) { $('apMsg').textContent = t; decir(t); }
   function ganarEstrella() {
