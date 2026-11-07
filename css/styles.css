@@ -1394,8 +1394,10 @@ svg.face.vi-sonrisa .vi-boca{ opacity:1; transform:scale(1.35,.32); }
 .ll-btn.rojo{ background:#e5412f; }
 @keyframes ll-salta{ 50%{ transform:translateY(-8px) rotate(-10deg); } }
 .ll-encurso{ position:relative; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; background:radial-gradient(circle at 50% 30%,#fff6e6,#ffd6e7); overflow:hidden; }
-.ll-video{ height:74%; display:flex; align-items:flex-end; justify-content:center; }
-.ll-video svg{ height:100%; width:auto; }
+/* posición fija (con % de alto el iPhone lo dejaba en tamaño cero) */
+.ll-video{ position:absolute; left:0; right:0; top:15%; bottom:110px; display:flex; align-items:flex-end; justify-content:center; }
+.ll-video svg{ display:block; width:100%; height:100%; }
+.ll-encurso{ min-height:100vh; min-height:100dvh; }
 .ll-globo{ position:absolute; top:4%; left:5%; right:5%; background:#fff; color:#2a2740; border-radius:20px; padding:12px 16px; font-family:'Baloo 2'; font-weight:800; font-size:19px; text-align:center; box-shadow:var(--shadow); opacity:0; transform:translateY(-8px); transition:all .3s; }
 .ll-globo.ver{ opacity:1; transform:none; }
 .ll-yo{ position:absolute; right:12px; bottom:110px; width:96px; height:120px; border-radius:16px; background:#fff; border:3px solid #fff; overflow:hidden; box-shadow:var(--shadow); }
@@ -1463,3 +1465,16 @@ svg.face.vi-sonrisa .vi-boca{ opacity:1; transform:scale(1.35,.32); }
 .ap-ajustes small{ color:var(--ink-faint); font-weight:700; font-size:11.5px; }
 #aprender[data-hoja="grande"] .ap-hoja{ width:min(96vw,60vh,600px); }
 #aprender[data-hoja="chica"] .ap-hoja{ width:min(78vw,34vh,320px); }
+
+/* cuentos: elecciones, ayudante y escenas */
+.cu-elegir{ display:flex; flex-direction:column; gap:8px; }
+.cu-opcion{ display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:18px; border:3px solid #c96f8f; background:linear-gradient(120deg,#fde7f1,#ece4fb); color:#2a2740;
+  font-family:'Baloo 2'; font-weight:800; font-size:17px; text-align:left; cursor:pointer; animation:cu-llama 1.6s ease-in-out infinite; }
+.cu-opcion span{ font-size:30px; }
+.cu-opcion.elegida{ border-color:#56b04a; background:#e3f8e5; animation:none; }
+@keyframes cu-llama{ 50%{ transform:scale(1.02); } }
+.cu-ayudante{ position:absolute; right:6%; bottom:8%; font-size:52px; animation:fi-brinco 1.4s ease-in-out infinite; }
+.cu-escena.tres .cu-pj{ height:64%; }
+.cu-escena.susto .cu-pj{ animation:cu-susto .5s ease 2; }
+@keyframes cu-susto{ 25%{ transform:translateX(-4px); } 75%{ transform:translateX(4px); } }
+.cu-pj{ aspect-ratio:320/460; }

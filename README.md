@@ -117,8 +117,9 @@ Publicada en: **https://holbaph.github.io/ojitos-de-mili/**
   los juegos (con 🔊 para repetir) y los cuentos, con la voz del celular.
 - **⏰ Despertador del parche**: al cumplirse el tiempo con la app abierta,
   suena una campanita, cae confeti y Mili avisa que ya se puede sacar.
-- **📖 Cuentos de Mili**: un cuento nuevo cada vez, armado al azar con un amigo,
-  un lugar, una misión y un problema que resuelven con el parche mágico.
+- **📖 Cuentos de Mili**: cuentos nuevos cada vez, de unas 10 páginas, con un amigo, un lugar,
+  una misión, un ayudante, un objeto mágico y dos problemas. En dos momentos **Mili elige** qué
+  pasa (por dónde ir, cómo resolver el problema) y eso cambia la historia y el final. Se leen en voz alta.
 - **✨ Taller de personajes** (botón *Crear* en el juego de vestir): Mili crea sus
   propios personajes eligiendo qué es (niña/niño, animalito, muñeco de nieve…), piel,
   peinado, colores y ropa. Con **🪄 Crear con magia** escribe o dice un nombre ("Bluey")
