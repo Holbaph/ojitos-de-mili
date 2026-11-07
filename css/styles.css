@@ -1455,3 +1455,11 @@ svg.face.vi-sonrisa .vi-boca{ opacity:1; transform:scale(1.35,.32); }
 
 .fo-juego .history-btn{ flex:0 0 auto; }
 .fo-area .pz-tablero{ height:58%; }
+
+/* aprender: ⚙️ ajustes y tamaños de hoja */
+.ap-ajustes{ width:100%; background:var(--surface); border:2px solid var(--line); border-radius:18px; padding:10px; display:flex; flex-direction:column; gap:8px; }
+.ap-aj-fila{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.ap-aj-fila > span{ width:72px; font-weight:800; font-size:13px; color:var(--ink-soft); }
+.ap-ajustes small{ color:var(--ink-faint); font-weight:700; font-size:11.5px; }
+#aprender[data-hoja="grande"] .ap-hoja{ width:min(96vw,60vh,600px); }
+#aprender[data-hoja="chica"] .ap-hoja{ width:min(78vw,34vh,320px); }

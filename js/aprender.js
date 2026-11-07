@@ -19,8 +19,20 @@ const Aprender = (function () {
   const COSAS = ['🍎', '🐥', '⭐', '🌸', '🐟', '🍓', '🎈', '🦋', '🍪', '🐞'];
   const COLORES = ['#e8578a', '#7e57c2', '#4a78c2', '#3fb8b0', '#f0a04b'];
 
-  let op = { modo: 'nombre', nombre: 'MILI', minus: false, letra: 0, numero: 1, estrellas: 0 };
+  let op = { modo: 'nombre', nombre: 'MILI', minus: false, letra: 0, numero: 1, estrellas: 0, nivel: 'facil', hoja: 'mediana', lapiz: 'medio' };
+  // ⚙️ ajustes (los eligen los papás; se guardan en este celular)
+  //   nivel: cuánto tiene que seguir las rayitas · hoja: tamaño del recuadro · lápiz: grosor de su línea
+  const NIVELES = {
+    facil: { n: '🐣 Fácil', radios: [0.025, 0.05, 0.07], pide: [0.4, 0.3, 0.2], fuera: 0.8, rescate: 7 },
+    normal: { n: '🐥 Normal', radios: [0.02, 0.04], pide: [0.6, 0.5, 0.45], fuera: 0.65, rescate: 0 },
+    dificil: { n: '🦅 Difícil', radios: [0.015, 0.03], pide: [0.8, 0.75, 0.7], fuera: 0.5, rescate: 0 },
+  };
+  const HOJAS = { grande: 'Grande', mediana: 'Mediana', chica: 'Chica' };
+  const LAPICES = { fino: { n: 'Fino', g: 0.03 }, medio: { n: 'Medio', g: 0.045 }, grueso: { n: 'Grueso', g: 0.07 } };
   try { op = { ...op, ...(JSON.parse(localStorage.getItem(CLAVE)) || {}) }; } catch (e) {}
+  if (!NIVELES[op.nivel]) op.nivel = 'facil';
+  if (!HOJAS[op.hoja]) op.hoja = 'mediana';
+  if (!LAPICES[op.lapiz]) op.lapiz = 'medio';
   const guardarOp = () => { try { localStorage.setItem(CLAVE, JSON.stringify(op)); } catch (e) {} };
   let pasoNombre = 0, color = COLORES[0];
 
@@ -228,7 +240,7 @@ const Aprender = (function () {
     if (!dibujando || listo || !cv || !tinta) return;
     pararComo();
     const [x, y] = pos(e), t = tinta.getContext('2d');
-    t.strokeStyle = color; t.lineWidth = tam * 0.045; // línea fina (más fácil no salirse de la letra) t.lineCap = 'round'; t.lineJoin = 'round';
+    t.strokeStyle = color; t.lineWidth = tam * LAPICES[op.lapiz].g; // grosor elegido en ⚙️ Ajustes t.lineCap = 'round'; t.lineJoin = 'round';
     t.beginPath(); t.moveTo(...(ultimo || [x, y])); t.lineTo(x, y); t.stroke();
     ultimo = [x, y];
     pintar();
@@ -243,7 +255,8 @@ const Aprender = (function () {
     const hay = (x, y) => { x = Math.round(x); y = Math.round(y); return x >= 0 && y >= 0 && x < tam && y < tam && td[(y * tam + x) * 4 + 3] > 0; };
     // un punto de la línea de rayitas cuenta si su trazo pasó cerca (la línea es fina)
     const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]];
-    const RADIOS = [tam * 0.025, tam * 0.05, tam * 0.07]; // margen ancho: es una niña de 4 años
+    const NV = NIVELES[op.nivel];
+    const RADIOS = NV.radios.map((r) => tam * r); // margen según la dificultad elegida
     const cerca = ([x, y]) => hay(x, y) || RADIOS.some((r) => DIRS.some(([dx, dy]) => hay(x + dx * r, y + dy * r)));
     // de cada trazo se mira solo "su" parte: no lo que queda pegado a otro trazo
     // (si no, la rayita del medio de la A quedaría hecha con solo hacer los lados)
@@ -266,12 +279,12 @@ const Aprender = (function () {
     // AMABLE (es una niña de 4 años): basta con pasar por cada parte de la letra
     // (no completarla), y cada intento pide un poco menos. Nunca se queda pegada:
     // después de varios intentos, si dibujó algo, gana igual.
-    const minimo = trazos >= 4 ? 0.2 : trazos >= 2 ? 0.3 : 0.4;
+    const minimo = trazos >= 4 ? NV.pide[2] : trazos >= 2 ? NV.pide[1] : NV.pide[0];
     const promedio = cubierto.reduce((a, b) => a + b, 0) / cubierto.length;
     const falta = cubierto.findIndex((c) => c < minimo);
-    const gana = (falta === -1 && promedio >= minimo + 0.1 && fuera < 0.8) || (trazos >= 7 && tintaTotal > 10);
+    const gana = (falta === -1 && promedio >= Math.min(0.95, minimo + 0.1) && fuera < NV.fuera) || (NV.rescate && trazos >= NV.rescate && tintaTotal > 10);
     if (gana) { listo = true; ganarEstrella(); aviso(['¡Lo lograste! ⭐', '¡Muy bien, Mili! ⭐', '¡Qué bonita te quedó! ⭐'][Math.floor(Math.random() * 3)]); if (alTerminar) setTimeout(alTerminar, 1100); return; }
-    if (fuera >= 0.8 && tintaTotal > 30) { aviso('¡Casi! Prueba pasando el dedito por la letra clarita 😊'); return; }
+    if (fuera >= NV.fuera && tintaTotal > 30) { aviso('¡Casi! Prueba pasando el dedito por la letra clarita 😊'); return; }
     if (falta === -1) { aviso('¡Muy bien! Repasa un poquito más las rayitas ✍️'); return; }
     const hechas = cubierto.filter((c) => c >= minimo).length;
     if (trazosG.length > 1 && hechas > 0) aviso(`¡Muy bien! Ahora sigue la rayita número ${falta + 1} 🟢`);
@@ -342,7 +355,15 @@ const Aprender = (function () {
     };
   }
 
+  function renderAjustes() {
+    const fila = (titulo, lista, actual, attr) => `<div class="ap-aj-fila"><span>${titulo}</span>` +
+      Object.entries(lista).map(([k, v]) => `<button class="ta-chip${k === actual ? ' activo' : ''}" data-${attr}="${k}">${typeof v === 'string' ? v : v.n}</button>`).join('') + '</div>';
+    $('apAjustes').innerHTML = fila('Dificultad', NIVELES, op.nivel, 'nivel') + fila('Hoja', HOJAS, op.hoja, 'hoja') + fila('Lápiz', LAPICES, op.lapiz, 'lapiz') +
+      '<small>🐣 Fácil: basta con pasar por cada parte de la letra. 🦅 Difícil: hay que seguir las rayitas casi exactas.</small>';
+    $('aprender').dataset.hoja = op.hoja;
+  }
   function render() {
+    renderAjustes();
     document.querySelectorAll('#apModos [data-modo]').forEach((b) => b.classList.toggle('activo', b.dataset.modo === op.modo));
     const contar = op.modo === 'contar';
     $('apTrazar').classList.toggle('hidden', contar);
@@ -376,6 +397,17 @@ const Aprender = (function () {
     $('apBorrar').addEventListener('click', borrar);
     $('apComo').addEventListener('click', () => { borrar(); mostrarComo(); decir('Mira cómo se hace'); });
     $('apOir').addEventListener('click', () => decir($('apMsg').textContent));
+    $('apAjBtn').addEventListener('click', () => $('apAjustes').classList.toggle('hidden'));
+    $('apAjustes').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.nivel) op.nivel = b.dataset.nivel;
+      if (b.dataset.hoja) op.hoja = b.dataset.hoja;
+      if (b.dataset.lapiz) op.lapiz = b.dataset.lapiz;
+      guardarOp();
+      // el tamaño de la hoja cambia el dibujo: se vuelve a armar la letra
+      setTimeout(render, 30);
+      renderAjustes();
+    });
     const c = $('apLienzo');
     c.addEventListener('pointerdown', (e) => { dibujando = true; ultimo = null; c.setPointerCapture(e.pointerId); trazar(e); });
     c.addEventListener('pointermove', trazar);
