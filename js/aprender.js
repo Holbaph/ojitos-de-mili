@@ -243,7 +243,7 @@ const Aprender = (function () {
     const hay = (x, y) => { x = Math.round(x); y = Math.round(y); return x >= 0 && y >= 0 && x < tam && y < tam && td[(y * tam + x) * 4 + 3] > 0; };
     // un punto de la línea de rayitas cuenta si su trazo pasó cerca (la línea es fina)
     const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]];
-    const RADIOS = [tam * 0.025, tam * 0.05];
+    const RADIOS = [tam * 0.025, tam * 0.05, tam * 0.07]; // margen ancho: es una niña de 4 años
     const cerca = ([x, y]) => hay(x, y) || RADIOS.some((r) => DIRS.some(([dx, dy]) => hay(x + dx * r, y + dy * r)));
     // de cada trazo se mira solo "su" parte: no lo que queda pegado a otro trazo
     // (si no, la rayita del medio de la A quedaría hecha con solo hacer los lados)
@@ -263,12 +263,16 @@ const Aprender = (function () {
     }
     const fuera = tintaTotal ? tintaFuera / tintaTotal : 0;
     trazos++;
-    // tras varios intentos se pide un poquito menos (pero siempre la letra entera)
-    const minimo = trazos >= 6 ? 0.55 : 0.7;
+    // AMABLE (es una niña de 4 años): basta con pasar por cada parte de la letra
+    // (no completarla), y cada intento pide un poco menos. Nunca se queda pegada:
+    // después de varios intentos, si dibujó algo, gana igual.
+    const minimo = trazos >= 4 ? 0.2 : trazos >= 2 ? 0.3 : 0.4;
+    const promedio = cubierto.reduce((a, b) => a + b, 0) / cubierto.length;
     const falta = cubierto.findIndex((c) => c < minimo);
-    if (falta === -1 && fuera < 0.55) { listo = true; ganarEstrella(); if (alTerminar) setTimeout(alTerminar, 900); return; }
-    if (fuera >= 0.55 && tintaTotal > 30) { aviso('Te saliste mucho de la letra 😊 Toca 🧽 Borrar y sigue las rayitas'); return; }
-    if (falta === -1) return;
+    const gana = (falta === -1 && promedio >= minimo + 0.1 && fuera < 0.8) || (trazos >= 7 && tintaTotal > 10);
+    if (gana) { listo = true; ganarEstrella(); aviso(['¡Lo lograste! ⭐', '¡Muy bien, Mili! ⭐', '¡Qué bonita te quedó! ⭐'][Math.floor(Math.random() * 3)]); if (alTerminar) setTimeout(alTerminar, 1100); return; }
+    if (fuera >= 0.8 && tintaTotal > 30) { aviso('¡Casi! Prueba pasando el dedito por la letra clarita 😊'); return; }
+    if (falta === -1) { aviso('¡Muy bien! Repasa un poquito más las rayitas ✍️'); return; }
     const hechas = cubierto.filter((c) => c >= minimo).length;
     if (trazosG.length > 1 && hechas > 0) aviso(`¡Muy bien! Ahora sigue la rayita número ${falta + 1} 🟢`);
     else aviso(cubierto[falta] > 0.3 ? '¡Casi! Sigue la línea de rayitas hasta el final ✍️' : 'Empieza en el puntito verde y sigue las rayitas ✍️');
